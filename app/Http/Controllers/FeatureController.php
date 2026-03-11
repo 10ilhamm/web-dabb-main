@@ -97,7 +97,7 @@ class FeatureController extends Controller
             }
 
             if ($feature->page_type === 'book' || $feature->is_virtual_book) {
-                return redirect()->route('cms.features.virtual_book_pages.index', $feature);
+                return redirect()->route('cms.features.virtual_books.index', $feature);
             }
 
             // Fallback to old logic based on name for backward compatibility
@@ -110,7 +110,7 @@ class FeatureController extends Controller
             }
 
             if (strtolower($feature->name) === 'pameran virtual buku' || str_contains(strtolower($feature->name), 'buku')) {
-                return redirect()->route('cms.features.virtual_book_pages.index', $feature);
+                return redirect()->route('cms.features.virtual_books.index', $feature);
             }
         }
 

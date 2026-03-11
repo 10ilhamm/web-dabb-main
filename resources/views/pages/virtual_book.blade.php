@@ -229,12 +229,19 @@
 
         <div class="flip-book" id="demoBookExample">
             @foreach($bookPages as $index => $page)
+                @php
+                    $images = $page->page_images ?? [];
+                    $firstImage = !empty($images) ? $images[0] : null;
+                    $imagePositions = $page->image_positions ?? [];
+                    $textPosition = $page->text_position ?? ['x' => 0, 'y' => 0, 'width' => 45, 'height' => 30];
+                @endphp
+
                 @if($page->is_cover)
                     <div class="vb-page page-cover page-cover-top" data-density="hard">
                         <div class="vb-page-content">
                             <h2>{{ $page->title ?: (app()->getLocale() === 'en' && $page->title_en ? $page->title_en : $feature->name) }}</h2>
-                            @if($page->image)
-                            <div class="vb-page-image" style="background-image: url('{{ asset('storage/' . $page->image) }}'); height: {{ $page->image_height ?? 50 }}%; margin-top: 20px;"></div>
+                            @if($firstImage)
+                            <div class="vb-page-image" style="background-image: url('{{ asset('storage/' . $firstImage) }}'); height: {{ $page->image_height ?? 50 }}%; margin-top: 20px; @if(isset($imagePositions[0])) background-position: {{ $imagePositions[0]['x'] ?? 50 }}% {{ $imagePositions[0]['y'] ?? 50 }}%; @endif"></div>
                             @endif
                         </div>
                     </div>
@@ -242,8 +249,8 @@
                     <div class="vb-page page-cover page-cover-bottom" data-density="hard">
                         <div class="vb-page-content">
                             <h2>{{ $page->title ?: 'THE END' }}</h2>
-                            @if($page->image)
-                            <div class="vb-page-image" style="background-image: url('{{ asset('storage/' . $page->image) }}'); height: {{ $page->image_height ?? 50 }}%; margin-top: 20px;"></div>
+                            @if($firstImage)
+                            <div class="vb-page-image" style="background-image: url('{{ asset('storage/' . $firstImage) }}'); height: {{ $page->image_height ?? 50 }}%; margin-top: 20px; @if(isset($imagePositions[0])) background-position: {{ $imagePositions[0]['x'] ?? 50 }}% {{ $imagePositions[0]['y'] ?? 50 }}%; @endif"></div>
                             @endif
                         </div>
                     </div>
@@ -254,12 +261,18 @@
                             <div class="vb-page-header">{{ app()->getLocale() === 'en' && $page->title_en ? $page->title_en : $page->title }}</div>
                             @endif
 
-                            @if($page->image)
-                            <div class="vb-page-image" style="background-image: url('{{ asset('storage/' . $page->image) }}'); height: {{ $page->image_height ?? 50 }}%;"></div>
+                            <!-- Multiple images support -->
+                            @if(count($images) > 0)
+                                @foreach($images as $imgIndex => $image)
+                                @php
+                                    $pos = $imagePositions[$imgIndex] ?? ['x' => 50, 'y' => 50];
+                                @endphp
+                                <div class="vb-page-image" style="background-image: url('{{ asset('storage/' . $image) }}'); height: {{ $page->image_height ?? 50 }}%; background-position: {{ $pos['x'] ?? 50 }}% {{ $pos['y'] ?? 50 }}%; margin-bottom: 5px;"></div>
+                                @endforeach
                             @endif
 
                             @if($page->content)
-                            <div class="vb-page-text">
+                            <div class="vb-page-text" style="@if($textPosition) margin-top: {{ $textPosition['y'] ?? 0 }}px; margin-left: {{ $textPosition['x'] ?? 0 }}px; width: {{ $textPosition['width'] ?? 45 }}%; height: {{ $textPosition['height'] ?? 30 }}%; @endif">
                                 {!! nl2br(e(app()->getLocale() === 'en' && $page->content_en ? $page->content_en : $page->content)) !!}
                             </div>
                             @endif

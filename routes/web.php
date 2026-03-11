@@ -115,15 +115,26 @@ Route::middleware('auth')->group(function () {
         Route::put('/{feature}/virtual-3d-rooms/{room}/media/{media}', [App\Http\Controllers\Cms\Virtual3dRoomController::class, 'updateMediaPosition'])->name('virtual_3d_rooms.media.update');
         Route::delete('/{feature}/virtual-3d-rooms/{room}/media/{media}', [App\Http\Controllers\Cms\Virtual3dRoomController::class, 'deleteMedia'])->name('virtual_3d_rooms.media.destroy');
 
-        // Virtual Book Pages (Pameran Virtual Buku)
-        Route::get('/{feature}/virtual-book-pages', [VirtualBookPageController::class, 'index'])->name('virtual_book_pages.index');
-        Route::get('/{feature}/virtual-book-pages/create', [VirtualBookPageController::class, 'create'])->name('virtual_book_pages.create');
-        Route::post('/{feature}/virtual-book-pages', [VirtualBookPageController::class, 'store'])->name('virtual_book_pages.store');
-        Route::get('/{feature}/virtual-book-pages/{virtualBookPage}/edit', [VirtualBookPageController::class, 'edit'])->name('virtual_book_pages.edit');
-        Route::get('/{feature}/virtual-book-pages/{virtualBookPage}', [VirtualBookPageController::class, 'show'])->name('virtual_book_pages.show');
-        Route::put('/{feature}/virtual-book-pages/{virtualBookPage}', [VirtualBookPageController::class, 'update'])->name('virtual_book_pages.update');
-        Route::delete('/{feature}/virtual-book-pages/{virtualBookPage}', [VirtualBookPageController::class, 'destroy'])->name('virtual_book_pages.destroy');
-        Route::put('/{feature}/virtual-book-pages-settings', [VirtualBookPageController::class, 'updateSettings'])->name('virtual_book_pages.settings');
+        // Virtual Books (Multiple books per feature)
+        Route::get('/{feature}/virtual-books', [App\Http\Controllers\Cms\BookController::class, 'index'])->name('virtual_books.index');
+        Route::get('/{feature}/virtual-books/create', [App\Http\Controllers\Cms\BookController::class, 'create'])->name('virtual_books.create');
+        Route::post('/{feature}/virtual-books', [App\Http\Controllers\Cms\BookController::class, 'store'])->name('virtual_books.store');
+        Route::get('/{feature}/virtual-books/{book}/edit', [App\Http\Controllers\Cms\BookController::class, 'edit'])->name('virtual_books.edit');
+        Route::put('/{feature}/virtual-books/{book}', [App\Http\Controllers\Cms\BookController::class, 'update'])->name('virtual_books.update');
+        Route::delete('/{feature}/virtual-books/{book}', [App\Http\Controllers\Cms\BookController::class, 'destroy'])->name('virtual_books.destroy');
+
+        // Virtual Book Pages (Pages within a book)
+        Route::get('/{feature}/virtual-books/{book}/pages', [App\Http\Controllers\Cms\BookController::class, 'pages'])->name('virtual_books.pages.index');
+        Route::get('/{feature}/virtual-books/{book}/pages/create', [VirtualBookPageController::class, 'create'])->name('virtual_books.pages.create');
+        Route::post('/{feature}/virtual-books/{book}/pages', [VirtualBookPageController::class, 'store'])->name('virtual_books.pages.store');
+        Route::get('/{feature}/virtual-books/{book}/pages/{virtualBookPage}/edit', [VirtualBookPageController::class, 'edit'])->name('virtual_books.pages.edit');
+        Route::put('/{feature}/virtual-books/{book}/pages/{virtualBookPage}', [VirtualBookPageController::class, 'update'])->name('virtual_books.pages.update');
+        Route::delete('/{feature}/virtual-books/{book}/pages/{virtualBookPage}', [VirtualBookPageController::class, 'destroy'])->name('virtual_books.pages.destroy');
+
+        // Legacy routes - redirect to new structure
+        Route::get('/{feature}/virtual-book-pages', function($feature) {
+            return redirect()->route('cms.features.virtual_books.index', $feature);
+        });
     });
 });
 

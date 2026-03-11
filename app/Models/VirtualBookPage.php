@@ -8,12 +8,16 @@ class VirtualBookPage extends Model
 {
     protected $fillable = [
         'feature_id',
+        'book_id',
         'title',
         'title_en',
         'content',
         'content_en',
         'image',
+        'images',
         'image_height',
+        'image_positions',
+        'text_position',
         'page_number',
         'is_cover',
         'is_back_cover',
@@ -23,10 +27,51 @@ class VirtualBookPage extends Model
     protected $casts = [
         'is_cover' => 'boolean',
         'is_back_cover' => 'boolean',
+        'images' => 'array',
+        'image_positions' => 'array',
+        'text_position' => 'array',
     ];
 
     public function feature()
     {
         return $this->belongsTo(Feature::class);
+    }
+
+    public function book()
+    {
+        return $this->belongsTo(Book::class);
+    }
+
+    /**
+     * Get images array for display - handles both old single image and new images array
+     */
+    public function getPageImagesAttribute()
+    {
+        // Get the raw images value from database
+        $imagesFromDb = $this->attributes['images'] ?? null;
+
+        // If images array exists in DB and is not empty, decode and use it
+        if ($imagesFromDb) {
+            $decoded = is_array($imagesFromDb) ? $imagesFromDb : json_decode($imagesFromDb, true);
+            if ($decoded && is_array($decoded) && count($decoded) > 0) {
+                return $decoded;
+            }
+        }
+
+        // Backward compatibility: if old single image exists, convert to array
+        if (isset($this->attributes['image']) && $this->attributes['image']) {
+            return [$this->attributes['image']];
+        }
+
+        return [];
+    }
+
+    /**
+     * Get first image for backward compatibility
+     */
+    public function getImageAttribute($value)
+    {
+        $images = $this->page_images;
+        return $images[0] ?? null;
     }
 }

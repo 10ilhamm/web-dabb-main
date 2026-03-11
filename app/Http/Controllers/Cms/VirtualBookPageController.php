@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Cms;
 
 use App\Http\Controllers\Controller;
 use App\Models\Feature;
+use App\Models\Book;
 use App\Models\VirtualBookPage;
 use App\Services\TranslationService;
 use Illuminate\Http\Request;
@@ -12,53 +13,49 @@ use Illuminate\Support\Facades\Storage;
 class VirtualBookPageController extends Controller
 {
     /**
-     * List pages for a feature (CMS).
+     * Show create form for a new page within a book.
      */
-    public function index(Feature $feature)
-    {
-        $feature->load(['virtualBookPages', 'parent']);
-
-        return view('cms.features.virtual_book_pages.index', compact('feature'));
-    }
-
-    /**
-     * Show create form for a new page.
-     */
-    public function create(Feature $feature)
+    public function create(Feature $feature, Book $book)
     {
         $feature->load('parent');
-        $maxOrder = $feature->virtualBookPages()->max('order') ?? 0;
+        $maxOrder = $book->pages()->max('order') ?? 0;
 
-        return view('cms.features.virtual_book_pages.create', compact('feature', 'maxOrder'));
+        return view('cms.features.virtual_books.pages.create', compact('feature', 'book', 'maxOrder'));
     }
 
     /**
      * Show edit form for a page.
      */
-    public function edit(Feature $feature, VirtualBookPage $virtualBookPage)
+    public function edit(Feature $feature, Book $book, VirtualBookPage $virtualBookPage)
     {
         $feature->load('parent');
 
-        return view('cms.features.virtual_book_pages.edit', compact('feature', 'virtualBookPage'));
+        return view('cms.features.virtual_books.pages.edit', compact('feature', 'book', 'virtualBookPage'));
     }
 
     /**
-     * Store a new page for a virtual book.
+     * Store a new page for a book.
      */
-    public function store(Request $request, Feature $feature, TranslationService $translationService)
+    public function store(Request $request, Feature $feature, Book $book, TranslationService $translationService)
     {
         $validated = $request->validate([
             'title' => 'nullable|string|max:255',
             'content' => 'nullable|string',
-            'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'images.*' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'image_height' => 'nullable|integer|min:10|max:100',
-            'is_cover' => 'boolean',
-            'is_back_cover' => 'boolean',
+            'image_positions' => 'nullable|array',
+            'text_position' => 'nullable|array',
+            'page_type' => 'nullable|string',
             'order' => 'required|integer|min:0',
         ]);
 
         $validated['feature_id'] = $feature->id;
+        $validated['book_id'] = $book->id;
         $validated['image_height'] = $validated['image_height'] ?? 50;
+
+        // Handle page type
+        $validated['is_cover'] = $request->page_type === 'cover';
+        $validated['is_back_cover'] = $request->page_type === 'back_cover';
 
         // Handle translation
         $validated['title_en'] = !empty($validated['title'])
@@ -68,40 +65,37 @@ class VirtualBookPageController extends Controller
             ? $translationService->translate($validated['content'])
             : null;
 
-        // Handle image upload
-        if ($request->hasFile('image')) {
-            $validated['image'] = $request->file('image')->store('features/virtual-books', 'public');
+        // Handle multiple image uploads
+        $images = [];
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $image) {
+                $images[] = $image->store('features/virtual-books', 'public');
+            }
         }
+        $validated['images'] = $images;
+        $validated['image_positions'] = $validated['image_positions'] ?? array_fill(0, count($images), ['x' => 0, 'y' => 0]);
+        $validated['text_position'] = $validated['text_position'] ?? ['x' => 0, 'y' => 0, 'width' => 45, 'height' => 30];
 
         VirtualBookPage::create($validated);
 
-        return redirect()->route('cms.features.virtual_book_pages.index', $feature)
+        return redirect()->route('cms.features.virtual_books.pages.index', [$feature, $book])
             ->with('success', 'Halaman buku berhasil ditambahkan');
-    }
-
-    /**
-     * Show page detail - manage single page (CMS).
-     */
-    public function show(Feature $feature, VirtualBookPage $virtualBookPage)
-    {
-        $feature->load('parent');
-
-        return view('cms.features.virtual_book_pages.show', compact('feature', 'virtualBookPage'));
     }
 
     /**
      * Update a page.
      */
-    public function update(Request $request, Feature $feature, VirtualBookPage $virtualBookPage, TranslationService $translationService)
+    public function update(Request $request, Feature $feature, Book $book, VirtualBookPage $virtualBookPage, TranslationService $translationService)
     {
         $validated = $request->validate([
             'title' => 'nullable|string|max:255',
             'content' => 'nullable|string',
-            'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'images.*' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'image_height' => 'nullable|integer|min:10|max:100',
-            'remove_image' => 'boolean',
-            'is_cover' => 'boolean',
-            'is_back_cover' => 'boolean',
+            'image_positions' => 'nullable|array',
+            'text_position' => 'nullable|array',
+            'remove_images' => 'nullable|array',
+            'page_type' => 'nullable|string',
             'order' => 'required|integer|min:0',
         ]);
 
@@ -110,6 +104,10 @@ class VirtualBookPageController extends Controller
             $validated['image_height'] = $virtualBookPage->image_height ?? 50;
         }
 
+        // Handle page type
+        $validated['is_cover'] = $request->page_type === 'cover';
+        $validated['is_back_cover'] = $request->page_type === 'back_cover';
+
         // Handle translation
         $validated['title_en'] = !empty($validated['title'])
             ? $translationService->translate($validated['title'])
@@ -118,87 +116,60 @@ class VirtualBookPageController extends Controller
             ? $translationService->translate($validated['content'])
             : null;
 
-        // Handle image upload
-        if ($request->hasFile('image')) {
-            // Delete old image
-            if ($virtualBookPage->image) {
-                Storage::disk('public')->delete($virtualBookPage->image);
+        // Handle multiple image uploads
+        $images = $virtualBookPage->page_images ?? [];
+        $imagePositions = $virtualBookPage->image_positions ?? [];
+
+        // Handle removing images
+        if ($request->has('remove_images')) {
+            foreach ($request->remove_images as $index => $value) {
+                if (isset($images[$index])) {
+                    Storage::disk('public')->delete($images[$index]);
+                    unset($images[$index]);
+                }
             }
-            $validated['image'] = $request->file('image')->store('features/virtual-books', 'public');
-        } elseif ($request->boolean('remove_image')) {
-            // Remove existing image
-            if ($virtualBookPage->image) {
-                Storage::disk('public')->delete($virtualBookPage->image);
+            $images = array_values($images);
+            $imagePositions = array_values($imagePositions);
+        }
+
+        // Handle new image uploads
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $image) {
+                $images[] = $image->store('features/virtual-books', 'public');
+                $imagePositions[] = ['x' => 0, 'y' => 0];
             }
-            $validated['image'] = null;
+        }
+
+        $validated['images'] = $images;
+        $validated['image_positions'] = $imagePositions;
+
+        // Handle text position
+        if (isset($validated['text_position'])) {
+            $validated['text_position'] = $validated['text_position'];
         } else {
-            // Keep existing image - remove from validated to not update
-            unset($validated['image']);
+            $validated['text_position'] = $text_position ?? ['x' => 0, 'yvirtualBookPage->' => 0];
         }
 
         $virtualBookPage->update($validated);
 
-        return redirect()->route('cms.features.virtual_book_pages.index', $feature)
+        return redirect()->route('cms.features.virtual_books.pages.index', [$feature, $book])
             ->with('success', 'Halaman buku berhasil diperbarui');
     }
 
     /**
      * Delete a page.
      */
-    public function destroy(Feature $feature, VirtualBookPage $virtualBookPage)
+    public function destroy(Feature $feature, Book $book, VirtualBookPage $virtualBookPage)
     {
-        // Delete image
-        if ($virtualBookPage->image) {
-            Storage::disk('public')->delete($virtualBookPage->image);
+        // Delete images
+        $images = $virtualBookPage->page_images ?? [];
+        foreach ($images as $image) {
+            Storage::disk('public')->delete($image);
         }
 
         $virtualBookPage->delete();
 
-        return redirect()->route('cms.features.virtual_book_pages.index', $feature)
+        return redirect()->route('cms.features.virtual_books.pages.index', [$feature, $book])
             ->with('success', 'Halaman buku berhasil dihapus');
-    }
-
-    /**
-     * Update virtual book settings (cover, thumbnail).
-     */
-    public function updateSettings(Request $request, Feature $feature, TranslationService $translationService)
-    {
-        $validated = $request->validate([
-            'book_cover' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-            'book_thumbnail' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-            'remove_book_cover' => 'boolean',
-            'remove_book_thumbnail' => 'boolean',
-        ]);
-
-        // Handle book cover upload
-        if ($request->hasFile('book_cover')) {
-            if ($feature->book_cover) {
-                Storage::disk('public')->delete($feature->book_cover);
-            }
-            $feature->book_cover = $request->file('book_cover')->store('features/virtual-books', 'public');
-        } elseif ($request->boolean('remove_book_cover')) {
-            if ($feature->book_cover) {
-                Storage::disk('public')->delete($feature->book_cover);
-            }
-            $feature->book_cover = null;
-        }
-
-        // Handle book thumbnail upload
-        if ($request->hasFile('book_thumbnail')) {
-            if ($feature->book_thumbnail) {
-                Storage::disk('public')->delete($feature->book_thumbnail);
-            }
-            $feature->book_thumbnail = $request->file('book_thumbnail')->store('features/virtual-books', 'public');
-        } elseif ($request->boolean('remove_book_thumbnail')) {
-            if ($feature->book_thumbnail) {
-                Storage::disk('public')->delete($feature->book_thumbnail);
-            }
-            $feature->book_thumbnail = null;
-        }
-
-        $feature->save();
-
-        return redirect()->route('cms.features.virtual_book_pages.index', $feature)
-            ->with('success', 'Pengaturan buku berhasil diperbarui');
     }
 }

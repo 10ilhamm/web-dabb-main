@@ -51,4 +51,9 @@ class Feature extends Model
     {
         return $this->hasMany(VirtualBookPage::class)->orderBy('order');
     }
+
+    public function books()
+    {
+        return $this->hasMany(Book::class)->orderBy('order');
+    }
 }
