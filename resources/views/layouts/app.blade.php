@@ -566,9 +566,11 @@
     <script src="https://cdn.datatables.net/1.13.8/js/dataTables.tailwindcss.min.js"></script>
     <script>
         $.extend(true, $.fn.dataTable.defaults, {
+            @if(app()->getLocale() === 'id')
             language: {
                 url: '//cdn.datatables.net/plug-ins/1.13.8/i18n/id.json'
             },
+            @endif
             pageLength: 10,
             // dom: top controls row, table, bottom controls row
             dom: '<"dt-top-row"<"dataTables_length"l><"dataTables_filter"f>>t<"dt-bottom-row"<"dataTables_info"i><"dataTables_paginate"p>>',
