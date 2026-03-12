@@ -12,13 +12,13 @@
 <div class="mb-4">
     <a href="{{ route('cms.features.virtual_books.pages.index', [$feature, $book]) }}" class="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-white text-sm font-medium transition-colors shadow-sm" style="background-color: #818284;">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
-        Kembali ke Daftar
+        {{ __('cms.virtual_book_pages.back_to_list') }}
     </a>
 </div>
 
 <div class="mb-6">
-    <h1 class="text-2xl font-bold text-gray-800">Tambah Halaman Buku</h1>
-    <p class="text-sm text-gray-500 mt-1">Tambahkan halaman baru untuk buku virtual</p>
+    <h1 class="text-2xl font-bold text-gray-800">{{ __('cms.virtual_book_pages.create_title') }}</h1>
+    <p class="text-sm text-gray-500 mt-1">{{ __('cms.virtual_book_pages.create_desc') }}</p>
 </div>
 
 <form action="{{ route('cms.features.virtual_books.pages.store', [$feature, $book]) }}" method="POST" enctype="multipart/form-data" class="space-y-6">
@@ -31,13 +31,13 @@
 
             <!-- Multiple Image Upload Section -->
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
-                <h3 class="text-sm font-semibold text-gray-800 mb-4">Gambar Halaman</h3>
+                <h3 class="text-sm font-semibold text-gray-800 mb-4">{{ __('cms.virtual_book_pages.form.images_title') }}</h3>
 
                 <div class="space-y-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Upload Gambar (Bisa Banyak)</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">{{ __('cms.virtual_book_pages.form.upload_images') }}</label>
                         <input type="file" name="images[]" accept="image/*" multiple class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer" onchange="handleImageUpload(this)">
-                        <p class="text-xs text-gray-500 mt-1.5">JPG, PNG, atau WebP. Maks 2MB per gambar. Bisa upload beberapa gambar sekaligus.</p>
+                        <p class="text-xs text-gray-500 mt-1.5">{{ __('cms.virtual_book_pages.form.upload_images_help') }}</p>
                     </div>
 
                     <!-- Image Thumbnails -->
@@ -48,51 +48,51 @@
 
             <!-- Page Information -->
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
-                <h3 class="text-sm font-semibold text-gray-800 mb-4">Informasi Halaman</h3>
+                <h3 class="text-sm font-semibold text-gray-800 mb-4">{{ __('cms.virtual_book_pages.form.page_info') }}</h3>
 
                 <div class="space-y-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Judul Halaman</label>
-                        <input type="text" name="title" id="pageTitleInput" value="{{ old('title') }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="Masukkan judul halaman" oninput="updatePreview()">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('cms.virtual_book_pages.form.title') }}</label>
+                        <input type="text" name="title" id="pageTitleInput" value="{{ old('title') }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="{{ __('cms.virtual_book_pages.form.title_placeholder') }}" oninput="updatePreview()">
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Konten Teks</label>
-                        <textarea name="content" id="pageContentInput" rows="6" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="Masukkan konten teks halaman" oninput="updatePreview()">{{ old('content') }}</textarea>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('cms.virtual_book_pages.form.content') }}</label>
+                        <textarea name="content" id="pageContentInput" rows="6" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="{{ __('cms.virtual_book_pages.form.content_placeholder') }}" oninput="updatePreview()">{{ old('content') }}</textarea>
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Ukuran Gambar (%)</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">{{ __('cms.virtual_book_pages.form.image_size') }}</label>
                         <div class="flex items-center gap-3">
                             <input type="range" name="image_height" id="imageHeightSlider" min="10" max="100" value="50" class="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer" oninput="document.getElementById('imageHeightValue').textContent = this.value + '%'; updatePreview()">
                             <span id="imageHeightValue" class="text-sm text-gray-600 w-12 text-right">50%</span>
                         </div>
-                        <p class="text-xs text-gray-500 mt-1">Atur tinggi gambar dalam halaman</p>
+                        <p class="text-xs text-gray-500 mt-1">{{ __('cms.virtual_book_pages.form.image_size_help') }}</p>
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Urutan <span class="text-red-500">*</span></label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('cms.virtual_book_pages.form.order') }} <span class="text-red-500">*</span></label>
                         <input type="number" name="order" value="{{ $maxOrder + 1 }}" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
-                        <p class="text-xs text-gray-500 mt-1">Urutan tampilan halaman dalam buku</p>
+                        <p class="text-xs text-gray-500 mt-1">{{ __('cms.virtual_book_pages.form.order_help') }}</p>
                     </div>
                 </div>
             </div>
 
             <!-- Thumbnail Section -->
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
-                <h3 class="text-sm font-semibold text-gray-800 mb-4">Thumbnail Halaman</h3>
+                <h3 class="text-sm font-semibold text-gray-800 mb-4">{{ __('cms.virtual_book_pages.form.thumbnail_title') }}</h3>
 
                 <div class="space-y-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Upload Thumbnail</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">{{ __('cms.virtual_book_pages.form.upload_thumbnail') }}</label>
                         <input type="file" name="thumbnail" id="thumbnailInput" accept="image/*" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
                         <input type="hidden" name="generated_thumbnail" id="generatedThumbnail">
 
                         <!-- Thumbnail Preview -->
                         <div id="thumbnailPreviewContainer" class="mt-2 hidden">
-                            <p class="text-xs text-gray-500 mb-1">Thumbnail yang akan disimpan:</p>
+                            <p class="text-xs text-gray-500 mb-1">{{ __('cms.virtual_book_pages.form.thumbnail_will_save') }}</p>
                             <img id="thumbnailPreview" class="w-24 h-32 object-cover rounded-lg border border-gray-200" alt="Thumbnail Preview">
-                            <button type="button" id="removeThumbnail" class="mt-1 text-xs text-red-500 hover:text-red-700">Hapus</button>
+                            <button type="button" id="removeThumbnail" class="mt-1 text-xs text-red-500 hover:text-red-700">{{ __('cms.virtual_book_pages.form.remove') }}</button>
                         </div>
 
                         <div class="flex items-center gap-2 mt-2">
@@ -100,20 +100,20 @@
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                 </svg>
-                                Generate dari Preview
+                                {{ __('cms.virtual_book_pages.form.generate_thumbnail') }}
                             </button>
                         </div>
-                        <p class="text-xs text-gray-500 mt-1.5">Atau upload manual. Generate akan membuat thumbnail dari preview halaman.</p>
+                        <p class="text-xs text-gray-500 mt-1.5">{{ __('cms.virtual_book_pages.form.generate_help') }}</p>
                     </div>
                 </div>
             </div>
 
             <div class="flex justify-end gap-3">
                 <a href="{{ route('cms.features.virtual_books.pages.index', [$feature, $book]) }}" class="px-5 py-2.5 bg-gray-100 border border-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 active:bg-gray-300 transition-colors shadow-sm">
-                    Batal
+                    {{ __('cms.common.cancel') }}
                 </a>
                 <button type="submit" class="px-5 py-2.5 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm" style="background-color:#1d4ed8;">
-                    Simpan Halaman
+                    {{ __('cms.virtual_book_pages.btn_save') }}
                 </button>
             </div>
         </div>
@@ -121,8 +121,8 @@
         <!-- Right Column: Live Preview -->
         <div class="flex-1" style="width: 62%;">
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 sticky top-6">
-                <h3 class="text-sm font-semibold text-gray-800 mb-1">Preview Halaman</h3>
-                <p class="text-xs text-gray-500 mb-2">Geser langsung elemen di preview dengan cursor</p>
+                <h3 class="text-sm font-semibold text-gray-800 mb-1">{{ __('cms.virtual_book_pages.preview_title') }}</h3>
+                <p class="text-xs text-gray-500 mb-2">{{ __('cms.virtual_book_pages.preview_hint') }}</p>
 
                 <div class="book-preview-container">
                     <div class="book-preview-wrapper">

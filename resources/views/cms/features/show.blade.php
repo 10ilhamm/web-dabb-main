@@ -229,14 +229,14 @@
                     </select>
                 </div>
                 <div x-show="addSubModal.type === 'link'">
-                    <label class="block text-sm font-medium text-gray-700 mb-1.5">Tipe Halaman</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">{{ __('cms.page_types.label') }}</label>
                     <select name="page_type" x-model="addSubModal.pageType"
                         class="w-full px-3.5 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition bg-white">
-                        <option value="none">Tidak Ada</option>
-                        <option value="onsite">Pameran Arsip Onsite</option>
-                        <option value="real">Pameran Arsip Virtual Real (360°)</option>
-                        <option value="3d">Pameran Arsip Virtual 3D</option>
-                        <option value="book">Pameran Arsip Virtual Buku</option>
+                        <option value="none">{{ __('cms.page_types.none') }}</option>
+                        <option value="onsite">{{ __('cms.page_types.onsite') }}</option>
+                        <option value="real">{{ __('cms.page_types.real') }}</option>
+                        <option value="3d">{{ __('cms.page_types.3d') }}</option>
+                        <option value="book">{{ __('cms.page_types.book') }}</option>
                     </select>
                 </div>
                 <div>
@@ -298,14 +298,14 @@
                     </select>
                 </div>
                 <div x-show="editSubModal.type === 'link'">
-                    <label class="block text-sm font-medium text-gray-700 mb-1.5">Tipe Halaman</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">{{ __('cms.page_types.label') }}</label>
                     <select name="page_type" x-model="editSubModal.pageType"
                         class="w-full px-3.5 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition bg-white">
-                        <option value="none">Tidak Ada</option>
-                        <option value="onsite">Pameran Arsip Onsite</option>
-                        <option value="real">Pameran Arsip Virtual Real (360°)</option>
-                        <option value="3d">Pameran Arsip Virtual 3D</option>
-                        <option value="book">Pameran Arsip Virtual Buku</option>
+                        <option value="none">{{ __('cms.page_types.none') }}</option>
+                        <option value="onsite">{{ __('cms.page_types.onsite') }}</option>
+                        <option value="real">{{ __('cms.page_types.real') }}</option>
+                        <option value="3d">{{ __('cms.page_types.3d') }}</option>
+                        <option value="book">{{ __('cms.page_types.book') }}</option>
                     </select>
                 </div>
                 <div>

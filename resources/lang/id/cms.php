@@ -439,6 +439,210 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | CMS — Buku Virtual
+    |--------------------------------------------------------------------------
+    */
+
+    'virtual_books' => [
+        'breadcrumb_parent' => 'CMS',
+        'breadcrumb_list' => 'Daftar Buku',
+        'breadcrumb_create' => 'Tambah Buku',
+        'breadcrumb_edit' => 'Edit Buku',
+
+        'page_title' => 'Daftar Buku: :name',
+        'page_desc' => 'Kelola buku dalam fitur ini',
+        'add_button' => 'Tambah Buku',
+        'table_title' => 'Daftar Buku',
+
+        'col_cover' => 'Cover',
+        'col_title' => 'Judul Buku',
+        'col_pages' => 'Jml Halaman',
+        'col_order' => 'Urutan',
+        'col_action' => 'Aksi',
+
+        'no_cover' => 'No Cover',
+        'page_count' => ':count halaman',
+        'detail_title' => 'Detail - Kelola Halaman',
+        'edit_cover' => 'Edit Cover Buku',
+        'empty' => 'Belum ada buku. Klik "Tambah Buku" untuk membuat buku pertama.',
+
+        'delete' => [
+            'title' => 'Hapus Buku',
+            'confirm' => 'Yakin ingin menghapus buku',
+            'confirm_warn' => '? Semua halaman juga akan dihapus.',
+            'yes' => 'Ya, Hapus',
+        ],
+
+        // Create form
+        'create_title' => 'Tambah Buku Baru',
+        'create_desc' => 'Buat buku baru dalam fitur :name',
+        'back_to_list' => 'Kembali ke Daftar Buku',
+
+        // Edit form
+        'edit_title' => 'Edit Buku: :name',
+        'edit_desc' => 'Perbarui pengaturan cover buku',
+        'book_settings' => 'Pengaturan Buku',
+
+        // Form fields
+        'form' => [
+            'title' => 'Judul Buku',
+            'title_placeholder' => 'Masukkan judul buku',
+            'cover' => 'Cover Buku',
+            'cover_help' => 'JPG, PNG, atau WebP.',
+            'cover_help_optional' => 'JPG, PNG, atau WebP. Opsional.',
+            'remove_cover' => 'Hapus cover',
+            'remove_back_cover' => 'Hapus cover belakang',
+            'additional_text' => 'Teks Tambahan (Opsional)',
+            'additional_text_help' => 'Tambahkan teks seperti subjudul atau deskripsi sampul',
+            'additional_text_placeholder' => 'Teks tambahan :number',
+            'add_text' => 'Tambah Teks',
+            'back_cover' => 'Sampul Belakang',
+            'back_title' => 'Judul Buku (Belakang)',
+            'back_title_placeholder' => 'Judul untuk sampul belakang (opsional)',
+            'back_cover_label' => 'Cover Buku (Belakang)',
+            'back_text' => 'Teks Tambahan (Belakang)',
+            'back_text_help' => 'Tambahkan teks untuk sampul belakang',
+            'thumbnail' => 'Thumbnail Daftar',
+            'thumbnail_will_save' => 'Thumbnail yang akan disimpan:',
+            'thumbnail_new_will_save' => 'Thumbnail baru yang akan disimpan:',
+            'remove_thumbnail' => 'Hapus thumbnail',
+            'remove' => 'Hapus',
+            'cancel_remove' => 'Batal',
+            'generate_thumbnail' => 'Generate dari Preview',
+            'generate_help' => 'Atau upload manual. Generate akan membuat thumbnail dari preview buku.',
+            'order' => 'Urutan',
+            'order_help' => 'Urutan tampilan buku dalam fitur',
+        ],
+
+        // Preview
+        'preview_title' => 'Preview Cover Buku',
+        'preview_placeholder' => 'Upload cover untuk preview',
+        'preview_default_title' => 'Judul Buku',
+        'preview_back_title' => 'Preview Sampul Belakang',
+        'preview_back_placeholder' => 'Upload cover belakang',
+        'zoom_out' => 'Perkecil',
+        'zoom_in' => 'Perbesar',
+        'reset_position' => 'Reset Posisi',
+        'drag_hint' => 'Geser elemen untuk mengatur posisi | Scroll pada gambar untuk ubah ukuran',
+
+        // Buttons
+        'btn_cancel' => 'Batal',
+        'btn_save' => 'Simpan Buku',
+        'btn_save_changes' => 'Simpan Perubahan',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | CMS — Halaman Buku Virtual
+    |--------------------------------------------------------------------------
+    */
+
+    'virtual_book_pages' => [
+        'breadcrumb_parent' => 'CMS / Buku Virtual',
+        'breadcrumb_list' => 'Halaman Buku',
+        'breadcrumb_create' => 'Tambah Halaman',
+        'breadcrumb_edit' => 'Edit Halaman',
+
+        'page_title' => 'Halaman: :name',
+        'page_desc' => 'Kelola halaman dalam buku ini',
+        'edit_cover' => 'Edit Cover',
+        'add_button' => 'Tambah Halaman',
+        'no_cover' => 'No Cover',
+        'page_count' => ':count halaman',
+        'table_title' => 'Daftar Halaman Buku',
+
+        'col_thumbnail' => 'Thumbnail',
+        'col_title' => 'Judul',
+        'col_type' => 'Tipe',
+        'col_order' => 'Urutan',
+        'col_action' => 'Aksi',
+
+        'no_thumb' => 'No Thumb',
+        'type_cover' => 'Sampul Depan',
+        'type_back_cover' => 'Sampul Belakang',
+        'type_content' => 'Halaman Isi',
+        'empty' => 'Belum ada halaman. Klik "Tambah Halaman" untuk memulai.',
+
+        'delete' => [
+            'title' => 'Hapus Halaman',
+            'confirm' => 'Yakin ingin menghapus halaman',
+            'yes' => 'Ya, Hapus',
+        ],
+
+        // Create form
+        'create_title' => 'Tambah Halaman Buku',
+        'create_desc' => 'Tambahkan halaman baru untuk buku virtual',
+        'back_to_list' => 'Kembali ke Daftar',
+
+        // Edit form
+        'edit_title' => 'Edit Halaman: :name',
+        'edit_desc' => 'Perbarui informasi halaman buku virtual',
+
+        // Form fields
+        'form' => [
+            'images_title' => 'Gambar Halaman',
+            'upload_images' => 'Upload Gambar (Bisa Banyak)',
+            'upload_images_help' => 'JPG, PNG, atau WebP. Maks 2MB per gambar. Bisa upload beberapa gambar sekaligus.',
+            'current_images' => 'Gambar Saat Ini',
+            'existing_label' => 'Ada',
+            'remove_all_images' => 'Hapus semua gambar',
+            'upload_new_images' => 'Upload Gambar Baru',
+            'upload_new_images_help' => 'JPG, PNG, atau WebP. Maks 2MB per gambar.',
+            'page_info' => 'Informasi Halaman',
+            'title' => 'Judul Halaman',
+            'title_placeholder' => 'Masukkan judul halaman',
+            'content' => 'Konten Teks',
+            'content_placeholder' => 'Masukkan konten teks halaman',
+            'image_size' => 'Ukuran Gambar (%)',
+            'image_size_help' => 'Atur tinggi gambar dalam halaman',
+            'order' => 'Urutan',
+            'order_help' => 'Urutan tampilan halaman dalam buku',
+            'thumbnail_title' => 'Thumbnail Halaman',
+            'current_thumbnail' => 'Thumbnail Saat Ini',
+            'remove_thumbnail' => 'Hapus thumbnail',
+            'upload_thumbnail' => 'Upload Thumbnail',
+            'upload_new_thumbnail' => 'Upload Thumbnail Baru',
+            'thumbnail_will_save' => 'Thumbnail yang akan disimpan:',
+            'thumbnail_new_will_save' => 'Thumbnail baru yang akan disimpan:',
+            'remove' => 'Hapus',
+            'cancel_remove' => 'Batal',
+            'generate_thumbnail' => 'Generate dari Preview',
+            'generate_help' => 'Atau upload manual. Generate akan membuat thumbnail dari preview halaman.',
+        ],
+
+        // Preview
+        'preview_title' => 'Preview Halaman',
+        'preview_hint' => 'Geser langsung elemen di preview dengan cursor',
+        'default_title' => 'Judul Halaman',
+        'new_label' => 'Baru :number',
+
+        // Buttons
+        'btn_cancel' => 'Batal',
+        'btn_save' => 'Simpan Halaman',
+        'btn_save_changes' => 'Simpan Perubahan',
+
+        // JS messages
+        'js' => [
+            'generating' => 'Generating...',
+            'generate_failed' => 'Gagal generate thumbnail: ',
+            'generate_btn' => 'Generate dari Preview',
+            'preview_not_found' => 'Preview buku tidak ditemukan',
+            'upload_cover_first' => 'Silakan upload cover buku terlebih dahulu',
+        ],
+    ],
+
+    // Opsi tipe halaman (shared: show.blade.php sub menu modals)
+    'page_types' => [
+        'label' => 'Tipe Halaman',
+        'none' => 'Tidak Ada',
+        'onsite' => 'Pameran Arsip Onsite',
+        'real' => 'Pameran Arsip Virtual Real (360°)',
+        '3d' => 'Pameran Arsip Virtual 3D',
+        'book' => 'Pameran Arsip Virtual Buku',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Common (shared across CMS pages)
     |--------------------------------------------------------------------------
     */

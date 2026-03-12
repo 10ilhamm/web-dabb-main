@@ -5,7 +5,7 @@
 @endpush
 
 @section('breadcrumb_parent', 'CMS / ' . $feature->name)
-@section('breadcrumb_active', 'Halaman Buku')
+@section('breadcrumb_active', __('cms.virtual_book_pages.breadcrumb_list'))
 
 @section('content')
 <div class="space-y-6" x-data="{ deleteModal: { open: false, id: null, name: '' } }">
@@ -20,19 +20,19 @@
                 </svg>
             </a>
             <div>
-                <h1 class="text-2xl font-bold text-gray-800">Halaman: {{ $book->title }}</h1>
-                <p class="text-sm text-gray-500 mt-0.5">Kelola halaman dalam buku ini</p>
+                <h1 class="text-2xl font-bold text-gray-800">{{ __('cms.virtual_book_pages.page_title', ['name' => $book->title]) }}</h1>
+                <p class="text-sm text-gray-500 mt-0.5">{{ __('cms.virtual_book_pages.page_desc') }}</p>
             </div>
         </div>
 
         <div class="flex items-center gap-3">
             <a href="{{ route('cms.features.virtual_books.edit', [$feature, $book]) }}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-yellow-400 hover:bg-yellow-500 text-white text-sm font-medium rounded-lg transition-colors shadow-sm">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                Edit Cover
+                {{ __('cms.virtual_book_pages.edit_cover') }}
             </a>
             <a href="{{ route('cms.features.virtual_books.pages.create', [$feature, $book]) }}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-gray-800 border border-transparent text-white text-sm font-semibold rounded-lg hover:bg-gray-900 transition-colors shadow-sm">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
-                Tambah Halaman
+                {{ __('cms.virtual_book_pages.add_button') }}
             </a>
         </div>
     </div>
@@ -44,29 +44,29 @@
         @elseif($book->cover_image)
         <img src="{{ asset('storage/' . $book->cover_image) }}" alt="Cover" class="w-20 h-28 object-cover rounded shadow">
         @else
-        <div class="w-20 h-28 bg-gray-200 rounded flex items-center justify-center text-gray-400">No Cover</div>
+        <div class="w-20 h-28 bg-gray-200 rounded flex items-center justify-center text-gray-400">{{ __('cms.virtual_books.no_cover') }}</div>
         @endif
         <div>
             <h3 class="font-semibold text-gray-800">{{ $book->title }}</h3>
-            <p class="text-sm text-gray-500">{{ $book->pages->count() }} halaman</p>
+            <p class="text-sm text-gray-500">{{ __('cms.virtual_books.page_count', ['count' => $book->pages->count()]) }}</p>
         </div>
     </div>
 
     <!-- Table -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-100">
         <div class="px-6 py-5 border-b border-gray-100">
-            <h2 class="text-base font-semibold text-gray-800">Daftar Halaman Buku</h2>
+            <h2 class="text-base font-semibold text-gray-800">{{ __('cms.virtual_book_pages.table_title') }}</h2>
         </div>
         <div>
             <table id="tablePages" class="w-full text-left border-collapse">
                 <thead>
                     <tr class="bg-gray-50 text-gray-600 text-sm font-medium border-b border-gray-100">
-                        <th class="px-6 py-4 w-12">No</th>
-                        <th class="px-6 py-4 w-28">Thumbnail</th>
-                        <th class="px-6 py-4">Judul</th>
-                        <th class="px-6 py-4">Tipe</th>
-                        <th class="px-6 py-4 w-24">Urutan</th>
-                        <th class="px-6 py-4 w-32 text-right">Aksi</th>
+                        <th class="px-6 py-4 w-12">{{ __('cms.virtual_rooms.col_no') }}</th>
+                        <th class="px-6 py-4 w-28">{{ __('cms.virtual_book_pages.col_thumbnail') }}</th>
+                        <th class="px-6 py-4">{{ __('cms.virtual_book_pages.col_title') }}</th>
+                        <th class="px-6 py-4">{{ __('cms.virtual_book_pages.col_type') }}</th>
+                        <th class="px-6 py-4 w-24">{{ __('cms.virtual_book_pages.col_order') }}</th>
+                        <th class="px-6 py-4 w-32 text-right">{{ __('cms.virtual_book_pages.col_action') }}</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
@@ -77,7 +77,7 @@
                             @if($page->thumbnail)
                             <img src="{{ asset('storage/' . $page->thumbnail) }}" alt="{{ $page->title }}" class="w-16 h-20 object-cover rounded-md border border-gray-200 shadow-sm">
                             @else
-                            <div class="w-16 h-20 bg-gray-100 rounded-md border border-gray-200 flex items-center justify-center text-xs text-gray-400">No Thumb</div>
+                            <div class="w-16 h-20 bg-gray-100 rounded-md border border-gray-200 flex items-center justify-center text-xs text-gray-400">{{ __('cms.virtual_book_pages.no_thumb') }}</div>
                             @endif
                         </td>
                         <td class="px-6 py-4">
@@ -85,11 +85,11 @@
                         </td>
                         <td class="px-6 py-4">
                             @if($page->is_cover)
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Sampul Depan</span>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">{{ __('cms.virtual_book_pages.type_cover') }}</span>
                             @elseif($page->is_back_cover)
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Sampul Belakang</span>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">{{ __('cms.virtual_book_pages.type_back_cover') }}</span>
                             @else
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">Halaman Isi</span>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">{{ __('cms.virtual_book_pages.type_content') }}</span>
                             @endif
                         </td>
                         <td class="px-6 py-4">
@@ -102,7 +102,7 @@
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                                 </a>
                                 <button @click="deleteModal = { open: true, id: {{ $page->id }}, name: '{{ addslashes($page->title ?: 'Halaman ' . $page->order) }}' }"
-                                    class="inline-flex items-center justify-center w-8 h-8 bg-red-500 hover:bg-red-600 text-white rounded-md transition-colors" title="Hapus Halaman">
+                                    class="inline-flex items-center justify-center w-8 h-8 bg-red-500 hover:bg-red-600 text-white rounded-md transition-colors" title="{{ __('cms.virtual_book_pages.delete.title') }}">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                                 </button>
                             </div>
@@ -111,7 +111,7 @@
                     @empty
                     <tr>
                         <td colspan="6" class="px-6 py-8 text-center text-sm text-gray-500">
-                            Belum ada halaman. Klik "Tambah Halaman" untuk memulai.
+                            {{ __('cms.virtual_book_pages.empty') }}
                         </td>
                     </tr>
                     @endforelse
@@ -144,22 +144,22 @@
                     </svg>
                 </div>
                 <div>
-                    <h3 class="text-base font-semibold text-gray-800">Hapus Halaman</h3>
+                    <h3 class="text-base font-semibold text-gray-800">{{ __('cms.virtual_book_pages.delete.title') }}</h3>
                     <p class="text-sm text-gray-500 mt-1">
-                        Yakin ingin menghapus halaman <strong x-text="deleteModal.name" class="text-gray-700"></strong>?
+                        {{ __('cms.virtual_book_pages.delete.confirm') }} <strong x-text="deleteModal.name" class="text-gray-700"></strong>?
                     </p>
                 </div>
                 <div class="flex items-center gap-3 w-full">
                     <button @click="deleteModal.open = false"
                         class="flex-1 px-4 py-2.5 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
-                        Batal
+                        {{ __('cms.common.cancel') }}
                     </button>
                     <form :action="`{{ route('cms.features.virtual_books.pages.index', [$feature, $book]) }}/${deleteModal.id}`" method="POST" class="flex-1">
                         @csrf
                         @method('DELETE')
                         <button type="submit"
                             class="w-full px-4 py-2.5 text-sm font-semibold text-white bg-red-500 hover:bg-red-600 rounded-lg transition-colors">
-                            Ya, Hapus
+                            {{ __('cms.virtual_book_pages.delete.yes') }}
                         </button>
                     </form>
                 </div>

@@ -439,6 +439,210 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | CMS — Virtual Books
+    |--------------------------------------------------------------------------
+    */
+
+    'virtual_books' => [
+        'breadcrumb_parent' => 'CMS',
+        'breadcrumb_list' => 'Book List',
+        'breadcrumb_create' => 'Add Book',
+        'breadcrumb_edit' => 'Edit Book',
+
+        'page_title' => 'Book List: :name',
+        'page_desc' => 'Manage books in this feature',
+        'add_button' => 'Add Book',
+        'table_title' => 'Book List',
+
+        'col_cover' => 'Cover',
+        'col_title' => 'Book Title',
+        'col_pages' => 'Pages',
+        'col_order' => 'Order',
+        'col_action' => 'Action',
+
+        'no_cover' => 'No Cover',
+        'page_count' => ':count pages',
+        'detail_title' => 'Detail - Manage Pages',
+        'edit_cover' => 'Edit Book Cover',
+        'empty' => 'No books yet. Click "Add Book" to create the first one.',
+
+        'delete' => [
+            'title' => 'Delete Book',
+            'confirm' => 'Are you sure you want to delete the book',
+            'confirm_warn' => '? All pages will also be deleted.',
+            'yes' => 'Yes, Delete',
+        ],
+
+        // Create form
+        'create_title' => 'Add New Book',
+        'create_desc' => 'Create a new book in the :name feature',
+        'back_to_list' => 'Back to Book List',
+
+        // Edit form
+        'edit_title' => 'Edit Book: :name',
+        'edit_desc' => 'Update book cover settings',
+        'book_settings' => 'Book Settings',
+
+        // Form fields
+        'form' => [
+            'title' => 'Book Title',
+            'title_placeholder' => 'Enter book title',
+            'cover' => 'Book Cover',
+            'cover_help' => 'JPG, PNG, or WebP.',
+            'cover_help_optional' => 'JPG, PNG, or WebP. Optional.',
+            'remove_cover' => 'Remove cover',
+            'remove_back_cover' => 'Remove back cover',
+            'additional_text' => 'Additional Text (Optional)',
+            'additional_text_help' => 'Add text such as subtitle or cover description',
+            'additional_text_placeholder' => 'Additional text :number',
+            'add_text' => 'Add Text',
+            'back_cover' => 'Back Cover',
+            'back_title' => 'Book Title (Back)',
+            'back_title_placeholder' => 'Title for back cover (optional)',
+            'back_cover_label' => 'Book Cover (Back)',
+            'back_text' => 'Additional Text (Back)',
+            'back_text_help' => 'Add text for back cover',
+            'thumbnail' => 'List Thumbnail',
+            'thumbnail_will_save' => 'Thumbnail to be saved:',
+            'thumbnail_new_will_save' => 'New thumbnail to be saved:',
+            'remove_thumbnail' => 'Remove thumbnail',
+            'remove' => 'Remove',
+            'cancel_remove' => 'Cancel',
+            'generate_thumbnail' => 'Generate from Preview',
+            'generate_help' => 'Or upload manually. Generate will create a thumbnail from the book preview.',
+            'order' => 'Order',
+            'order_help' => 'Display order of the book in the feature',
+        ],
+
+        // Preview
+        'preview_title' => 'Book Cover Preview',
+        'preview_placeholder' => 'Upload cover for preview',
+        'preview_default_title' => 'Book Title',
+        'preview_back_title' => 'Back Cover Preview',
+        'preview_back_placeholder' => 'Upload back cover',
+        'zoom_out' => 'Zoom Out',
+        'zoom_in' => 'Zoom In',
+        'reset_position' => 'Reset Position',
+        'drag_hint' => 'Drag elements to adjust position | Scroll on image to resize',
+
+        // Buttons
+        'btn_cancel' => 'Cancel',
+        'btn_save' => 'Save Book',
+        'btn_save_changes' => 'Save Changes',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | CMS — Virtual Book Pages
+    |--------------------------------------------------------------------------
+    */
+
+    'virtual_book_pages' => [
+        'breadcrumb_parent' => 'CMS / Virtual Books',
+        'breadcrumb_list' => 'Book Pages',
+        'breadcrumb_create' => 'Add Page',
+        'breadcrumb_edit' => 'Edit Page',
+
+        'page_title' => 'Pages: :name',
+        'page_desc' => 'Manage pages in this book',
+        'edit_cover' => 'Edit Cover',
+        'add_button' => 'Add Page',
+        'no_cover' => 'No Cover',
+        'page_count' => ':count pages',
+        'table_title' => 'Book Page List',
+
+        'col_thumbnail' => 'Thumbnail',
+        'col_title' => 'Title',
+        'col_type' => 'Type',
+        'col_order' => 'Order',
+        'col_action' => 'Action',
+
+        'no_thumb' => 'No Thumb',
+        'type_cover' => 'Front Cover',
+        'type_back_cover' => 'Back Cover',
+        'type_content' => 'Content Page',
+        'empty' => 'No pages yet. Click "Add Page" to start.',
+
+        'delete' => [
+            'title' => 'Delete Page',
+            'confirm' => 'Are you sure you want to delete the page',
+            'yes' => 'Yes, Delete',
+        ],
+
+        // Create form
+        'create_title' => 'Add Book Page',
+        'create_desc' => 'Add a new page for the virtual book',
+        'back_to_list' => 'Back to List',
+
+        // Edit form
+        'edit_title' => 'Edit Page: :name',
+        'edit_desc' => 'Update virtual book page information',
+
+        // Form fields
+        'form' => [
+            'images_title' => 'Page Images',
+            'upload_images' => 'Upload Images (Multiple)',
+            'upload_images_help' => 'JPG, PNG, or WebP. Max 2MB per image. You can upload multiple images at once.',
+            'current_images' => 'Current Images',
+            'existing_label' => 'Exists',
+            'remove_all_images' => 'Remove all images',
+            'upload_new_images' => 'Upload New Images',
+            'upload_new_images_help' => 'JPG, PNG, or WebP. Max 2MB per image.',
+            'page_info' => 'Page Information',
+            'title' => 'Page Title',
+            'title_placeholder' => 'Enter page title',
+            'content' => 'Text Content',
+            'content_placeholder' => 'Enter page text content',
+            'image_size' => 'Image Size (%)',
+            'image_size_help' => 'Set image height in the page',
+            'order' => 'Order',
+            'order_help' => 'Page display order in the book',
+            'thumbnail_title' => 'Page Thumbnail',
+            'current_thumbnail' => 'Current Thumbnail',
+            'remove_thumbnail' => 'Remove thumbnail',
+            'upload_thumbnail' => 'Upload Thumbnail',
+            'upload_new_thumbnail' => 'Upload New Thumbnail',
+            'thumbnail_will_save' => 'Thumbnail to be saved:',
+            'thumbnail_new_will_save' => 'New thumbnail to be saved:',
+            'remove' => 'Remove',
+            'cancel_remove' => 'Cancel',
+            'generate_thumbnail' => 'Generate from Preview',
+            'generate_help' => 'Or upload manually. Generate will create a thumbnail from the page preview.',
+        ],
+
+        // Preview
+        'preview_title' => 'Page Preview',
+        'preview_hint' => 'Drag elements in preview with cursor',
+        'default_title' => 'Page Title',
+        'new_label' => 'New :number',
+
+        // Buttons
+        'btn_cancel' => 'Cancel',
+        'btn_save' => 'Save Page',
+        'btn_save_changes' => 'Save Changes',
+
+        // JS messages
+        'js' => [
+            'generating' => 'Generating...',
+            'generate_failed' => 'Failed to generate thumbnail: ',
+            'generate_btn' => 'Generate from Preview',
+            'preview_not_found' => 'Book preview not found',
+            'upload_cover_first' => 'Please upload a book cover first',
+        ],
+    ],
+
+    // Page type options (shared: show.blade.php sub menu modals)
+    'page_types' => [
+        'label' => 'Page Type',
+        'none' => 'None',
+        'onsite' => 'Onsite Archive Exhibition',
+        'real' => 'Virtual Archive Exhibition Real (360°)',
+        '3d' => 'Virtual Archive Exhibition 3D',
+        'book' => 'Virtual Archive Exhibition Book',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Common (shared across CMS pages)
     |--------------------------------------------------------------------------
     */

@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('breadcrumb_parent', __('cms.virtual_book_pages.breadcrumb_parent'))
-@section('breadcrumb_active', 'Tambah Buku')
+@section('breadcrumb_active', __('cms.virtual_books.breadcrumb_create'))
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('css/cms/features/virtual_books/book-cover-editor.css') }}">
@@ -11,13 +11,13 @@
 <div class="mb-4">
     <a href="{{ route('cms.features.virtual_books.index', $feature) }}" class="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-white text-sm font-medium transition-colors shadow-sm" style="background-color: #818284;">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
-        Kembali ke Daftar Buku
+        {{ __('cms.virtual_books.back_to_list') }}
     </a>
 </div>
 
 <div class="mb-6">
-    <h1 class="text-2xl font-bold text-gray-800">Tambah Buku Baru</h1>
-    <p class="text-sm text-gray-500 mt-1">Buat buku baru dalam fitur {{ $feature->name }}</p>
+    <h1 class="text-2xl font-bold text-gray-800">{{ __('cms.virtual_books.create_title') }}</h1>
+    <p class="text-sm text-gray-500 mt-1">{{ __('cms.virtual_books.create_desc', ['name' => $feature->name]) }}</p>
 </div>
 
 <form action="{{ route('cms.features.virtual_books.store', $feature) }}" method="POST" enctype="multipart/form-data" class="space-y-6" id="bookForm">
@@ -28,20 +28,20 @@
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <div class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Judul Buku <span class="text-red-500">*</span></label>
-                    <input type="text" name="title" id="bookTitle" value="{{ old('title') }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="Masukkan judul buku" required>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('cms.virtual_books.form.title') }} <span class="text-red-500">*</span></label>
+                    <input type="text" name="title" id="bookTitle" value="{{ old('title') }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="{{ __('cms.virtual_books.form.title_placeholder') }}" required>
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Cover Buku</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">{{ __('cms.virtual_books.form.cover') }}</label>
                     <input type="file" name="cover_image" id="coverImageInput" accept="image/*" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
-                    <p class="text-xs text-gray-500 mt-1.5">JPG, PNG, atau WebP.</p>
+                    <p class="text-xs text-gray-500 mt-1.5">{{ __('cms.virtual_books.form.cover_help') }}</p>
                 </div>
 
                 <!-- Additional Texts Section -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Teks Tambahan (Opsional)</label>
-                    <p class="text-xs text-gray-500 mb-2">Tambahkan teks seperti subjudul atau deskripsi sampul</p>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">{{ __('cms.virtual_books.form.additional_text') }}</label>
+                    <p class="text-xs text-gray-500 mb-2">{{ __('cms.virtual_books.form.additional_text_help') }}</p>
 
                     <div id="additionalTextsContainer" class="space-y-2">
                         <!-- Dynamic text fields will be added here -->
@@ -51,30 +51,30 @@
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                         </svg>
-                        Tambah Teks
+                        {{ __('cms.virtual_books.form.add_text') }}
                     </button>
                 </div>
 
                 <!-- Back Cover Section -->
                 <div class="pt-4 border-t border-gray-200">
-                    <h4 class="text-sm font-semibold text-gray-800 mb-3">Sampul Belakang</h4>
+                    <h4 class="text-sm font-semibold text-gray-800 mb-3">{{ __('cms.virtual_books.form.back_cover') }}</h4>
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Judul Buku (Belakang)</label>
-                    <input type="text" name="back_title" id="backBookTitle" value="{{ old('back_title') }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="Judul untuk sampul belakang (opsional)">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('cms.virtual_books.form.back_title') }}</label>
+                    <input type="text" name="back_title" id="backBookTitle" value="{{ old('back_title') }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="{{ __('cms.virtual_books.form.back_title_placeholder') }}">
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Cover Buku (Belakang)</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">{{ __('cms.virtual_books.form.back_cover_label') }}</label>
                     <input type="file" name="back_cover_image" id="backCoverImageInput" accept="image/*" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100 cursor-pointer">
-                    <p class="text-xs text-gray-500 mt-1.5">JPG, PNG, atau WebP. Opsional.</p>
+                    <p class="text-xs text-gray-500 mt-1.5">{{ __('cms.virtual_books.form.cover_help_optional') }}</p>
                 </div>
 
                 <!-- Back Cover Additional Texts Section -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Teks Tambahan (Belakang)</label>
-                    <p class="text-xs text-gray-500 mb-2">Tambahkan teks untuk sampul belakang</p>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">{{ __('cms.virtual_books.form.back_text') }}</label>
+                    <p class="text-xs text-gray-500 mb-2">{{ __('cms.virtual_books.form.back_text_help') }}</p>
 
                     <div id="backAdditionalTextsContainer" class="space-y-2">
                         <!-- Dynamic text fields will be added here -->
@@ -84,20 +84,20 @@
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                         </svg>
-                        Tambah Teks
+                        {{ __('cms.virtual_books.form.add_text') }}
                     </button>
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Thumbnail Daftar</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">{{ __('cms.virtual_books.form.thumbnail') }}</label>
                     <input type="file" name="thumbnail" id="thumbnailInput" accept="image/*" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
                     <input type="hidden" name="generated_thumbnail" id="generatedThumbnail">
 
                     <!-- Thumbnail Preview -->
                     <div id="thumbnailPreviewContainer" class="mt-2 hidden">
-                        <p class="text-xs text-gray-500 mb-1">Thumbnail yang akan disimpan:</p>
+                        <p class="text-xs text-gray-500 mb-1">{{ __('cms.virtual_books.form.thumbnail_will_save') }}</p>
                         <img id="thumbnailPreview" class="w-24 h-32 object-cover rounded-lg border border-gray-200" alt="Thumbnail Preview">
-                        <button type="button" id="removeThumbnail" class="mt-1 text-xs text-red-500 hover:text-red-700">Hapus</button>
+                        <button type="button" id="removeThumbnail" class="mt-1 text-xs text-red-500 hover:text-red-700">{{ __('cms.virtual_books.form.remove_thumbnail') }}</button>
                     </div>
 
                     <div class="flex items-center gap-2 mt-2">
@@ -105,32 +105,32 @@
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                             </svg>
-                            Generate dari Preview
+                            {{ __('cms.virtual_books.form.generate_thumbnail') }}
                         </button>
                     </div>
-                    <p class="text-xs text-gray-500 mt-1.5">Atau upload manual. Generate akan membuat thumbnail dari preview buku.</p>
+                    <p class="text-xs text-gray-500 mt-1.5">{{ __('cms.virtual_books.form.generate_help') }}</p>
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Urutan <span class="text-red-500">*</span></label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('cms.virtual_books.form.order') }} <span class="text-red-500">*</span></label>
                     <input type="number" name="order" value="{{ $maxOrder + 1 }}" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
-                    <p class="text-xs text-gray-500 mt-1">Urutan tampilan buku dalam fitur</p>
+                    <p class="text-xs text-gray-500 mt-1">{{ __('cms.virtual_books.form.order_help') }}</p>
                 </div>
             </div>
 
             <div class="flex justify-end gap-3 mt-6">
                 <a href="{{ route('cms.features.virtual_books.index', $feature) }}" class="px-5 py-2.5 bg-gray-100 border border-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 active:bg-gray-300 transition-colors shadow-sm">
-                    Batal
+                    {{ __('cms.common.cancel') }}
                 </a>
                 <button type="submit" class="px-5 py-2.5 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm" style="background-color:#1d4ed8;">
-                    Simpan Buku
+                    {{ __('cms.virtual_books.btn_save') }}
                 </button>
             </div>
         </div>
 
         <!-- Preview Section -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h3 class="text-sm font-semibold text-gray-700 mb-4">Preview Cover Buku</h3>
+            <h3 class="text-sm font-semibold text-gray-700 mb-4">{{ __('cms.virtual_books.preview_title') }}</h3>
 
             <div class="relative flex justify-center">
                 <!-- Book Container -->
@@ -141,7 +141,7 @@
                     <!-- Cover Image Container - Draggable & Resizable -->
                     <div id="coverContainer" class="absolute inset-3 left-6 cursor-move flex items-center justify-center bg-white/10">
                         <span id="coverPlaceholder" class="text-white/50 text-xs text-center px-4">
-                            Upload cover untuk preview
+                            {{ __('cms.virtual_books.preview_placeholder') }}
                         </span>
                         <img id="coverPreview" class="max-w-full max-h-full object-contain pointer-events-none" style="display: none;">
                         <!-- Resize Border - appears when image is uploaded -->
@@ -151,7 +151,7 @@
                     <!-- Draggable Title -->
                     <div id="titleContainer" class="absolute top-4 left-0 right-0 text-center px-4 cursor-move select-none">
                         <span id="previewTitle" class="text-white text-xs font-semibold drop-shadow-md line-clamp-2">
-                            Judul Buku
+                            {{ __('cms.virtual_books.preview_default_title') }}
                         </span>
                     </div>
 
@@ -173,16 +173,16 @@
                 </div>
                 <div class="flex items-center justify-center gap-4">
                     <button type="button" id="resetPosition" class="text-xs text-gray-500 hover:text-gray-700 underline">
-                        Reset Posisi
+                        {{ __('cms.virtual_books.reset_position') }}
                     </button>
                     <span class="text-xs text-gray-400">|</span>
-                    <span class="text-xs text-gray-500">Geser elemen untuk mengatur posisi | Scroll pada gambar untuk ubah ukuran</span>
+                    <span class="text-xs text-gray-500">{{ __('cms.virtual_books.drag_hint') }}</span>
                 </div>
             </div>
 
             <!-- Back Cover Preview -->
             <div class="mt-6 pt-6 border-t border-gray-200">
-                <h3 class="text-sm font-semibold text-gray-700 mb-4">Preview Sampul Belakang</h3>
+                <h3 class="text-sm font-semibold text-gray-700 mb-4">{{ __('cms.virtual_books.preview_back_title') }}</h3>
 
                 <div class="relative flex justify-center mb-4">
                     <!-- Back Book Container -->
@@ -193,7 +193,7 @@
                         <!-- Back Cover Image Container -->
                         <div id="backCoverContainer" class="absolute inset-3 left-6 cursor-move flex items-center justify-center bg-white/10">
                             <span id="backCoverPlaceholder" class="text-white/50 text-xs text-center px-4">
-                                Upload cover belakang
+                                {{ __('cms.virtual_books.preview_back_placeholder') }}
                             </span>
                             <img id="backCoverPreview" class="max-w-full max-h-full object-contain pointer-events-none" style="display: none;">
                             <div id="backResizeBorder" class="absolute inset-0 border-2 border-dashed border-gray-400/50 opacity-0 transition-opacity pointer-events-none" style="display: none;"></div>
@@ -202,7 +202,7 @@
                         <!-- Draggable Title for Back Cover -->
                         <div id="backTitleContainer" class="absolute top-4 left-0 right-0 text-center px-4 cursor-move select-none">
                             <span id="previewBackTitle" class="text-white text-xs font-semibold drop-shadow-md line-clamp-2">
-                                Judul Buku
+                                {{ __('cms.virtual_books.preview_default_title') }}
                             </span>
                         </div>
 
@@ -223,10 +223,10 @@
                     </div>
                     <div class="flex items-center justify-center gap-4">
                         <button type="button" id="resetBackPosition" class="text-xs text-gray-500 hover:text-gray-700 underline">
-                            Reset Posisi
+                            {{ __('cms.virtual_books.reset_position') }}
                         </button>
                         <span class="text-xs text-gray-400">|</span>
-                        <span class="text-xs text-gray-500">Geser elemen untuk mengatur posisi | Scroll pada gambar untuk ubah ukuran</span>
+                        <span class="text-xs text-gray-500">{{ __('cms.virtual_books.drag_hint') }}</span>
                     </div>
                 </div>
             </div>
