@@ -11,8 +11,6 @@
         <h1 class="text-2xl font-bold text-gray-800">{{ __('cms.features.title') }}</h1>
     </div>
 
-
-
     <!-- Features Table Card -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-100">
         <!-- Card Header -->

@@ -18,14 +18,14 @@ class VirtualRoomController extends Controller
         $totalHotspots = $rooms->sum('hotspots_count');
         $avgHotspots = $totalRooms > 0 ? round($totalHotspots / $totalRooms, 1) : 0;
 
-        return view('cms.virtual_rooms.index', compact('feature', 'rooms', 'totalRooms', 'totalHotspots', 'avgHotspots'));
+        return view('cms.features.virtual_rooms.index', compact('feature', 'rooms', 'totalRooms', 'totalHotspots', 'avgHotspots'));
     }
 
     public function create(Feature $feature)
     {
         // Load existing rooms so we can link them in hotspots
         $allRooms = $feature->virtualRooms()->get();
-        return view('cms.virtual_rooms.form', compact('feature', 'allRooms'));
+        return view('cms.features.virtual_rooms.form', compact('feature', 'allRooms'));
     }
 
     public function store(Request $request, Feature $feature)
@@ -71,7 +71,7 @@ class VirtualRoomController extends Controller
     {
         $allRooms = $feature->virtualRooms()->where('id', '!=', $room->id)->get();
         $room->load('hotspots');
-        return view('cms.virtual_rooms.form', compact('feature', 'room', 'allRooms'));
+        return view('cms.features.virtual_rooms.form', compact('feature', 'room', 'allRooms'));
     }
 
     public function update(Request $request, Feature $feature, VirtualRoom $room)
