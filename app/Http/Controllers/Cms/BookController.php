@@ -64,7 +64,7 @@ class BookController extends Controller
 
         // Handle cover position
         if ($request->has('cover_position')) {
-            $validated['cover_position'] = $request->cover_position;
+            $validated['cover_position'] = json_decode($request->cover_position, true) ?? ['x' => 0, 'y' => 0];
         }
 
         // Handle cover scale
@@ -72,14 +72,14 @@ class BookController extends Controller
             $validated['cover_scale'] = $request->cover_scale;
         }
 
-        // Handle cover texts
+        // Handle cover texts (decode JSON string to array for Eloquent's array cast)
         if ($request->has('cover_texts')) {
-            $validated['cover_texts'] = $request->cover_texts;
+            $validated['cover_texts'] = json_decode($request->cover_texts, true) ?? [];
         }
 
         // Handle title position
         if ($request->has('title_position')) {
-            $validated['title_position'] = $request->title_position;
+            $validated['title_position'] = json_decode($request->title_position, true) ?? ['x' => 0, 'y' => 0];
         }
 
         // Handle back cover image
@@ -89,7 +89,7 @@ class BookController extends Controller
 
         // Handle back cover position
         if ($request->has('back_cover_position')) {
-            $validated['back_cover_position'] = $request->back_cover_position;
+            $validated['back_cover_position'] = json_decode($request->back_cover_position, true) ?? ['x' => 0, 'y' => 0];
         }
 
         // Handle back cover scale
@@ -99,12 +99,12 @@ class BookController extends Controller
 
         // Handle back title position
         if ($request->has('back_title_position')) {
-            $validated['back_title_position'] = $request->back_title_position;
+            $validated['back_title_position'] = json_decode($request->back_title_position, true) ?? ['x' => 0, 'y' => 0];
         }
 
-        // Handle back cover texts
+        // Handle back cover texts (decode JSON string to array for Eloquent's array cast)
         if ($request->has('back_cover_texts')) {
-            $validated['back_cover_texts'] = $request->back_cover_texts;
+            $validated['back_cover_texts'] = json_decode($request->back_cover_texts, true) ?? [];
         }
 
         // Handle thumbnail
@@ -180,7 +180,7 @@ class BookController extends Controller
 
         // Handle cover position
         if ($request->has('cover_position')) {
-            $validated['cover_position'] = $request->cover_position;
+            $validated['cover_position'] = json_decode($request->cover_position, true) ?? ['x' => 0, 'y' => 0];
         }
 
         // Handle cover scale
@@ -188,14 +188,14 @@ class BookController extends Controller
             $validated['cover_scale'] = $request->cover_scale;
         }
 
-        // Handle cover texts
+        // Handle cover texts (decode JSON string to array for Eloquent's array cast)
         if ($request->has('cover_texts')) {
-            $validated['cover_texts'] = $request->cover_texts;
+            $validated['cover_texts'] = json_decode($request->cover_texts, true) ?? [];
         }
 
         // Handle title position
         if ($request->has('title_position')) {
-            $validated['title_position'] = $request->title_position;
+            $validated['title_position'] = json_decode($request->title_position, true) ?? ['x' => 0, 'y' => 0];
         }
 
         // Handle back cover image
@@ -213,7 +213,7 @@ class BookController extends Controller
 
         // Handle back cover position
         if ($request->has('back_cover_position')) {
-            $validated['back_cover_position'] = $request->back_cover_position;
+            $validated['back_cover_position'] = json_decode($request->back_cover_position, true) ?? ['x' => 0, 'y' => 0];
         }
 
         // Handle back cover scale
@@ -223,12 +223,12 @@ class BookController extends Controller
 
         // Handle back title position
         if ($request->has('back_title_position')) {
-            $validated['back_title_position'] = $request->back_title_position;
+            $validated['back_title_position'] = json_decode($request->back_title_position, true) ?? ['x' => 0, 'y' => 0];
         }
 
-        // Handle back cover texts
+        // Handle back cover texts (decode JSON string to array for Eloquent's array cast)
         if ($request->has('back_cover_texts')) {
-            $validated['back_cover_texts'] = $request->back_cover_texts;
+            $validated['back_cover_texts'] = json_decode($request->back_cover_texts, true) ?? [];
         }
 
         // Handle thumbnail
