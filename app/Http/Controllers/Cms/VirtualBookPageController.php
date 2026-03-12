@@ -45,7 +45,8 @@ class VirtualBookPageController extends Controller
             'image_height' => 'nullable|integer|min:10|max:100',
             'image_positions' => 'nullable|array',
             'text_position' => 'nullable|array',
-            'page_type' => 'nullable|string',
+            'thumbnail' => 'nullable|image|mimes:jpg,jpeg,png,webp',
+            'generated_thumbnail' => 'nullable|string',
             'order' => 'required|integer|min:0',
         ]);
 
@@ -53,9 +54,9 @@ class VirtualBookPageController extends Controller
         $validated['book_id'] = $book->id;
         $validated['image_height'] = $validated['image_height'] ?? 50;
 
-        // Handle page type
-        $validated['is_cover'] = $request->page_type === 'cover';
-        $validated['is_back_cover'] = $request->page_type === 'back_cover';
+        // Always content page (covers are managed in book settings)
+        $validated['is_cover'] = false;
+        $validated['is_back_cover'] = false;
 
         // Handle translation
         $validated['title_en'] = !empty($validated['title'])
@@ -76,6 +77,22 @@ class VirtualBookPageController extends Controller
         $validated['image_positions'] = $validated['image_positions'] ?? array_fill(0, count($images), ['x' => 0, 'y' => 0]);
         $validated['text_position'] = $validated['text_position'] ?? ['x' => 0, 'y' => 0, 'width' => 45, 'height' => 30];
 
+        // Handle thumbnail
+        if ($request->hasFile('thumbnail')) {
+            $validated['thumbnail'] = $request->file('thumbnail')->store('features/virtual-books/thumbnails', 'public');
+        } elseif ($request->has('generated_thumbnail') && !empty($request->generated_thumbnail)) {
+            $generatedThumbnail = $request->generated_thumbnail;
+            if (preg_match('/^data:image\/(\w+);base64,/', $generatedThumbnail, $matches)) {
+                $imageData = base64_decode(substr($generatedThumbnail, strpos($generatedThumbnail, ',') + 1));
+                $extension = $matches[1];
+                $filename = 'page_thumb_' . time() . '_' . uniqid() . '.' . $extension;
+                $path = 'features/virtual-books/thumbnails/' . $filename;
+                Storage::disk('public')->put($path, $imageData);
+                $validated['thumbnail'] = $path;
+            }
+        }
+        unset($validated['generated_thumbnail']);
+
         VirtualBookPage::create($validated);
 
         return redirect()->route('cms.features.virtual_books.pages.index', [$feature, $book])
@@ -95,7 +112,9 @@ class VirtualBookPageController extends Controller
             'image_positions' => 'nullable|array',
             'text_position' => 'nullable|array',
             'remove_images' => 'nullable|array',
-            'page_type' => 'nullable|string',
+            'thumbnail' => 'nullable|image|mimes:jpg,jpeg,png,webp',
+            'generated_thumbnail' => 'nullable|string',
+            'remove_thumbnail' => 'boolean',
             'order' => 'required|integer|min:0',
         ]);
 
@@ -104,9 +123,9 @@ class VirtualBookPageController extends Controller
             $validated['image_height'] = $virtualBookPage->image_height ?? 50;
         }
 
-        // Handle page type
-        $validated['is_cover'] = $request->page_type === 'cover';
-        $validated['is_back_cover'] = $request->page_type === 'back_cover';
+        // Always content page (covers are managed in book settings)
+        $validated['is_cover'] = false;
+        $validated['is_back_cover'] = false;
 
         // Handle translation
         $validated['title_en'] = !empty($validated['title'])
@@ -144,11 +163,39 @@ class VirtualBookPageController extends Controller
         $validated['image_positions'] = $imagePositions;
 
         // Handle text position
-        if (isset($validated['text_position'])) {
-            $validated['text_position'] = $validated['text_position'];
-        } else {
-            $validated['text_position'] = $text_position ?? ['x' => 0, 'yvirtualBookPage->' => 0];
+        if (!isset($validated['text_position'])) {
+            $validated['text_position'] = $virtualBookPage->text_position ?? ['x' => 0, 'y' => 0];
         }
+
+        // Handle thumbnail removal
+        if ($request->boolean('remove_thumbnail')) {
+            if ($virtualBookPage->thumbnail) {
+                Storage::disk('public')->delete($virtualBookPage->thumbnail);
+            }
+            $validated['thumbnail'] = null;
+        }
+
+        // Handle thumbnail
+        if ($request->hasFile('thumbnail')) {
+            if ($virtualBookPage->thumbnail) {
+                Storage::disk('public')->delete($virtualBookPage->thumbnail);
+            }
+            $validated['thumbnail'] = $request->file('thumbnail')->store('features/virtual-books/thumbnails', 'public');
+        } elseif ($request->has('generated_thumbnail') && !empty($request->generated_thumbnail)) {
+            $generatedThumbnail = $request->generated_thumbnail;
+            if (preg_match('/^data:image\/(\w+);base64,/', $generatedThumbnail, $matches)) {
+                if ($virtualBookPage->thumbnail) {
+                    Storage::disk('public')->delete($virtualBookPage->thumbnail);
+                }
+                $imageData = base64_decode(substr($generatedThumbnail, strpos($generatedThumbnail, ',') + 1));
+                $extension = $matches[1];
+                $filename = 'page_thumb_' . time() . '_' . uniqid() . '.' . $extension;
+                $path = 'features/virtual-books/thumbnails/' . $filename;
+                Storage::disk('public')->put($path, $imageData);
+                $validated['thumbnail'] = $path;
+            }
+        }
+        unset($validated['generated_thumbnail'], $validated['remove_thumbnail']);
 
         $virtualBookPage->update($validated);
 
@@ -165,6 +212,11 @@ class VirtualBookPageController extends Controller
         $images = $virtualBookPage->page_images ?? [];
         foreach ($images as $image) {
             Storage::disk('public')->delete($image);
+        }
+
+        // Delete thumbnail
+        if ($virtualBookPage->thumbnail) {
+            Storage::disk('public')->delete($virtualBookPage->thumbnail);
         }
 
         $virtualBookPage->delete();

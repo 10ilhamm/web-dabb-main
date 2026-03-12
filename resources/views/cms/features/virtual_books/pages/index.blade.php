@@ -62,7 +62,7 @@
                 <thead>
                     <tr class="bg-gray-50 text-gray-600 text-sm font-medium border-b border-gray-100">
                         <th class="px-6 py-4 w-12">No</th>
-                        <th class="px-6 py-4 w-28">Gambar</th>
+                        <th class="px-6 py-4 w-28">Thumbnail</th>
                         <th class="px-6 py-4">Judul</th>
                         <th class="px-6 py-4">Tipe</th>
                         <th class="px-6 py-4 w-24">Urutan</th>
@@ -74,21 +74,10 @@
                     <tr class="hover:bg-gray-50/50 transition-colors group">
                         <td class="px-6 py-4 text-gray-500 font-medium">{{ $loop->iteration }}</td>
                         <td class="px-6 py-4">
-                            @php
-                                $images = $page->page_images ?? [];
-                                $firstImage = !empty($images) ? $images[0] : null;
-                            @endphp
-                            @if($firstImage)
-                            <div class="flex -space-x-2">
-                                @foreach(array_slice($images, 0, 3) as $img)
-                                <img src="{{ asset('storage/' . $img) }}" alt="{{ $page->title }}" class="w-16 h-12 object-cover rounded-md border-2 border-white shadow-sm">
-                                @endforeach
-                                @if(count($images) > 3)
-                                <div class="w-16 h-12 rounded-md border-2 border-white bg-gray-100 flex items-center justify-center text-xs text-gray-500 shadow-sm">+{{ count($images) - 3 }}</div>
-                                @endif
-                            </div>
+                            @if($page->thumbnail)
+                            <img src="{{ asset('storage/' . $page->thumbnail) }}" alt="{{ $page->title }}" class="w-16 h-20 object-cover rounded-md border border-gray-200 shadow-sm">
                             @else
-                            <div class="w-16 h-12 bg-gray-100 rounded-md border border-gray-200 flex items-center justify-center text-xs text-gray-400">No Img</div>
+                            <div class="w-16 h-20 bg-gray-100 rounded-md border border-gray-200 flex items-center justify-center text-xs text-gray-400">No Thumb</div>
                             @endif
                         </td>
                         <td class="px-6 py-4">

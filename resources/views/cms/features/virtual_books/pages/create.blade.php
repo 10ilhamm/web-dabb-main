@@ -28,81 +28,6 @@
         transition: transform 0.5s ease;
     }
 
-    /* Hard Cover Style */
-    .book-preview.hard-cover {
-        background: linear-gradient(135deg, #8B4513 0%, #654321 100%);
-        border-radius: 4px 12px 12px 4px;
-        box-shadow:
-            -5px 5px 20px rgba(0,0,0,0.4),
-            inset -2px 0 10px rgba(0,0,0,0.2);
-    }
-
-    /* Cover Front */
-    .book-preview.cover-front {
-        background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
-        border-radius: 4px 12px 12px 4px;
-        box-shadow:
-            -8px 8px 25px rgba(0,0,0,0.5),
-            inset -3px 0 15px rgba(0,0,0,0.3);
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        padding: 30px;
-    }
-
-    .book-preview.cover-front .cover-title {
-        color: #d4af37;
-        font-size: 1.5rem;
-        font-weight: bold;
-        text-align: center;
-        text-transform: uppercase;
-        letter-spacing: 2px;
-    }
-
-    .book-preview.cover-front .cover-image {
-        width: 100%;
-        height: auto;
-        max-height: 200px;
-        object-fit: contain;
-        margin-top: 20px;
-        border-radius: 4px;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-    }
-
-    /* Back Cover */
-    .book-preview.cover-back {
-        background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
-        border-radius: 12px 4px 4px 12px;
-        box-shadow:
-            8px 8px 25px rgba(0,0,0,0.5),
-            inset 3px 0 15px rgba(0,0,0,0.3);
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        padding: 30px;
-    }
-
-    .book-preview.cover-back .cover-title {
-        color: #d4af37;
-        font-size: 1.5rem;
-        font-weight: bold;
-        text-align: center;
-        text-transform: uppercase;
-        letter-spacing: 2px;
-    }
-
-    .book-preview.cover-back .cover-image {
-        width: 100%;
-        height: auto;
-        max-height: 200px;
-        object-fit: contain;
-        margin-top: 20px;
-        border-radius: 4px;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-    }
-
     /* Content Page (Book Look) */
     .book-preview.content-page {
         background: linear-gradient(135deg, #f5f5dc 0%, #faf8ef 100%);
@@ -271,13 +196,6 @@
         padding: 2px 4px;
         border-radius: 2px;
     }
-
-    /* Position info */
-    .position-info {
-        font-size: 10px;
-        color: #6b7280;
-        margin-top: 4px;
-    }
 </style>
 
 @section('breadcrumb_parent', __('cms.virtual_book_pages.breadcrumb_parent'))
@@ -327,28 +245,16 @@
 
                 <div class="space-y-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Tipe Halaman <span class="text-red-500">*</span></label>
-                        <select name="page_type" id="pageTypeSelect" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" onchange="onPageTypeChange()">
-                            <option value="content">Halaman Isi</option>
-                            <option value="cover">Sampul Depan</option>
-                            <option value="back_cover">Sampul Belakang</option>
-                        </select>
-                    </div>
-
-                    <!-- Judul untuk semua tipe -->
-                    <div id="titleField">
-                        <label class="block text-sm font-medium text-gray-700 mb-1" id="titleLabel">Judul Halaman</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Judul Halaman</label>
                         <input type="text" name="title" id="pageTitleInput" value="{{ old('title') }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="Masukkan judul halaman" oninput="updatePreview()">
                     </div>
 
-                    <!-- Konten Teks hanya untuk Halaman Isi -->
-                    <div id="contentField">
+                    <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Konten Teks</label>
                         <textarea name="content" id="pageContentInput" rows="6" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="Masukkan konten teks halaman" oninput="updatePreview()">{{ old('content') }}</textarea>
                     </div>
 
-                    <!-- Image Height slider hanya untuk Halaman Isi -->
-                    <div id="imageHeightField">
+                    <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Ukuran Gambar (%)</label>
                         <div class="flex items-center gap-3">
                             <input type="range" name="image_height" id="imageHeightSlider" min="10" max="100" value="50" class="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer" oninput="document.getElementById('imageHeightValue').textContent = this.value + '%'; updatePreview()">
@@ -361,6 +267,36 @@
                         <label class="block text-sm font-medium text-gray-700 mb-1">Urutan <span class="text-red-500">*</span></label>
                         <input type="number" name="order" value="{{ $maxOrder + 1 }}" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
                         <p class="text-xs text-gray-500 mt-1">Urutan tampilan halaman dalam buku</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Thumbnail Section -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                <h3 class="text-sm font-semibold text-gray-800 mb-4">Thumbnail Halaman</h3>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Upload Thumbnail</label>
+                        <input type="file" name="thumbnail" id="thumbnailInput" accept="image/*" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
+                        <input type="hidden" name="generated_thumbnail" id="generatedThumbnail">
+
+                        <!-- Thumbnail Preview -->
+                        <div id="thumbnailPreviewContainer" class="mt-2 hidden">
+                            <p class="text-xs text-gray-500 mb-1">Thumbnail yang akan disimpan:</p>
+                            <img id="thumbnailPreview" class="w-24 h-32 object-cover rounded-lg border border-gray-200" alt="Thumbnail Preview">
+                            <button type="button" id="removeThumbnail" class="mt-1 text-xs text-red-500 hover:text-red-700">Hapus</button>
+                        </div>
+
+                        <div class="flex items-center gap-2 mt-2">
+                            <button type="button" id="generateThumbnailBtn" class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-green-700 bg-green-50 rounded-md hover:bg-green-100 transition-colors">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                                Generate dari Preview
+                            </button>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1.5">Atau upload manual. Generate akan membuat thumbnail dari preview halaman.</p>
                     </div>
                 </div>
             </div>
@@ -398,64 +334,25 @@
 @endsection
 
 @push('scripts')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
     let newImages = [];
     let imagePositions = [];
     let textPosition = { x: 0, y: 0, width: 45, height: 30 };
 
-    // Toggle form fields based on page type
-    function onPageTypeChange() {
-        const pageType = document.getElementById('pageTypeSelect').value;
-        const titleField = document.getElementById('titleField');
-        const titleLabel = document.getElementById('titleLabel');
-        const contentField = document.getElementById('contentField');
-        const imageHeightField = document.getElementById('imageHeightField');
-
-        if (pageType === 'cover') {
-            // Sampul Depan - judul dan konten, tanpa image height
-            titleLabel.textContent = 'Judul Sampul Depan';
-            contentField.style.display = 'block';
-            imageHeightField.style.display = 'none';
-        } else if (pageType === 'back_cover') {
-            // Sampul Belakang - judul dan konten, tanpa image height
-            titleLabel.textContent = 'Judul Sampul Belakang';
-            contentField.style.display = 'block';
-            imageHeightField.style.display = 'none';
-        } else {
-            // Halaman Isi - semua field
-            titleLabel.textContent = 'Judul Halaman';
-            contentField.style.display = 'block';
-            imageHeightField.style.display = 'block';
-        }
-
-        updatePreview();
-    }
-
     function handleImageUpload(input) {
         const files = input.files;
         if (files && files.length > 0) {
-            // Clear existing images when new files are selected
             newImages = [];
             imagePositions = [];
-            console.log('Files selected:', files.length);
 
             Array.from(files).forEach((file, index) => {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    console.log('Image loaded:', index, e.target.result.substring(0, 50) + '...');
                     newImages.push(e.target.result);
                     imagePositions.push({ x: 0, y: 0 });
-
-                    console.log('newImages length:', newImages.length);
-
-                    // Update thumbnails
                     updateThumbnails();
-
-                    // Update preview
                     updatePreview();
-                };
-                reader.onerror = function(e) {
-                    console.error('Error loading image:', e);
                 };
                 reader.readAsDataURL(file);
             });
@@ -485,161 +382,62 @@
         updatePreview();
     }
 
-    // Cover specific data
-    let coverImageSrc = '';
-    let coverImagePosition = { x: 0, y: 0, width: 80, height: 60 };
-    let coverTitle = '';
-    let coverContent = '';
-
-    // Content page specific data
-    let contentTitle = '';
-    let contentText = '';
-
     function updatePreview() {
-        const pageType = document.getElementById('pageTypeSelect').value;
         const title = document.getElementById('pageTitleInput').value;
         const content = document.getElementById('pageContentInput').value;
-        const imageHeight = document.getElementById('imageHeightSlider') ? document.getElementById('imageHeightSlider').value : 50;
+        const imageHeight = document.getElementById('imageHeightSlider').value;
         const hasImages = newImages && newImages.length > 0;
 
-        // Store data based on current page type
-        const prevPageType = document.getElementById('pageTypeSelect').dataset.prevType || 'content';
-
-        // Save current data before switching
-        if (prevPageType === 'cover') {
-            coverTitle = document.getElementById('pageTitleInput').value;
-            coverContent = document.getElementById('pageContentInput').value;
-        } else if (prevPageType === 'back_cover') {
-            // For back cover
-        } else {
-            contentTitle = document.getElementById('pageTitleInput').value;
-            contentText = document.getElementById('pageContentInput').value;
-        }
-
-        // Load data for current page type
-        if (pageType === 'cover') {
-            if (!coverTitle && title) coverTitle = title;
-            if (!coverContent && content) coverContent = content;
-        } else if (pageType === 'back_cover') {
-            // For back cover
-        } else {
-            if (!contentTitle && title) contentTitle = title;
-            if (!contentText && content) contentText = content;
-        }
-
-        // Update current page type
-        document.getElementById('pageTypeSelect').dataset.prevType = pageType;
-
-        console.log('updatePreview called:', { pageType, hasImages, newImagesLength: newImages ? newImages.length : 0 });
-
         const preview = document.getElementById('bookPreview');
-
-        // Clear preview
-        preview.className = 'book-preview';
+        preview.className = 'book-preview content-page';
         preview.innerHTML = '';
 
-        if (pageType === 'cover') {
-            // Front Cover with draggable image
-            preview.classList.add('cover-front');
+        let innerContent = '<div class="content-page-inner">';
 
-            const displayTitle = coverTitle || title || 'JUDUL BUKU';
-            const displayContent = coverContent || content || '';
-
-            let coverContent = `<div class="cover-title">${displayTitle}</div>`;
-
-            // Draggable image for cover
-            if (hasImages && newImages[0]) {
-                coverContent += `
-                    <div class="draggable-element draggable-image"
-                         data-type="cover-image"
-                         style="background-image: url('${newImages[0]}'); width: ${coverImagePosition.width}%; height: ${coverImagePosition.height}%; left: ${coverImagePosition.x}%; top: ${coverImagePosition.y}%;"
-                         onmousedown="startDrag(event, this)">
-                    </div>`;
-            }
-
-            // Show content text on cover if exists
-            if (displayContent) {
-                coverContent += `<div class="cover-text" style="margin-top: 15px; font-size: 0.6rem; color: #d4af37; text-align: center;">${displayContent.replace(/\n/g, '<br>')}</div>`;
-            }
-
-            preview.innerHTML = coverContent;
-
-        } else if (pageType === 'back_cover') {
-            // Back Cover with draggable image
-            preview.classList.add('cover-back');
-
-            const displayTitle = title || 'THE END';
-
-            let coverContent = `<div class="cover-title">${displayTitle}</div>`;
-
-            // Draggable image for back cover
-            if (hasImages && newImages[0]) {
-                coverContent += `
-                    <div class="draggable-element draggable-image"
-                         data-type="cover-image"
-                         style="background-image: url('${newImages[0]}'); width: ${coverImagePosition.width}%; height: ${coverImagePosition.height}%; left: ${coverImagePosition.x}%; top: ${coverImagePosition.y}%;"
-                         onmousedown="startDrag(event, this)">
-                    </div>`;
-            }
-
-            preview.innerHTML = coverContent;
-
-        } else {
-            // Content Page with Draggable Elements
-            preview.classList.add('content-page');
-
-            // Use stored content data
-            const displayContentTitle = contentTitle || title || 'Judul Halaman';
-            const displayContentText = contentText || content || '';
-
-            let innerContent = '<div class="content-page-inner">';
-
-            // Header (title)
-            if (displayContentTitle) {
-                innerContent += `<div class="content-page-header">${displayContentTitle}</div>`;
-            }
-
-            // Draggable container
-            innerContent += '<div class="draggable-container" id="draggableContainer">';
-
-            // Images (draggable)
-            if (hasImages) {
-                newImages.forEach((src, index) => {
-                    const pos = imagePositions[index] || { x: 0, y: 0 };
-                    const size = Math.max(20, parseInt(imageHeight));
-                    innerContent += `
-                        <div class="draggable-element draggable-image"
-                             data-type="image"
-                             data-index="${index}"
-                             style="background-image: url('${src}'); width: ${size}%; height: ${size * 0.75}%; left: ${pos.x}%; top: ${pos.y}%;"
-                             onmousedown="startDrag(event, this)">
-                        </div>`;
-                });
-            }
-
-            // Text (draggable and resizable)
-            if (displayContentText) {
-                const textWidth = textPosition.width || 45;
-                const textHeight = textPosition.height || 30;
-                innerContent += `
-                    <div class="draggable-element draggable-text"
-                         data-type="text"
-                         data-is-new="true"
-                         style="width: ${textWidth}%; height: ${textHeight}%; left: ${textPosition.x}%; top: ${textPosition.y}%;"
-                         onmousedown="startDrag(event, this)">
-                        ${displayContentText.replace(/\n/g, '<br>')}
-                        <div class="resize-handle" onmousedown="startResize(event, this.parentElement)"></div>
-                    </div>`;
-            }
-
-            innerContent += '</div>';
-
-            // Footer
-            innerContent += `<div class="content-page-footer">{{ $maxOrder + 1 }}</div>`;
-
-            innerContent += '</div>';
-            preview.innerHTML = innerContent;
+        // Header (title)
+        if (title) {
+            innerContent += `<div class="content-page-header">${title}</div>`;
         }
+
+        // Draggable container
+        innerContent += '<div class="draggable-container" id="draggableContainer">';
+
+        // Images (draggable)
+        if (hasImages) {
+            newImages.forEach((src, index) => {
+                const pos = imagePositions[index] || { x: 0, y: 0 };
+                const size = Math.max(20, parseInt(imageHeight));
+                innerContent += `
+                    <div class="draggable-element draggable-image"
+                         data-type="image"
+                         data-index="${index}"
+                         style="background-image: url('${src}'); width: ${size}%; height: ${size * 0.75}%; left: ${pos.x}%; top: ${pos.y}%;"
+                         onmousedown="startDrag(event, this)">
+                    </div>`;
+            });
+        }
+
+        // Text (draggable and resizable)
+        if (content) {
+            const textWidth = textPosition.width || 45;
+            const textHeight = textPosition.height || 30;
+            innerContent += `
+                <div class="draggable-element draggable-text"
+                     data-type="text"
+                     style="width: ${textWidth}%; height: ${textHeight}%; left: ${textPosition.x}%; top: ${textPosition.y}%;"
+                     onmousedown="startDrag(event, this)">
+                    ${content.replace(/\n/g, '<br>')}
+                    <div class="resize-handle" onmousedown="startResize(event, this.parentElement)"></div>
+                </div>`;
+        }
+
+        innerContent += '</div>';
+
+        // Footer
+        innerContent += `<div class="content-page-footer">{{ $maxOrder + 1 }}</div>`;
+
+        innerContent += '</div>';
+        preview.innerHTML = innerContent;
     }
 
     // Drag functionality
@@ -653,8 +451,6 @@
         dragContainer = document.getElementById('draggableContainer');
 
         const rect = element.getBoundingClientRect();
-        const containerRect = dragContainer.getBoundingClientRect();
-
         dragOffset.x = e.clientX - rect.left;
         dragOffset.y = e.clientY - rect.top;
 
@@ -671,23 +467,19 @@
         let newX = ((e.clientX - containerRect.left - dragOffset.x) / containerRect.width) * 100;
         let newY = ((e.clientY - containerRect.top - dragOffset.y) / containerRect.height) * 100;
 
-        // Constrain to container bounds
         newX = Math.max(0, Math.min(100 - parseFloat(draggedElement.style.width) || 50, newX));
         newY = Math.max(0, Math.min(100 - parseFloat(draggedElement.style.height) || 30, newY));
 
         draggedElement.style.left = newX + '%';
         draggedElement.style.top = newY + '%';
 
-        // Update position data
         const type = draggedElement.dataset.type;
         const index = parseInt(draggedElement.dataset.index);
 
         if (type === 'image') {
             imagePositions[index] = { x: newX, y: newY };
         } else if (type === 'text') {
-            textPosition = { x: newX, y: newY };
-        } else if (type === 'cover-image') {
-            coverImagePosition = { ...coverImagePosition, x: newX, y: newY };
+            textPosition = { ...textPosition, x: newX, y: newY };
         }
     }
 
@@ -698,8 +490,6 @@
         }
         document.removeEventListener('mousemove', onDrag);
         document.removeEventListener('mouseup', stopDrag);
-
-        // Update hidden inputs
         updatePositionInputs();
     }
 
@@ -741,17 +531,14 @@
 
     function stopResize() {
         if (resizingElement) {
-            const width = parseFloat(resizingElement.style.width) || 45;
-            const height = parseFloat(resizingElement.style.height) || 30;
-            textPosition.width = width;
-            textPosition.height = height;
+            textPosition.width = parseFloat(resizingElement.style.width) || 45;
+            textPosition.height = parseFloat(resizingElement.style.height) || 30;
 
             resizingElement.classList.remove('dragging');
             resizingElement = null;
         }
         document.removeEventListener('mousemove', onResize);
         document.removeEventListener('mouseup', stopResize);
-
         updatePositionInputs();
     }
 
@@ -759,19 +546,11 @@
         const container = document.getElementById('positionInputs');
         let html = '';
 
-        // Image positions
         imagePositions.forEach((pos, index) => {
             html += `<input type="hidden" name="image_positions[${index}][x]" value="${pos.x}">`;
             html += `<input type="hidden" name="image_positions[${index}][y]" value="${pos.y}">`;
         });
 
-        // Cover image position
-        html += `<input type="hidden" name="cover_image_position[x]" value="${coverImagePosition.x}">`;
-        html += `<input type="hidden" name="cover_image_position[y]" value="${coverImagePosition.y}">`;
-        html += `<input type="hidden" name="cover_image_position[width]" value="${coverImagePosition.width}">`;
-        html += `<input type="hidden" name="cover_image_position[height]" value="${coverImagePosition.height}">`;
-
-        // Text position and size
         html += `<input type="hidden" name="text_position[x]" value="${textPosition.x}">`;
         html += `<input type="hidden" name="text_position[y]" value="${textPosition.y}">`;
         html += `<input type="hidden" name="text_position[width]" value="${textPosition.width || 45}">`;
@@ -780,10 +559,57 @@
         container.innerHTML = html;
     }
 
-    // Initial render
+    // Thumbnail generation
     document.addEventListener('DOMContentLoaded', function() {
-        onPageTypeChange();
         updatePreview();
+
+        const generateBtn = document.getElementById('generateThumbnailBtn');
+        const generatedInput = document.getElementById('generatedThumbnail');
+        const previewContainer = document.getElementById('thumbnailPreviewContainer');
+        const previewImg = document.getElementById('thumbnailPreview');
+        const removeBtn = document.getElementById('removeThumbnail');
+
+        generateBtn.addEventListener('click', async function() {
+            const bookPreview = document.getElementById('bookPreview');
+            if (!bookPreview) return;
+
+            try {
+                generateBtn.disabled = true;
+                generateBtn.textContent = 'Generating...';
+
+                const canvas = await html2canvas(bookPreview, {
+                    backgroundColor: null,
+                    scale: 2,
+                    useCORS: true,
+                    allowTaint: true,
+                    logging: false
+                });
+
+                const dataUrl = canvas.toDataURL('image/png');
+                generatedInput.value = dataUrl;
+                previewImg.src = dataUrl;
+                previewContainer.classList.remove('hidden');
+
+                // Clear file input if any
+                document.getElementById('thumbnailInput').value = '';
+            } catch (err) {
+                alert('Gagal generate thumbnail: ' + err.message);
+            } finally {
+                generateBtn.disabled = false;
+                generateBtn.innerHTML = `
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    Generate dari Preview
+                `;
+            }
+        });
+
+        removeBtn.addEventListener('click', function() {
+            generatedInput.value = '';
+            previewImg.src = '';
+            previewContainer.classList.add('hidden');
+        });
     });
 </script>
 @endpush
