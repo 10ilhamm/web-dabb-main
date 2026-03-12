@@ -51,6 +51,39 @@
                     </button>
                 </div>
 
+                <!-- Back Cover Section -->
+                <div class="pt-4 border-t border-gray-200">
+                    <h4 class="text-sm font-semibold text-gray-800 mb-3">Sampul Belakang</h4>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Judul Buku (Belakang)</label>
+                    <input type="text" name="back_title" id="backBookTitle" value="{{ old('back_title') }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="Judul untuk sampul belakang (opsional)">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Cover Buku (Belakang)</label>
+                    <input type="file" name="back_cover_image" id="backCoverImageInput" accept="image/*" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100 cursor-pointer">
+                    <p class="text-xs text-gray-500 mt-1.5">JPG, PNG, atau WebP. Opsional.</p>
+                </div>
+
+                <!-- Back Cover Additional Texts Section -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Teks Tambahan (Belakang)</label>
+                    <p class="text-xs text-gray-500 mb-2">Tambahkan teks untuk sampul belakang</p>
+
+                    <div id="backAdditionalTextsContainer" class="space-y-2">
+                        <!-- Dynamic text fields will be added here -->
+                    </div>
+
+                    <button type="button" id="addBackTextBtn" class="mt-2 inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-green-600 bg-green-50 rounded-md hover:bg-green-100 transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        Tambah Teks
+                    </button>
+                </div>
+
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Thumbnail Daftar</label>
                     <input type="file" name="thumbnail" id="thumbnailInput" accept="image/*" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
@@ -112,7 +145,7 @@
                     </div>
 
                     <!-- Draggable Title -->
-                    <div id="titleContainer" class="absolute bottom-4 left-0 right-0 text-center px-4 cursor-move">
+                    <div id="titleContainer" class="absolute top-4 left-0 right-0 text-center px-4 cursor-move select-none">
                         <span id="previewTitle" class="text-white text-xs font-semibold drop-shadow-md line-clamp-2">
                             Judul Buku
                         </span>
@@ -143,11 +176,66 @@
                 </div>
             </div>
 
+            <!-- Back Cover Preview -->
+            <div class="mt-6 pt-6 border-t border-gray-200">
+                <h3 class="text-sm font-semibold text-gray-700 mb-4">Preview Sampul Belakang</h3>
+
+                <div class="relative flex justify-center mb-4">
+                    <!-- Back Book Container -->
+                    <div id="backBookPreview" class="relative w-48 h-64 bg-gradient-to-b from-amber-700 to-amber-900 rounded-l-md shadow-lg overflow-hidden" style="box-shadow: -4px 4px 15px rgba(0,0,0,0.3);">
+                        <!-- Spine (on left side for back cover) -->
+                        <div class="absolute left-0 top-0 bottom-0 w-3 bg-gradient-to-r from-amber-900 to-amber-700"></div>
+
+                        <!-- Back Cover Image Container -->
+                        <div id="backCoverContainer" class="absolute inset-3 left-6 cursor-move flex items-center justify-center bg-white/10">
+                            <span id="backCoverPlaceholder" class="text-white/50 text-xs text-center px-4">
+                                Upload cover belakang
+                            </span>
+                            <img id="backCoverPreview" class="max-w-full max-h-full object-contain pointer-events-none" style="display: none;">
+                            <div id="backResizeBorder" class="absolute inset-0 border-2 border-dashed border-gray-400/50 opacity-0 transition-opacity pointer-events-none" style="display: none;"></div>
+                        </div>
+
+                        <!-- Draggable Title for Back Cover -->
+                        <div id="backTitleContainer" class="absolute top-4 left-0 right-0 text-center px-4 cursor-move select-none">
+                            <span id="previewBackTitle" class="text-white text-xs font-semibold drop-shadow-md line-clamp-2">
+                                Judul Buku
+                            </span>
+                        </div>
+
+                        <!-- Back Additional Texts Container - Draggable -->
+                        <div id="backAdditionalTextsPreview" class="absolute left-0 right-0 text-center px-4 cursor-move" style="bottom: 16px;">
+                            <!-- Dynamic back text previews will be added here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Position Controls for Back Cover -->
+                <div class="space-y-3">
+                    <div class="flex items-center justify-center gap-2">
+                        <button type="button" id="backZoomOutBtn" class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 text-lg font-bold transition-colors" title="Perkecil">−</button>
+                        <input type="range" id="backZoomSlider" min="30" max="250" value="100" class="w-24 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                        <button type="button" id="backZoomInBtn" class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 text-lg font-bold transition-colors" title="Perbesar">+</button>
+                        <span id="backZoomLevel" class="text-xs text-gray-500 ml-2 w-12">100%</span>
+                    </div>
+                    <div class="flex items-center justify-center gap-4">
+                        <button type="button" id="resetBackPosition" class="text-xs text-gray-500 hover:text-gray-700 underline">
+                            Reset Posisi
+                        </button>
+                        <span class="text-xs text-gray-400">|</span>
+                        <span class="text-xs text-gray-500">Geser elemen untuk mengatur posisi | Scroll pada gambar untuk ubah ukuran</span>
+                    </div>
+                </div>
+            </div>
+
             <!-- Hidden fields for positions -->
             <input type="hidden" name="cover_position" id="coverPosition" value='{"x":0,"y":0}'>
             <input type="hidden" name="cover_scale" id="coverScale" value="1">
             <input type="hidden" name="title_position" id="titlePosition" value='{"x":0,"y":0}'>
             <input type="hidden" name="cover_texts" id="coverTexts" value='[]'>
+            <input type="hidden" name="back_cover_position" id="backCoverPosition" value='{"x":0,"y":0}'>
+            <input type="hidden" name="back_cover_scale" id="backCoverScale" value="1">
+            <input type="hidden" name="back_title_position" id="backTitlePosition" value='{"x":0,"y":0}'>
+            <input type="hidden" name="back_cover_texts" id="backCoverTexts" value='[]'>
         </div>
     </div>
 </form>
@@ -200,6 +288,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Cover resize state
     let currentScale = 1;
+    let isResizing = false;
 
     // Handle image upload
     coverInput.addEventListener('change', function(e) {
@@ -207,11 +296,17 @@ document.addEventListener('DOMContentLoaded', function() {
         if (file) {
             const reader = new FileReader();
             reader.onload = function(e) {
+                coverX = 0;
+                coverY = 0;
+                currentScale = 1;
+
                 coverPreview.src = e.target.result;
                 coverPreview.style.display = 'block';
-                coverPlaceholder.style.display = 'none';
-                resizeBorder.style.display = 'block';
-                resizeBorder.style.opacity = '1';
+                if (coverPlaceholder) coverPlaceholder.style.display = 'none';
+                if (resizeBorder) {
+                    resizeBorder.style.display = 'block';
+                    resizeBorder.style.opacity = '1';
+                }
                 updateCoverPosition(0, 0);
                 updateCoverScale(1);
             };
@@ -276,6 +371,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Title drag functionality
     titleContainer.addEventListener('mousedown', function(e) {
+        e.preventDefault();
         isTitleDragging = true;
         titleStartX = e.clientX - titleX;
         titleStartY = e.clientY - titleY;
@@ -392,20 +488,29 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.addEventListener('touchend', function() {
         initialPinchDistance = null;
-    });
-
-    document.addEventListener('touchend', function() {
         isResizing = false;
     });
 
+    // Add touch/mouse support delegation for text previews
+    additionalTextsPreview.addEventListener('mousedown', function(e) {
+        const textPreview = e.target.closest('[data-text-id]');
+        if (textPreview) {
+            e.stopPropagation();
+            isTextDragging = true;
+            currentTextId = parseInt(textPreview.dataset.textId);
+            const textObj = additionalTexts.find(t => t.id === currentTextId);
+            textDragStartX = e.clientX - (textObj ? textObj.position.x : 0);
+            textDragStartY = e.clientY - (textObj ? textObj.position.y : 0);
+            textPreview.style.cursor = 'grabbing';
+        }
+    });
+
     function updateCoverPosition(x, y) {
-        // Remove offset limits for free movement, preserve scale
         coverPreview.style.transform = `translate(${x}px, ${y}px) scale(${currentScale})`;
         coverPositionInput.value = JSON.stringify({x: x, y: y});
     }
 
     function updateTitlePosition(x, y) {
-        // Remove offset limits for free movement
         titleContainer.style.transform = `translate(${x}px, ${y}px)`;
         titlePositionInput.value = JSON.stringify({x: x, y: y});
     }
@@ -600,11 +705,285 @@ document.addEventListener('DOMContentLoaded', function() {
             thumbnailPreview.src = '';
         });
     }
+
+    // ==================== Back Cover Functionality ====================
+    const backCoverInput = document.getElementById('backCoverImageInput');
+    const backCoverPreview = document.getElementById('backCoverPreview');
+    const backCoverPlaceholder = document.getElementById('backCoverPlaceholder');
+    const backCoverContainer = document.getElementById('backCoverContainer');
+    const backCoverPositionInput = document.getElementById('backCoverPosition');
+    const backCoverScaleInput = document.getElementById('backCoverScale');
+    const backResizeBorder = document.getElementById('backResizeBorder');
+    const previewBackTitle = document.getElementById('previewBackTitle');
+    const backTitleContainer = document.getElementById('backTitleContainer');
+    const backTitlePositionInput = document.getElementById('backTitlePosition');
+
+    const backZoomInBtn = document.getElementById('backZoomInBtn');
+    const backZoomOutBtn = document.getElementById('backZoomOutBtn');
+    const backZoomSlider = document.getElementById('backZoomSlider');
+    const backZoomLevel = document.getElementById('backZoomLevel');
+
+    let backCoverX = 0, backCoverY = 0;
+    let isBackCoverDragging = false;
+    let backCoverStartX, backCoverStartY;
+    let backCurrentScale = 1;
+
+    let isBackTitleDragging = false;
+    let backTitleStartX, backTitleStartY;
+    let backTitleX = 0, backTitleY = 0;
+
+    // Handle back cover image upload
+    if (backCoverInput) {
+        backCoverInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    backCoverX = 0;
+                    backCoverY = 0;
+                    backCurrentScale = 1;
+
+                    backCoverPreview.src = e.target.result;
+                    backCoverPreview.style.display = 'block';
+                    if (backCoverPlaceholder) backCoverPlaceholder.style.display = 'none';
+                    if (backResizeBorder) {
+                        backResizeBorder.style.display = 'block';
+                        backResizeBorder.style.opacity = '1';
+                    }
+                    updateBackCoverPosition(0, 0);
+                    updateBackCoverScale(1);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+
+    // Sync back title
+    const backBookTitleInput = document.getElementById('backBookTitle');
+    if (backBookTitleInput) {
+        backBookTitleInput.addEventListener('input', function(e) {
+            previewBackTitle.textContent = e.target.value || 'Judul Buku';
+        });
+    }
+
+    // Back cover drag functionality
+    if (backCoverContainer) {
+        backCoverContainer.addEventListener('mousedown', function(e) {
+            if (!backCoverPreview.src || backCoverPreview.style.display === 'none') return;
+            isBackCoverDragging = true;
+            backCoverStartX = e.clientX - backCoverX;
+            backCoverStartY = e.clientY - backCoverY;
+            backCoverContainer.style.cursor = 'grabbing';
+        });
+    }
+
+    if (backTitleContainer) {
+        backTitleContainer.addEventListener('mousedown', function(e) {
+            e.preventDefault();
+            isBackTitleDragging = true;
+            backTitleStartX = e.clientX - backTitleX;
+            backTitleStartY = e.clientY - backTitleY;
+            backTitleContainer.style.cursor = 'grabbing';
+        });
+    }
+
+    document.addEventListener('mousemove', function(e) {
+        if (isBackCoverDragging) {
+            e.preventDefault();
+            backCoverX = e.clientX - backCoverStartX;
+            backCoverY = e.clientY - backCoverStartY;
+            updateBackCoverPosition(backCoverX, backCoverY);
+        }
+        if (isBackTitleDragging) {
+            e.preventDefault();
+            backTitleX = e.clientX - backTitleStartX;
+            backTitleY = e.clientY - backTitleStartY;
+            updateBackTitlePosition(backTitleX, backTitleY);
+        }
+    });
+
+    document.addEventListener('mouseup', function() {
+        if (isBackCoverDragging) {
+            isBackCoverDragging = false;
+            if (backCoverContainer) backCoverContainer.style.cursor = 'move';
+        }
+        if (isBackTitleDragging) {
+            isBackTitleDragging = false;
+            if (backTitleContainer) backTitleContainer.style.cursor = 'move';
+        }
+    });
+
+    // Wheel resize for back cover
+    if (backCoverContainer) {
+        backCoverContainer.addEventListener('wheel', function(e) {
+            e.preventDefault();
+            const delta = e.deltaY > 0 ? -0.1 : 0.1;
+            const newScale = backCurrentScale + delta;
+            updateBackCoverScale(newScale);
+        }, { passive: false });
+    }
+
+    // Back cover zoom buttons
+    if (backZoomInBtn) {
+        backZoomInBtn.addEventListener('click', function() {
+            const newScale = backCurrentScale + 0.1;
+            updateBackCoverScale(newScale);
+        });
+    }
+
+    if (backZoomOutBtn) {
+        backZoomOutBtn.addEventListener('click', function() {
+            const newScale = backCurrentScale - 0.1;
+            updateBackCoverScale(newScale);
+        });
+    }
+
+    if (backZoomSlider) {
+        backZoomSlider.addEventListener('input', function(e) {
+            const scale = e.target.value / 100;
+            updateBackCoverScale(scale);
+        });
+    }
+
+    function updateBackCoverPosition(x, y) {
+        if (backCoverPreview) {
+            backCoverPreview.style.transform = `translate(${x}px, ${y}px) scale(${backCurrentScale})`;
+        }
+        if (backCoverPositionInput) {
+            backCoverPositionInput.value = JSON.stringify({x: x, y: y});
+        }
+    }
+
+    function updateBackTitlePosition(x, y) {
+        if (backTitleContainer) {
+            backTitleContainer.style.transform = `translate(${x}px, ${y}px)`;
+        }
+        if (backTitlePositionInput) {
+            backTitlePositionInput.value = JSON.stringify({x: x, y: y});
+        }
+    }
+
+    function updateBackCoverScale(scale) {
+        backCurrentScale = Math.max(0.3, Math.min(2.5, scale));
+        if (backCoverPreview) {
+            backCoverPreview.style.transform = `translate(${backCoverX}px, ${backCoverY}px) scale(${backCurrentScale})`;
+        }
+        if (backCoverScaleInput) {
+            backCoverScaleInput.value = backCurrentScale;
+        }
+        if (backZoomSlider) {
+            backZoomSlider.value = backCurrentScale * 100;
+        }
+        if (backZoomLevel) {
+            backZoomLevel.textContent = Math.round(backCurrentScale * 100) + '%';
+        }
+    }
+
+    // Reset back cover position
+    const resetBackPositionBtn = document.getElementById('resetBackPosition');
+    if (resetBackPositionBtn) {
+        resetBackPositionBtn.addEventListener('click', function() {
+            backCoverX = 0;
+            backCoverY = 0;
+            backTitleX = 0;
+            backTitleY = 0;
+
+            updateBackCoverPosition(0, 0);
+            updateBackCoverScale(1);
+            updateBackTitlePosition(0, 0);
+        });
+    }
+
+    // ==================== Back Cover Additional Texts ====================
+    const backAdditionalTextsContainer = document.getElementById('backAdditionalTextsContainer');
+    const backAdditionalTextsPreview = document.getElementById('backAdditionalTextsPreview');
+    const addBackTextBtn = document.getElementById('addBackTextBtn');
+    const backCoverTextsInput = document.getElementById('backCoverTexts');
+
+    let backTextCounter = 0;
+    let backAdditionalTexts = [];
+
+    if (addBackTextBtn) {
+        addBackTextBtn.addEventListener('click', function() {
+            const textId = backTextCounter++;
+            backAdditionalTexts.push({ id: textId, text: '', position: {x: 0, y: 0} });
+
+            const textField = document.createElement('div');
+            textField.className = 'flex items-center gap-2';
+            textField.dataset.id = textId;
+            textField.innerHTML = `
+                <input type="text" name="back_cover_text_${textId}" placeholder="Teks tambahan ${textId + 1}"
+                    class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                    data-back-text-id="${textId}">
+                <button type="button" class="remove-back-text-btn p-1.5 text-red-500 hover:bg-red-50 rounded-md transition-colors" data-id="${textId}">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            `;
+            if (backAdditionalTextsContainer) {
+                backAdditionalTextsContainer.appendChild(textField);
+
+                // Add preview text in back cover preview
+                const textPreview = document.createElement('span');
+                textPreview.id = `backTextPreview_${textId}`;
+                textPreview.className = 'block text-white/80 text-[10px] drop-shadow-md line-clamp-1 mt-1 cursor-move';
+                textPreview.textContent = `Teks ${textId + 1}`;
+                textPreview.dataset.backTextId = textId;
+                if (backAdditionalTextsPreview) {
+                    backAdditionalTextsPreview.appendChild(textPreview);
+                }
+
+                const input = textField.querySelector('input');
+                input.addEventListener('input', function(e) {
+                    const textId = parseInt(this.dataset.backTextId);
+                    const textObj = backAdditionalTexts.find(t => t.id === textId);
+                    if (textObj) {
+                        textObj.text = e.target.value;
+                        const preview = document.getElementById(`backTextPreview_${textId}`);
+                        if (preview) {
+                            preview.textContent = e.target.value || `Teks ${textId + 1}`;
+                        }
+                        updateBackCoverTexts();
+                    }
+                });
+
+                const removeBtn = textField.querySelector('.remove-back-text-btn');
+                removeBtn.addEventListener('click', function() {
+                    const textId = parseInt(this.dataset.id);
+                    backAdditionalTexts = backAdditionalTexts.filter(t => t.id !== textId);
+                    textField.remove();
+                    const preview = document.getElementById(`backTextPreview_${textId}`);
+                    if (preview) preview.remove();
+                    updateBackCoverTexts();
+                });
+            }
+
+            updateBackCoverTexts();
+        });
+    }
+
+    function updateBackCoverTexts() {
+        if (backCoverTextsInput) {
+            const texts = backAdditionalTexts.map(t => ({
+                text: t.text,
+                position: t.position
+            }));
+            backCoverTextsInput.value = JSON.stringify(texts);
+        }
+    }
 });
 </script>
 @endpush
 
 <style>
+.select-none {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+
 .line-clamp-2 {
     display: -webkit-box;
     -webkit-line-clamp: 2;

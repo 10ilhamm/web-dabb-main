@@ -88,6 +88,72 @@
                     </button>
                 </div>
 
+                <!-- Back Cover Section -->
+                <div class="pt-4 border-t border-gray-200">
+                    <h4 class="text-sm font-semibold text-gray-800 mb-3">Sampul Belakang</h4>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Judul Buku (Belakang)</label>
+                    <input type="text" name="back_title" id="backBookTitle" value="{{ old('back_title', $book->back_title ?? '') }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="Judul untuk sampul belakang (opsional)">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Cover Buku (Belakang)</label>
+                    @if($book->back_cover_image)
+                    <div class="mb-2">
+                        <img src="{{ asset('storage/' . $book->back_cover_image) }}" alt="Back Cover" class="w-32 h-40 object-cover rounded-lg border border-gray-200">
+                    </div>
+                    <label class="flex items-center">
+                        <input type="checkbox" name="remove_back_cover_image" value="1" class="rounded border-gray-300">
+                        <span class="ml-2 text-sm text-gray-500">Hapus cover belakang</span>
+                    </label>
+                    <hr class="my-3 border-gray-200">
+                    @endif
+                    <input type="file" name="back_cover_image" id="backCoverImageInput" accept="image/*" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100 cursor-pointer">
+                    <p class="text-xs text-gray-500 mt-1.5">JPG, PNG, atau WebP. Opsional.</p>
+                </div>
+
+                <!-- Back Cover Additional Texts Section -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Teks Tambahan (Belakang)</label>
+                    <p class="text-xs text-gray-500 mb-2">Tambahkan teks untuk sampul belakang</p>
+
+                    <div id="backAdditionalTextsContainer" class="space-y-2">
+                        @php
+                        $backCoverTextsArray = [];
+                        if ($book->back_cover_texts) {
+                            if (is_string($book->back_cover_texts)) {
+                                $decoded = json_decode($book->back_cover_texts, true);
+                                $backCoverTextsArray = is_array($decoded) ? $decoded : [];
+                            } elseif (is_array($book->back_cover_texts)) {
+                                $backCoverTextsArray = $book->back_cover_texts;
+                            }
+                        }
+                        @endphp
+                        @if(count($backCoverTextsArray) > 0)
+                            @foreach($backCoverTextsArray as $index => $coverText)
+                            <div class="flex items-center gap-2" data-id="{{ $index }}">
+                                <input type="text" name="back_cover_text_{{ $index }}" value="{{ $coverText['text'] ?? '' }}" placeholder="Teks tambahan {{ $index + 1 }}"
+                                    class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm" data-back-text-id="{{ $index }}">
+                                <button type="button" class="remove-back-text-btn p-1.5 text-red-500 hover:bg-red-50 rounded-md transition-colors" data-id="{{ $index }}">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+                            @endforeach
+                        @endif
+                    </div>
+
+                    <button type="button" id="addBackTextBtn" class="mt-2 inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-green-600 bg-green-50 rounded-md hover:bg-green-100 transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        Tambah Teks
+                    </button>
+                </div>
+
                 <!-- Thumbnail -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Thumbnail Daftar</label>
@@ -180,26 +246,15 @@
                         }
                     }
                     @endphp
-                    <div id="titleContainer" class="absolute bottom-4 left-0 right-0 text-center px-4 cursor-move select-none" style="transform: translate({{ $titlePositionX }}px, {{ $titlePositionY }}px);">
+                    <div id="titleContainer" class="absolute top-4 left-0 right-0 text-center px-4 cursor-move select-none" style="transform: translate({{ $titlePositionX }}px, {{ $titlePositionY }}px);">
                         <span id="previewTitle" class="text-white text-xs font-semibold drop-shadow-md line-clamp-2">
                             {{ $book->title }}
                         </span>
                     </div>
 
-                    <!-- Additional Texts Container -->
-                    <div id="additionalTextsPreview" class="absolute left-0 right-0 text-center px-4" style="bottom: 16px;">
-                        @php
-                        $coverTextsArrayPreview = [];
-                        if ($book->cover_texts) {
-                            if (is_string($book->cover_texts)) {
-                                $decoded = json_decode($book->cover_texts, true);
-                                $coverTextsArrayPreview = is_array($decoded) ? $decoded : [];
-                            } elseif (is_array($book->cover_texts)) {
-                                $coverTextsArrayPreview = $book->cover_texts;
-                            }
-                        }
-                        @endphp
-                        @if(count($coverTextsArrayPreview) > 0)
+                    <!-- Additional Texts Container - Draggable -->
+                    <div id="additionalTextsPreview" class="absolute left-0 right-0 text-center px-4 cursor-move" style="bottom: 16px;">
+                        @if(count($coverTextsArray) > 0)
                             @foreach($coverTextsArray as $index => $coverText)
                             <span id="textPreview_{{ $index }}" class="block text-white/80 text-[10px] drop-shadow-md line-clamp-1 mt-1 cursor-move" data-text-id="{{ $index }}" style="transform: translate({{ $coverText['position']['x'] ?? 0 }}px, {{ $coverText['position']['y'] ?? 0 }}px);">
                                 {{ $coverText['text'] ?? "Teks " . ($index + 1) }}
@@ -228,6 +283,67 @@
                 </div>
             </div>
 
+            <!-- Back Cover Preview -->
+            <div class="mt-6 pt-6 border-t border-gray-200">
+                <h3 class="text-sm font-semibold text-gray-700 mb-4">Preview Sampul Belakang</h3>
+
+                <div class="relative flex justify-center mb-4">
+                    <!-- Back Book Container -->
+                    <div id="backBookPreview" class="relative w-48 h-64 bg-gradient-to-b from-amber-700 to-amber-900 rounded-l-md shadow-lg overflow-hidden" style="box-shadow: -4px 4px 15px rgba(0,0,0,0.3);">
+                        <!-- Spine (on left side for back cover) -->
+                        <div class="absolute left-0 top-0 bottom-0 w-3 bg-gradient-to-r from-amber-900 to-amber-700"></div>
+
+                        <!-- Back Cover Image Container -->
+                        <div id="backCoverContainer" class="absolute inset-3 left-6 cursor-move flex items-center justify-center bg-white/10">
+                            @if($book->back_cover_image)
+                            <img id="backCoverPreview" src="{{ asset('storage/' . $book->back_cover_image) }}" class="max-w-full max-h-full object-contain pointer-events-none" style="transform: translate({{ $book->back_cover_position['x'] ?? 0 }}px, {{ $book->back_cover_position['y'] ?? 0 }}px) scale({{ $book->back_cover_scale ?? 1 }});">
+                            @else
+                            <span id="backCoverPlaceholder" class="text-white/50 text-xs text-center px-4">
+                                Upload cover belakang
+                            </span>
+                            <img id="backCoverPreview" class="max-w-full max-h-full object-contain pointer-events-none" style="display: none;">
+                            @endif
+                            <div id="backResizeBorder" class="absolute inset-0 border-2 border-dashed border-gray-400/50 transition-opacity pointer-events-none" style="display: {{ $book->back_cover_image ? 'block' : 'none' }}; opacity: {{ $book->back_cover_image ? '1' : '0' }};"></div>
+                        </div>
+
+                        <!-- Draggable Title for Back Cover -->
+                        <div id="backTitleContainer" class="absolute top-4 left-0 right-0 text-center px-4 cursor-move select-none" style="transform: translate({{ $book->back_title_position['x'] ?? 0 }}px, {{ $book->back_title_position['y'] ?? 0 }}px);">
+                            <span id="previewBackTitle" class="text-white text-xs font-semibold drop-shadow-md line-clamp-2">
+                                {{ $book->back_title ?? $book->title }}
+                            </span>
+                        </div>
+
+                        <!-- Back Additional Texts Container - Draggable -->
+                        <div id="backAdditionalTextsPreview" class="absolute left-0 right-0 text-center px-4 cursor-move" style="bottom: 16px;">
+                            @if(count($backCoverTextsArray) > 0)
+                                @foreach($backCoverTextsArray as $index => $backText)
+                                <span id="backTextPreview_{{ $index }}" class="block text-white/80 text-[10px] drop-shadow-md line-clamp-1 mt-1 cursor-move" data-back-text-id="{{ $index }}" style="transform: translate({{ $backText['position']['x'] ?? 0 }}px, {{ $backText['position']['y'] ?? 0 }}px);">
+                                    {{ $backText['text'] ?? "Teks " . ($index + 1) }}
+                                </span>
+                                @endforeach
+                            @endif
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Position Controls for Back Cover -->
+                <div class="space-y-3">
+                    <div class="flex items-center justify-center gap-2">
+                        <button type="button" id="backZoomOutBtn" class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 text-lg font-bold transition-colors" title="Perkecil">−</button>
+                        <input type="range" id="backZoomSlider" min="30" max="250" value="{{ ($book->back_cover_scale ?? 1) * 100 }}" class="w-24 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                        <button type="button" id="backZoomInBtn" class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 text-lg font-bold transition-colors" title="Perbesar">+</button>
+                        <span id="backZoomLevel" class="text-xs text-gray-500 ml-2 w-12">{{ round(($book->back_cover_scale ?? 1) * 100) }}%</span>
+                    </div>
+                    <div class="flex items-center justify-center gap-4">
+                        <button type="button" id="resetBackPosition" class="text-xs text-gray-500 hover:text-gray-700 underline">
+                            Reset Posisi
+                        </button>
+                        <span class="text-xs text-gray-400">|</span>
+                        <span class="text-xs text-gray-500">Geser elemen untuk mengatur posisi | Scroll pada gambar untuk ubah ukuran</span>
+                    </div>
+                </div>
+            </div>
+
             <!-- Hidden fields for positions -->
             @php
                 $coverPos = $book->cover_position;
@@ -246,6 +362,20 @@
             <input type="hidden" name="cover_scale" id="coverScale" value="{{ $book->cover_scale ?? 1 }}">
             <input type="hidden" name="title_position" id="titlePosition" value='{{ json_encode($titlePos) }}'>
             <input type="hidden" name="cover_texts" id="coverTexts" value='{{ json_encode($book->cover_texts ?? []) }}'>
+            @php
+                $backCoverPos = $book->back_cover_position ?? ['x' => 0, 'y' => 0];
+                if (is_string($backCoverPos)) {
+                    $backCoverPos = json_decode($backCoverPos, true) ?? ['x' => 0, 'y' => 0];
+                }
+                $backTitlePos = $book->back_title_position ?? ['x' => 0, 'y' => 0];
+                if (is_string($backTitlePos)) {
+                    $backTitlePos = json_decode($backTitlePos, true) ?? ['x' => 0, 'y' => 0];
+                }
+            @endphp
+            <input type="hidden" name="back_cover_position" id="backCoverPosition" value='{{ json_encode($backCoverPos) }}'>
+            <input type="hidden" name="back_cover_scale" id="backCoverScale" value="{{ $book->back_cover_scale ?? 1 }}">
+            <input type="hidden" name="back_title_position" id="backTitlePosition" value='{{ json_encode($backTitlePos) }}'>
+            <input type="hidden" name="back_cover_texts" id="backCoverTexts" value='{{ json_encode($book->back_cover_texts ?? []) }}'>
         </div>
     </div>
 </form>
@@ -272,81 +402,61 @@ document.addEventListener('DOMContentLoaded', function() {
     const coverTextsInput = document.getElementById('coverTexts');
     const resetPositionBtn = document.getElementById('resetPosition');
 
-    // Zoom controls
     const zoomInBtn = document.getElementById('zoomInBtn');
     const zoomOutBtn = document.getElementById('zoomOutBtn');
     const zoomSlider = document.getElementById('zoomSlider');
     const zoomLevel = document.getElementById('zoomLevel');
 
-    // Get initial position from database
-    let initialCoverPosition = {x: 0, y: 0};
-    @if($book->cover_position)
-        @php
+    // Get initial positions from database
+    @php
+        $initCoverPos = ['x' => 0, 'y' => 0];
+        if ($book->cover_position) {
             if (is_array($book->cover_position)) {
-                echo 'initialCoverPosition = ' . json_encode($book->cover_position) . ';';
+                $initCoverPos = $book->cover_position;
             } else {
                 $decoded = json_decode($book->cover_position, true);
-                if (is_array($decoded)) {
-                    echo 'initialCoverPosition = ' . json_encode($decoded) . ';';
-                }
+                if (is_array($decoded)) $initCoverPos = $decoded;
             }
-        @endphp
-    @endif
+        }
 
-    // Get initial texts from database
-    let initialTexts = [];
-    @if($book->cover_texts)
-        @php
-            $decoded = json_decode($book->cover_texts, true);
-            if (is_array($decoded)) {
-                echo 'initialTexts = ' . json_encode($decoded) . ';';
+        $initTitlePos = ['x' => 0, 'y' => 0];
+        if ($book->title_position) {
+            if (is_array($book->title_position)) {
+                $initTitlePos = $book->title_position;
+            } else {
+                $decoded = json_decode($book->title_position, true);
+                if (is_array($decoded)) $initTitlePos = $decoded;
             }
-        @endphp
-    @endif
-    let textCounter = initialTexts.length;
-    let additionalTexts = initialTexts.map((t, i) => ({ id: i, text: t.text || '', position: t.position || {x: 0, y: 0} }));
+        }
 
-    // Initialize cover position from database
-    let coverX = initialCoverPosition.x;
-    let coverY = initialCoverPosition.y;
+        $initCoverTexts = [];
+        if ($book->cover_texts) {
+            if (is_string($book->cover_texts)) {
+                $decoded = json_decode($book->cover_texts, true);
+                $initCoverTexts = is_array($decoded) ? $decoded : [];
+            } elseif (is_array($book->cover_texts)) {
+                $initCoverTexts = $book->cover_texts;
+            }
+        }
+    @endphp
 
-    // Add drag functionality to existing text previews from database
-    additionalTextsPreview.querySelectorAll('[data-text-id]').forEach(textPreview => {
-        textPreview.addEventListener('mousedown', function(e) {
-            e.stopPropagation();
-            isTextDragging = true;
-            currentTextId = parseInt(this.dataset.textId);
-            const textObj = additionalTexts.find(t => t.id === currentTextId);
-            textDragStartX = e.clientX - (textObj ? textObj.position.x : 0);
-            textDragStartY = e.clientY - (textObj ? textObj.position.y : 0);
-            this.style.cursor = 'grabbing';
-        });
-    });
+    let textCounter = {{ count($initCoverTexts) }};
+    let additionalTexts = [];
+    @foreach($initCoverTexts as $index => $ct)
+    additionalTexts.push({ id: {{ $index }}, text: '{{ addslashes($ct['text'] ?? '') }}', position: {x: {{ $ct['position']['x'] ?? 0 }}, y: {{ $ct['position']['y'] ?? 0 }}} });
+    @endforeach
 
     // Cover drag state
     let isCoverDragging = false;
     let coverStartX, coverStartY;
+    let coverX = {{ $initCoverPos['x'] ?? 0 }};
+    let coverY = {{ $initCoverPos['y'] ?? 0 }};
 
     // Title drag state
     let isTitleDragging = false;
     let titleStartX, titleStartY;
-    let titleX = 0;
-    let titleY = 0;
-    @if($book->title_position)
-        @php
-            $titlePos = null;
-            if (is_array($book->title_position)) {
-                $titlePos = $book->title_position;
-            } else {
-                $titlePos = json_decode($book->title_position, true);
-            }
-            if (is_array($titlePos)) {
-                echo 'titleX = ' . ($titlePos['x'] ?? 0) . ';';
-                echo 'titleY = ' . ($titlePos['y'] ?? 0) . ';';
-            }
-        @endphp
-    @endif
-    console.log('Initial title position:', titleX, titleY);
+    let titleX = {{ $initTitlePos['x'] ?? 0 }};
+    let titleY = {{ $initTitlePos['y'] ?? 0 }};
 
     // Additional texts drag state
     let isTextDragging = false;
@@ -355,6 +465,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Cover resize state
     let currentScale = {{ is_numeric($book->cover_scale ?? 1) ? ($book->cover_scale ?? 1) : 1 }};
+    let isResizing = false;
 
     // Handle image upload
     coverInput.addEventListener('change', function(e) {
@@ -362,7 +473,6 @@ document.addEventListener('DOMContentLoaded', function() {
         if (file) {
             const reader = new FileReader();
             reader.onload = function(e) {
-                // Reset position when uploading new image
                 coverX = 0;
                 coverY = 0;
                 currentScale = 1;
@@ -404,7 +514,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         if (isTitleDragging) {
             e.preventDefault();
-            console.log('Title dragging:', e.clientX, e.clientY, titleStartX, titleStartY);
             titleX = e.clientX - titleStartX;
             titleY = e.clientY - titleStartY;
             updateTitlePosition(titleX, titleY);
@@ -440,7 +549,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Title drag functionality
     titleContainer.addEventListener('mousedown', function(e) {
         e.preventDefault();
-        console.log('Title mousedown triggered');
         isTitleDragging = true;
         titleStartX = e.clientX - titleX;
         titleStartY = e.clientY - titleY;
@@ -557,6 +665,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.addEventListener('touchend', function() {
         initialPinchDistance = null;
+        isResizing = false;
     });
 
     // Add touch support delegation for text previews mousedown
@@ -738,9 +847,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Initialize title position on page load
-    updateTitlePosition(titleX, titleY);
-
     // Thumbnail Generation
     const generateThumbnailBtn = document.getElementById('generateThumbnailBtn');
     const thumbnailPreviewContainer = document.getElementById('thumbnailPreviewContainer');
@@ -758,8 +864,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            // Check if cover image exists
-            if (!coverPreview.src || (coverPreview.style.display === 'none' && !coverPreview.getAttribute('src'))) {
+            if (!coverPreview.src || coverPreview.style.display === 'none') {
                 alert('Silakan upload cover buku terlebih dahulu');
                 return;
             }
@@ -781,15 +886,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 generatedThumbnailInput.value = dataUrl;
                 thumbnailPreviewContainer.classList.remove('hidden');
 
-                // Hide existing thumbnail if shown
                 if (existingThumbnail) {
                     existingThumbnail.classList.add('hidden');
                 }
 
-                // Clear file input
-                if (thumbnailInput) {
-                    thumbnailInput.value = '';
-                }
+                thumbnailInput.value = '';
 
             } catch (error) {
                 console.error('Error generating thumbnail:', error);
@@ -808,11 +909,357 @@ document.addEventListener('DOMContentLoaded', function() {
             thumbnailPreviewContainer.classList.add('hidden');
             thumbnailPreview.src = '';
 
-            // Show existing thumbnail again
             if (existingThumbnail) {
                 existingThumbnail.classList.remove('hidden');
             }
         });
+    }
+
+    // ==================== Back Cover Functionality ====================
+    const backCoverInput = document.getElementById('backCoverImageInput');
+    const backCoverPreview = document.getElementById('backCoverPreview');
+    const backCoverPlaceholder = document.getElementById('backCoverPlaceholder');
+    const backCoverContainer = document.getElementById('backCoverContainer');
+    const backCoverPositionInput = document.getElementById('backCoverPosition');
+    const backCoverScaleInput = document.getElementById('backCoverScale');
+    const backResizeBorder = document.getElementById('backResizeBorder');
+    const previewBackTitle = document.getElementById('previewBackTitle');
+    const backTitleContainer = document.getElementById('backTitleContainer');
+    const backTitlePositionInput = document.getElementById('backTitlePosition');
+
+    const backZoomInBtn = document.getElementById('backZoomInBtn');
+    const backZoomOutBtn = document.getElementById('backZoomOutBtn');
+    const backZoomSlider = document.getElementById('backZoomSlider');
+    const backZoomLevel = document.getElementById('backZoomLevel');
+
+    @php
+        $initBackCoverPos = ['x' => 0, 'y' => 0];
+        if ($book->back_cover_position) {
+            if (is_array($book->back_cover_position)) {
+                $initBackCoverPos = $book->back_cover_position;
+            } else {
+                $decoded = json_decode($book->back_cover_position, true);
+                if (is_array($decoded)) $initBackCoverPos = $decoded;
+            }
+        }
+
+        $initBackTitlePos = ['x' => 0, 'y' => 0];
+        if (isset($book->back_title_position) && $book->back_title_position) {
+            if (is_array($book->back_title_position)) {
+                $initBackTitlePos = $book->back_title_position;
+            } else {
+                $decoded = json_decode($book->back_title_position, true);
+                if (is_array($decoded)) $initBackTitlePos = $decoded;
+            }
+        }
+    @endphp
+
+    let backCoverX = {{ $initBackCoverPos['x'] ?? 0 }};
+    let backCoverY = {{ $initBackCoverPos['y'] ?? 0 }};
+    let isBackCoverDragging = false;
+    let backCoverStartX, backCoverStartY;
+    let backCurrentScale = {{ is_numeric($book->back_cover_scale ?? 1) ? ($book->back_cover_scale ?? 1) : 1 }};
+
+    let isBackTitleDragging = false;
+    let backTitleStartX, backTitleStartY;
+    let backTitleX = {{ $initBackTitlePos['x'] ?? 0 }};
+    let backTitleY = {{ $initBackTitlePos['y'] ?? 0 }};
+
+    // Handle back cover image upload
+    if (backCoverInput) {
+        backCoverInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    backCoverX = 0;
+                    backCoverY = 0;
+                    backCurrentScale = 1;
+
+                    backCoverPreview.src = e.target.result;
+                    backCoverPreview.style.display = 'block';
+                    if (backCoverPlaceholder) backCoverPlaceholder.style.display = 'none';
+                    if (backResizeBorder) {
+                        backResizeBorder.style.display = 'block';
+                        backResizeBorder.style.opacity = '1';
+                    }
+                    updateBackCoverPosition(0, 0);
+                    updateBackCoverScale(1);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+
+    // Sync back title
+    const backBookTitleInput = document.getElementById('backBookTitle');
+    if (backBookTitleInput) {
+        backBookTitleInput.addEventListener('input', function(e) {
+            previewBackTitle.textContent = e.target.value || 'Judul Buku';
+        });
+    }
+
+    // Back cover drag functionality
+    if (backCoverContainer) {
+        backCoverContainer.addEventListener('mousedown', function(e) {
+            if (!backCoverPreview.src || backCoverPreview.style.display === 'none') return;
+            isBackCoverDragging = true;
+            backCoverStartX = e.clientX - backCoverX;
+            backCoverStartY = e.clientY - backCoverY;
+            backCoverContainer.style.cursor = 'grabbing';
+        });
+    }
+
+    if (backTitleContainer) {
+        backTitleContainer.addEventListener('mousedown', function(e) {
+            e.preventDefault();
+            isBackTitleDragging = true;
+            backTitleStartX = e.clientX - backTitleX;
+            backTitleStartY = e.clientY - backTitleY;
+            backTitleContainer.style.cursor = 'grabbing';
+        });
+    }
+
+    document.addEventListener('mousemove', function(e) {
+        if (isBackCoverDragging) {
+            e.preventDefault();
+            backCoverX = e.clientX - backCoverStartX;
+            backCoverY = e.clientY - backCoverStartY;
+            updateBackCoverPosition(backCoverX, backCoverY);
+        }
+        if (isBackTitleDragging) {
+            e.preventDefault();
+            backTitleX = e.clientX - backTitleStartX;
+            backTitleY = e.clientY - backTitleStartY;
+            updateBackTitlePosition(backTitleX, backTitleY);
+        }
+    });
+
+    document.addEventListener('mouseup', function() {
+        if (isBackCoverDragging) {
+            isBackCoverDragging = false;
+            if (backCoverContainer) backCoverContainer.style.cursor = 'move';
+        }
+        if (isBackTitleDragging) {
+            isBackTitleDragging = false;
+            if (backTitleContainer) backTitleContainer.style.cursor = 'move';
+        }
+    });
+
+    // Wheel resize for back cover
+    if (backCoverContainer) {
+        backCoverContainer.addEventListener('wheel', function(e) {
+            e.preventDefault();
+            const delta = e.deltaY > 0 ? -0.1 : 0.1;
+            const newScale = backCurrentScale + delta;
+            updateBackCoverScale(newScale);
+        }, { passive: false });
+    }
+
+    // Back cover zoom buttons
+    if (backZoomInBtn) {
+        backZoomInBtn.addEventListener('click', function() {
+            const newScale = backCurrentScale + 0.1;
+            updateBackCoverScale(newScale);
+        });
+    }
+
+    if (backZoomOutBtn) {
+        backZoomOutBtn.addEventListener('click', function() {
+            const newScale = backCurrentScale - 0.1;
+            updateBackCoverScale(newScale);
+        });
+    }
+
+    if (backZoomSlider) {
+        backZoomSlider.addEventListener('input', function(e) {
+            const scale = e.target.value / 100;
+            updateBackCoverScale(scale);
+        });
+    }
+
+    function updateBackCoverPosition(x, y) {
+        if (backCoverPreview) {
+            backCoverPreview.style.transform = `translate(${x}px, ${y}px) scale(${backCurrentScale})`;
+        }
+        if (backCoverPositionInput) {
+            backCoverPositionInput.value = JSON.stringify({x: x, y: y});
+        }
+    }
+
+    function updateBackTitlePosition(x, y) {
+        if (backTitleContainer) {
+            backTitleContainer.style.transform = `translate(${x}px, ${y}px)`;
+        }
+        if (backTitlePositionInput) {
+            backTitlePositionInput.value = JSON.stringify({x: x, y: y});
+        }
+    }
+
+    function updateBackCoverScale(scale) {
+        backCurrentScale = Math.max(0.3, Math.min(2.5, scale));
+        if (backCoverPreview) {
+            backCoverPreview.style.transform = `translate(${backCoverX}px, ${backCoverY}px) scale(${backCurrentScale})`;
+        }
+        if (backCoverScaleInput) {
+            backCoverScaleInput.value = backCurrentScale;
+        }
+        if (backZoomSlider) {
+            backZoomSlider.value = backCurrentScale * 100;
+        }
+        if (backZoomLevel) {
+            backZoomLevel.textContent = Math.round(backCurrentScale * 100) + '%';
+        }
+    }
+
+    // Reset back cover position
+    const resetBackPositionBtn = document.getElementById('resetBackPosition');
+    if (resetBackPositionBtn) {
+        resetBackPositionBtn.addEventListener('click', function() {
+            backCoverX = 0;
+            backCoverY = 0;
+            backTitleX = 0;
+            backTitleY = 0;
+
+            updateBackCoverPosition(0, 0);
+            updateBackCoverScale(1);
+            updateBackTitlePosition(0, 0);
+        });
+    }
+
+    // ==================== Back Cover Additional Texts ====================
+    const backAdditionalTextsContainer = document.getElementById('backAdditionalTextsContainer');
+    const backAdditionalTextsPreview = document.getElementById('backAdditionalTextsPreview');
+    const addBackTextBtn = document.getElementById('addBackTextBtn');
+    const backCoverTextsInput = document.getElementById('backCoverTexts');
+
+    let backTextCounter = {{ count($backCoverTextsArray) }};
+    let backAdditionalTexts = [];
+    @foreach($backCoverTextsArray as $index => $backText)
+    backAdditionalTexts.push({ id: {{ $index }}, text: '{{ addslashes($backText['text'] ?? '') }}', position: {x: {{ $backText['position']['x'] ?? 0 }}, y: {{ $backText['position']['y'] ?? 0 }}} });
+    @endforeach
+
+    if (addBackTextBtn) {
+        addBackTextBtn.addEventListener('click', function() {
+            const textId = backTextCounter++;
+            backAdditionalTexts.push({ id: textId, text: '', position: {x: 0, y: 0} });
+
+            const textField = document.createElement('div');
+            textField.className = 'flex items-center gap-2';
+            textField.dataset.id = textId;
+            textField.innerHTML = `
+                <input type="text" name="back_cover_text_${textId}" placeholder="Teks tambahan ${textId + 1}"
+                    class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                    data-back-text-id="${textId}">
+                <button type="button" class="remove-back-text-btn p-1.5 text-red-500 hover:bg-red-50 rounded-md transition-colors" data-id="${textId}">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            `;
+            if (backAdditionalTextsContainer) {
+                backAdditionalTextsContainer.appendChild(textField);
+
+                // Add preview text in back cover preview
+                const textPreview = document.createElement('span');
+                textPreview.id = `backTextPreview_${textId}`;
+                textPreview.className = 'block text-white/80 text-[10px] drop-shadow-md line-clamp-1 mt-1 cursor-move';
+                textPreview.textContent = `Teks ${textId + 1}`;
+                textPreview.dataset.backTextId = textId;
+                if (backAdditionalTextsPreview) {
+                    backAdditionalTextsPreview.appendChild(textPreview);
+                }
+
+                const input = textField.querySelector('input');
+                input.addEventListener('input', function(e) {
+                    const textId = parseInt(this.dataset.backTextId);
+                    const textObj = backAdditionalTexts.find(t => t.id === textId);
+                    if (textObj) {
+                        textObj.text = e.target.value;
+                        const preview = document.getElementById(`backTextPreview_${textId}`);
+                        if (preview) {
+                            preview.textContent = e.target.value || `Teks ${textId + 1}`;
+                        }
+                        updateBackCoverTexts();
+                    }
+                });
+
+                const removeBtn = textField.querySelector('.remove-back-text-btn');
+                removeBtn.addEventListener('click', function() {
+                    const textId = parseInt(this.dataset.id);
+                    backAdditionalTexts = backAdditionalTexts.filter(t => t.id !== textId);
+                    textField.remove();
+                    const preview = document.getElementById(`backTextPreview_${textId}`);
+                    if (preview) preview.remove();
+                    updateBackCoverTexts();
+                });
+            }
+
+            updateBackCoverTexts();
+        });
+    }
+
+    // Setup existing text fields (front cover)
+    additionalTextsContainer.querySelectorAll('input[data-text-id]').forEach(input => {
+        input.addEventListener('input', function(e) {
+            const textId = parseInt(this.dataset.textId);
+            const textObj = additionalTexts.find(t => t.id === textId);
+            if (textObj) {
+                textObj.text = e.target.value;
+                const preview = document.getElementById(`textPreview_${textId}`);
+                if (preview) {
+                    preview.textContent = e.target.value || `Teks ${textId + 1}`;
+                }
+                updateCoverTexts();
+            }
+        });
+    });
+
+    additionalTextsContainer.querySelectorAll('.remove-text-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const textId = parseInt(this.dataset.id);
+            removeText(textId);
+        });
+    });
+
+    // Setup existing back text fields
+    if (backAdditionalTextsContainer) {
+        backAdditionalTextsContainer.querySelectorAll('input[data-back-text-id]').forEach(input => {
+            input.addEventListener('input', function(e) {
+                const textId = parseInt(this.dataset.backTextId);
+                const textObj = backAdditionalTexts.find(t => t.id === textId);
+                if (textObj) {
+                    textObj.text = e.target.value;
+                    const preview = document.getElementById(`backTextPreview_${textId}`);
+                    if (preview) {
+                        preview.textContent = e.target.value || `Teks ${textId + 1}`;
+                    }
+                    updateBackCoverTexts();
+                }
+            });
+        });
+
+        backAdditionalTextsContainer.querySelectorAll('.remove-back-text-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const textId = parseInt(this.dataset.id);
+                backAdditionalTexts = backAdditionalTexts.filter(t => t.id !== textId);
+                const textField = backAdditionalTextsContainer.querySelector(`[data-id="${textId}"]`);
+                if (textField) textField.remove();
+                const preview = document.getElementById(`backTextPreview_${textId}`);
+                if (preview) preview.remove();
+                updateBackCoverTexts();
+            });
+        });
+    }
+
+    function updateBackCoverTexts() {
+        if (backCoverTextsInput) {
+            const texts = backAdditionalTexts.map(t => ({
+                text: t.text,
+                position: t.position
+            }));
+            backCoverTextsInput.value = JSON.stringify(texts);
+        }
     }
 });
 </script>

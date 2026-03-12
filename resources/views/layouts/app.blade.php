@@ -536,6 +536,8 @@
 
         <!-- SweetAlert2 Toast -->
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <!-- html2canvas for thumbnail generation -->
+        <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
         <script>
             document.addEventListener('DOMContentLoaded', function() {
                 const Toast = Swal.mixin({

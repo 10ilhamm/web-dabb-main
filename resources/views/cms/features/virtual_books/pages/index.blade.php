@@ -39,7 +39,9 @@
 
     <!-- Book Cover Preview -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex items-center gap-4">
-        @if($book->cover_image)
+        @if($book->thumbnail)
+        <img src="{{ asset('storage/' . $book->thumbnail) }}" alt="Cover" class="w-20 h-28 object-cover rounded shadow">
+        @elseif($book->cover_image)
         <img src="{{ asset('storage/' . $book->cover_image) }}" alt="Cover" class="w-20 h-28 object-cover rounded shadow">
         @else
         <div class="w-20 h-28 bg-gray-200 rounded flex items-center justify-center text-gray-400">No Cover</div>

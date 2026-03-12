@@ -15,6 +15,12 @@ class Book extends Model
         'cover_scale',
         'cover_texts',
         'title_position',
+        'back_title',
+        'back_cover_image',
+        'back_cover_position',
+        'back_cover_scale',
+        'back_title_position',
+        'back_cover_texts',
         'thumbnail',
         'order',
     ];
@@ -23,6 +29,9 @@ class Book extends Model
         'cover_position' => 'array',
         'cover_texts' => 'array',
         'title_position' => 'array',
+        'back_cover_position' => 'array',
+        'back_cover_texts' => 'array',
+        'back_title_position' => 'array',
     ];
 
     public function feature()

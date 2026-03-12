@@ -44,6 +44,12 @@ class BookController extends Controller
             'cover_scale' => 'nullable|numeric|min:0.1|max:3',
             'cover_texts' => 'nullable|json',
             'title_position' => 'nullable|json',
+            'back_title' => 'nullable|string|max:255',
+            'back_cover_image' => 'nullable|image|mimes:jpg,jpeg,png,webp',
+            'back_cover_position' => 'nullable|json',
+            'back_cover_scale' => 'nullable|numeric|min:0.1|max:3',
+            'back_title_position' => 'nullable|json',
+            'back_cover_texts' => 'nullable|json',
             'thumbnail' => 'nullable|image|mimes:jpg,jpeg,png,webp',
             'generated_thumbnail' => 'nullable|string',
             'order' => 'required|integer|min:0',
@@ -74,6 +80,31 @@ class BookController extends Controller
         // Handle title position
         if ($request->has('title_position')) {
             $validated['title_position'] = $request->title_position;
+        }
+
+        // Handle back cover image
+        if ($request->hasFile('back_cover_image')) {
+            $validated['back_cover_image'] = $request->file('back_cover_image')->store('features/virtual-books/covers', 'public');
+        }
+
+        // Handle back cover position
+        if ($request->has('back_cover_position')) {
+            $validated['back_cover_position'] = $request->back_cover_position;
+        }
+
+        // Handle back cover scale
+        if ($request->has('back_cover_scale')) {
+            $validated['back_cover_scale'] = $request->back_cover_scale;
+        }
+
+        // Handle back title position
+        if ($request->has('back_title_position')) {
+            $validated['back_title_position'] = $request->back_title_position;
+        }
+
+        // Handle back cover texts
+        if ($request->has('back_cover_texts')) {
+            $validated['back_cover_texts'] = $request->back_cover_texts;
         }
 
         // Handle thumbnail
@@ -120,10 +151,17 @@ class BookController extends Controller
             'cover_scale' => 'nullable|numeric|min:0.1|max:3',
             'cover_texts' => 'nullable|json',
             'title_position' => 'nullable|json',
+            'back_title' => 'nullable|string|max:255',
+            'back_cover_image' => 'nullable|image|mimes:jpg,jpeg,png,webp',
+            'back_cover_position' => 'nullable|json',
+            'back_cover_scale' => 'nullable|numeric|min:0.1|max:3',
+            'back_title_position' => 'nullable|json',
+            'back_cover_texts' => 'nullable|json',
             'thumbnail' => 'nullable|image|mimes:jpg,jpeg,png,webp',
             'generated_thumbnail' => 'nullable|string',
             'remove_cover_image' => 'boolean',
             'remove_thumbnail' => 'boolean',
+            'remove_back_cover_image' => 'boolean',
             'order' => 'required|integer|min:0',
         ]);
 
@@ -158,6 +196,39 @@ class BookController extends Controller
         // Handle title position
         if ($request->has('title_position')) {
             $validated['title_position'] = $request->title_position;
+        }
+
+        // Handle back cover image
+        if ($request->hasFile('back_cover_image')) {
+            if ($book->back_cover_image) {
+                Storage::disk('public')->delete($book->back_cover_image);
+            }
+            $validated['back_cover_image'] = $request->file('back_cover_image')->store('features/virtual-books/covers', 'public');
+        } elseif ($request->boolean('remove_back_cover_image')) {
+            if ($book->back_cover_image) {
+                Storage::disk('public')->delete($book->back_cover_image);
+            }
+            $validated['back_cover_image'] = null;
+        }
+
+        // Handle back cover position
+        if ($request->has('back_cover_position')) {
+            $validated['back_cover_position'] = $request->back_cover_position;
+        }
+
+        // Handle back cover scale
+        if ($request->has('back_cover_scale')) {
+            $validated['back_cover_scale'] = $request->back_cover_scale;
+        }
+
+        // Handle back title position
+        if ($request->has('back_title_position')) {
+            $validated['back_title_position'] = $request->back_title_position;
+        }
+
+        // Handle back cover texts
+        if ($request->has('back_cover_texts')) {
+            $validated['back_cover_texts'] = $request->back_cover_texts;
         }
 
         // Handle thumbnail
@@ -202,6 +273,11 @@ class BookController extends Controller
         // Delete cover image
         if ($book->cover_image) {
             Storage::disk('public')->delete($book->cover_image);
+        }
+
+        // Delete back cover image
+        if ($book->back_cover_image) {
+            Storage::disk('public')->delete($book->back_cover_image);
         }
 
         // Delete thumbnail
