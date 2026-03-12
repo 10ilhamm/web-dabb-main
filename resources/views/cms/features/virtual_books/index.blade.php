@@ -55,7 +55,9 @@
                     <tr class="hover:bg-gray-50/50 transition-colors group">
                         <td class="px-6 py-4 text-gray-500 font-medium">{{ $loop->iteration }}</td>
                         <td class="px-6 py-4">
-                            @if($book->cover_image)
+                            @if($book->thumbnail)
+                            <img src="{{ asset('storage/' . $book->thumbnail) }}" alt="{{ $book->title }}" class="w-16 h-20 object-cover rounded-md border border-gray-200 shadow-sm">
+                            @elseif($book->cover_image)
                             <img src="{{ asset('storage/' . $book->cover_image) }}" alt="{{ $book->title }}" class="w-16 h-20 object-cover rounded-md border border-gray-200 shadow-sm">
                             @else
                             <div class="w-16 h-20 bg-gray-100 rounded-md border border-gray-200 flex items-center justify-center text-xs text-gray-400">No Cover</div>

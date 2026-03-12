@@ -2,12 +2,7 @@
   "permissions": {
     "allow": [
       "Bash(php artisan:*)",
-      "Bash(npm run:*)",
-      "Bash(php -l \"C:/laragon/www/ANRI/web-dabb-main/app/Http/Controllers/Cms/BookController.php\" && php -l \"C:/laragon/www/ANRI/web-dabb-main/app/Models/Book.php\" && php -l \"C:/laragon/www/ANRI/web-dabb-main/app/Http/Controllers/Cms/VirtualBookPageController.php\")",
-      "Bash(php -l 'C:/laragon/www/ANRI/web-dabb-main/app/Http/Controllers/Cms/BookController.php')",
-      "Bash(php -l 'C:/laragon/www/ANRI/web-dabb-main/app/Models/Book.php')",
-      "Bash(php -l 'C:/laragon/www/ANRI/web-dabb-main/resources/views/cms/features/virtual_books/create.blade.php' && php -l 'C:/laragon/www/ANRI/web-dabb-main/resources/views/cms/features/virtual_books/edit.blade.php')",
-      "Bash(php -l 'C:/laragon/www/ANRI/web-dabb-main/resources/views/cms/features/virtual_books/edit.blade.php')"
+      "Bash(npm run:*)"
     ]
   }
 }

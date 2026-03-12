@@ -54,8 +54,18 @@
                     <p class="text-xs text-gray-500 mb-2">Tambahkan teks seperti subjudul atau deskripsi sampul</p>
 
                     <div id="additionalTextsContainer" class="space-y-2">
-                        @php $coverTextsArray = is_string($book->cover_texts) ? json_decode($book->cover_texts, true) : ($book->cover_texts ?? []); @endphp
-                        @if($coverTextsArray && count($coverTextsArray) > 0)
+                        @php
+                        $coverTextsArray = [];
+                        if ($book->cover_texts) {
+                            if (is_string($book->cover_texts)) {
+                                $decoded = json_decode($book->cover_texts, true);
+                                $coverTextsArray = is_array($decoded) ? $decoded : [];
+                            } elseif (is_array($book->cover_texts)) {
+                                $coverTextsArray = $book->cover_texts;
+                            }
+                        }
+                        @endphp
+                        @if(count($coverTextsArray) > 0)
                             @foreach($coverTextsArray as $index => $coverText)
                             <div class="flex items-center gap-2" data-id="{{ $index }}">
                                 <input type="text" name="cover_text_{{ $index }}" value="{{ $coverText['text'] ?? '' }}" placeholder="Teks tambahan {{ $index + 1 }}"
@@ -82,7 +92,7 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Thumbnail Daftar</label>
                     @if($book->thumbnail)
-                    <div class="mb-2">
+                    <div class="mb-2" id="existingThumbnail">
                         <img src="{{ asset('storage/' . $book->thumbnail) }}" alt="Thumbnail" class="w-24 h-32 object-cover rounded-lg border border-gray-200">
                     </div>
                     <label class="flex items-center">
@@ -91,7 +101,26 @@
                     </label>
                     <hr class="my-3 border-gray-200">
                     @endif
-                    <input type="file" name="thumbnail" accept="image/*" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
+
+                    <input type="file" name="thumbnail" id="thumbnailInput" accept="image/*" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
+                    <input type="hidden" name="generated_thumbnail" id="generatedThumbnail">
+
+                    <!-- Thumbnail Preview -->
+                    <div id="thumbnailPreviewContainer" class="mt-2 hidden">
+                        <p class="text-xs text-gray-500 mb-1">Thumbnail baru yang akan disimpan:</p>
+                        <img id="thumbnailPreview" class="w-24 h-32 object-cover rounded-lg border border-gray-200" alt="Thumbnail Preview">
+                        <button type="button" id="removeThumbnail" class="mt-1 text-xs text-red-500 hover:text-red-700">Batal</button>
+                    </div>
+
+                    <div class="flex items-center gap-2 mt-2">
+                        <button type="button" id="generateThumbnailBtn" class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-green-700 bg-green-50 rounded-md hover:bg-green-100 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            Generate dari Preview
+                        </button>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1.5">Atau upload manual. Generate akan membuat thumbnail dari preview buku.</p>
                 </div>
 
                 <div>
@@ -131,11 +160,27 @@
                         <img id="coverPreview" class="max-w-full max-h-full object-contain pointer-events-none" style="display: none;">
                         @endif
                         <!-- Resize Border -->
-                        <div id="resizeBorder" class="absolute inset-0 border-2 border-dashed border-gray-400/50 opacity-0 transition-opacity pointer-events-none" style="{{ $book->cover_image ? 'display: block; opacity: 1;' : 'display: none;' }}"></div>
+                        <div id="resizeBorder" class="absolute inset-0 border-2 border-dashed border-gray-400/50 transition-opacity pointer-events-none" style="display: {{ $book->cover_image ? 'block' : 'none' }}; opacity: {{ $book->cover_image ? '1' : '0' }};"></div>
                     </div>
 
                     <!-- Draggable Title -->
-                    <div id="titleContainer" class="absolute bottom-4 left-0 right-0 text-center px-4 cursor-move" style="transform: translate({{ $book->title_position['x'] ?? 0 }}px, {{ $book->title_position['y'] ?? 0 }}px);">
+                    @php
+                    $titlePositionX = 0;
+                    $titlePositionY = 0;
+                    if ($book->title_position) {
+                        if (is_array($book->title_position)) {
+                            $titlePositionX = $book->title_position['x'] ?? 0;
+                            $titlePositionY = $book->title_position['y'] ?? 0;
+                        } else {
+                            $decoded = json_decode($book->title_position, true);
+                            if (is_array($decoded)) {
+                                $titlePositionX = $decoded['x'] ?? 0;
+                                $titlePositionY = $decoded['y'] ?? 0;
+                            }
+                        }
+                    }
+                    @endphp
+                    <div id="titleContainer" class="absolute bottom-4 left-0 right-0 text-center px-4 cursor-move select-none" style="transform: translate({{ $titlePositionX }}px, {{ $titlePositionY }}px);">
                         <span id="previewTitle" class="text-white text-xs font-semibold drop-shadow-md line-clamp-2">
                             {{ $book->title }}
                         </span>
@@ -143,8 +188,18 @@
 
                     <!-- Additional Texts Container -->
                     <div id="additionalTextsPreview" class="absolute left-0 right-0 text-center px-4" style="bottom: 16px;">
-                        @php $coverTextsArray = is_string($book->cover_texts) ? json_decode($book->cover_texts, true) : ($book->cover_texts ?? []); @endphp
-                        @if($coverTextsArray && count($coverTextsArray) > 0)
+                        @php
+                        $coverTextsArrayPreview = [];
+                        if ($book->cover_texts) {
+                            if (is_string($book->cover_texts)) {
+                                $decoded = json_decode($book->cover_texts, true);
+                                $coverTextsArrayPreview = is_array($decoded) ? $decoded : [];
+                            } elseif (is_array($book->cover_texts)) {
+                                $coverTextsArrayPreview = $book->cover_texts;
+                            }
+                        }
+                        @endphp
+                        @if(count($coverTextsArrayPreview) > 0)
                             @foreach($coverTextsArray as $index => $coverText)
                             <span id="textPreview_{{ $index }}" class="block text-white/80 text-[10px] drop-shadow-md line-clamp-1 mt-1 cursor-move" data-text-id="{{ $index }}" style="transform: translate({{ $coverText['position']['x'] ?? 0 }}px, {{ $coverText['position']['y'] ?? 0 }}px);">
                                 {{ $coverText['text'] ?? "Teks " . ($index + 1) }}
@@ -174,9 +229,22 @@
             </div>
 
             <!-- Hidden fields for positions -->
-            <input type="hidden" name="cover_position" id="coverPosition" value='{{ json_encode($book->cover_position ?? ["x" => 0, "y" => 0]) }}'>
+            @php
+                $coverPos = $book->cover_position;
+                if (is_string($coverPos)) {
+                    $coverPos = json_decode($coverPos, true) ?? ['x' => 0, 'y' => 0];
+                }
+                $coverPos = $coverPos ?: ['x' => 0, 'y' => 0];
+
+                $titlePos = $book->title_position;
+                if (is_string($titlePos)) {
+                    $titlePos = json_decode($titlePos, true) ?? ['x' => 0, 'y' => 0];
+                }
+                $titlePos = $titlePos ?: ['x' => 0, 'y' => 0];
+            @endphp
+            <input type="hidden" name="cover_position" id="coverPosition" value='{{ json_encode($coverPos) }}'>
             <input type="hidden" name="cover_scale" id="coverScale" value="{{ $book->cover_scale ?? 1 }}">
-            <input type="hidden" name="title_position" id="titlePosition" value='{{ json_encode($book->title_position ?? ["x" => 0, "y" => 0]) }}'>
+            <input type="hidden" name="title_position" id="titlePosition" value='{{ json_encode($titlePos) }}'>
             <input type="hidden" name="cover_texts" id="coverTexts" value='{{ json_encode($book->cover_texts ?? []) }}'>
         </div>
     </div>
@@ -210,22 +278,75 @@ document.addEventListener('DOMContentLoaded', function() {
     const zoomSlider = document.getElementById('zoomSlider');
     const zoomLevel = document.getElementById('zoomLevel');
 
+    // Get initial position from database
+    let initialCoverPosition = {x: 0, y: 0};
+    @if($book->cover_position)
+        @php
+            if (is_array($book->cover_position)) {
+                echo 'initialCoverPosition = ' . json_encode($book->cover_position) . ';';
+            } else {
+                $decoded = json_decode($book->cover_position, true);
+                if (is_array($decoded)) {
+                    echo 'initialCoverPosition = ' . json_encode($decoded) . ';';
+                }
+            }
+        @endphp
+    @endif
+
     // Get initial texts from database
-    let initialTexts = {{ $book->cover_texts ? json_encode($book->cover_texts) : '[]' }};
+    let initialTexts = [];
+    @if($book->cover_texts)
+        @php
+            $decoded = json_decode($book->cover_texts, true);
+            if (is_array($decoded)) {
+                echo 'initialTexts = ' . json_encode($decoded) . ';';
+            }
+        @endphp
+    @endif
     let textCounter = initialTexts.length;
     let additionalTexts = initialTexts.map((t, i) => ({ id: i, text: t.text || '', position: t.position || {x: 0, y: 0} }));
+
+    // Initialize cover position from database
+    let coverX = initialCoverPosition.x;
+    let coverY = initialCoverPosition.y;
+
+    // Add drag functionality to existing text previews from database
+    additionalTextsPreview.querySelectorAll('[data-text-id]').forEach(textPreview => {
+        textPreview.addEventListener('mousedown', function(e) {
+            e.stopPropagation();
+            isTextDragging = true;
+            currentTextId = parseInt(this.dataset.textId);
+            const textObj = additionalTexts.find(t => t.id === currentTextId);
+            textDragStartX = e.clientX - (textObj ? textObj.position.x : 0);
+            textDragStartY = e.clientY - (textObj ? textObj.position.y : 0);
+            this.style.cursor = 'grabbing';
+        });
+    });
 
     // Cover drag state
     let isCoverDragging = false;
     let coverStartX, coverStartY;
-    let coverX = {{ $book->cover_position['x'] ?? 0 }};
-    let coverY = {{ $book->cover_position['y'] ?? 0 }};
 
     // Title drag state
     let isTitleDragging = false;
     let titleStartX, titleStartY;
-    let titleX = {{ $book->title_position['x'] ?? 0 }};
-    let titleY = {{ $book->title_position['y'] ?? 0 }};
+    let titleX = 0;
+    let titleY = 0;
+    @if($book->title_position)
+        @php
+            $titlePos = null;
+            if (is_array($book->title_position)) {
+                $titlePos = $book->title_position;
+            } else {
+                $titlePos = json_decode($book->title_position, true);
+            }
+            if (is_array($titlePos)) {
+                echo 'titleX = ' . ($titlePos['x'] ?? 0) . ';';
+                echo 'titleY = ' . ($titlePos['y'] ?? 0) . ';';
+            }
+        @endphp
+    @endif
+    console.log('Initial title position:', titleX, titleY);
 
     // Additional texts drag state
     let isTextDragging = false;
@@ -233,17 +354,28 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentTextId = null;
 
     // Cover resize state
-    let currentScale = {{ $book->cover_scale ?? 1 }};
+    let currentScale = {{ is_numeric($book->cover_scale ?? 1) ? ($book->cover_scale ?? 1) : 1 }};
 
+    // Handle image upload
     coverInput.addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (file) {
             const reader = new FileReader();
             reader.onload = function(e) {
+                // Reset position when uploading new image
+                coverX = 0;
+                coverY = 0;
+                currentScale = 1;
+
                 coverPreview.src = e.target.result;
                 coverPreview.style.display = 'block';
                 if (coverPlaceholder) coverPlaceholder.style.display = 'none';
+                if (resizeBorder) {
+                    resizeBorder.style.display = 'block';
+                    resizeBorder.style.opacity = '1';
+                }
                 updateCoverPosition(0, 0);
+                updateCoverScale(1);
             };
             reader.readAsDataURL(file);
         }
@@ -272,6 +404,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         if (isTitleDragging) {
             e.preventDefault();
+            console.log('Title dragging:', e.clientX, e.clientY, titleStartX, titleStartY);
             titleX = e.clientX - titleStartX;
             titleY = e.clientY - titleStartY;
             updateTitlePosition(titleX, titleY);
@@ -306,6 +439,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Title drag functionality
     titleContainer.addEventListener('mousedown', function(e) {
+        e.preventDefault();
+        console.log('Title mousedown triggered');
         isTitleDragging = true;
         titleStartX = e.clientX - titleX;
         titleStartY = e.clientY - titleY;
@@ -424,32 +559,18 @@ document.addEventListener('DOMContentLoaded', function() {
         initialPinchDistance = null;
     });
 
-    document.addEventListener('mouseup', function() {
-        if (isCoverDragging) {
-            isCoverDragging = false;
-            coverContainer.style.cursor = 'move';
+    // Add touch support delegation for text previews mousedown
+    additionalTextsPreview.addEventListener('mousedown', function(e) {
+        const textPreview = e.target.closest('[data-text-id]');
+        if (textPreview) {
+            e.stopPropagation();
+            isTextDragging = true;
+            currentTextId = parseInt(textPreview.dataset.textId);
+            const textObj = additionalTexts.find(t => t.id === currentTextId);
+            textDragStartX = e.clientX - (textObj ? textObj.position.x : 0);
+            textDragStartY = e.clientY - (textObj ? textObj.position.y : 0);
+            textPreview.style.cursor = 'grabbing';
         }
-        if (isTitleDragging) {
-            isTitleDragging = false;
-            titleContainer.style.cursor = 'move';
-        }
-        if (isTextDragging) {
-            isTextDragging = false;
-            const textPreview = document.getElementById(`textPreview_${currentTextId}`);
-            if (textPreview) textPreview.style.cursor = 'move';
-            currentTextId = null;
-        }
-    });
-            const scaleDelta = (deltaX + deltaY) / 200;
-            const newScale = currentScale + scaleDelta;
-            updateCoverScale(newScale);
-            resizeStartX = touch.clientX;
-            resizeStartY = touch.clientY;
-        }
-    });
-
-    document.addEventListener('touchend', function() {
-        isResizing = false;
     });
 
     function updateCoverPosition(x, y) {
@@ -616,11 +737,95 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+
+    // Initialize title position on page load
+    updateTitlePosition(titleX, titleY);
+
+    // Thumbnail Generation
+    const generateThumbnailBtn = document.getElementById('generateThumbnailBtn');
+    const thumbnailPreviewContainer = document.getElementById('thumbnailPreviewContainer');
+    const thumbnailPreview = document.getElementById('thumbnailPreview');
+    const generatedThumbnailInput = document.getElementById('generatedThumbnail');
+    const removeThumbnailBtn = document.getElementById('removeThumbnail');
+    const thumbnailInput = document.getElementById('thumbnailInput');
+    const existingThumbnail = document.getElementById('existingThumbnail');
+
+    if (generateThumbnailBtn) {
+        generateThumbnailBtn.addEventListener('click', async function() {
+            const bookPreview = document.getElementById('bookPreview');
+            if (!bookPreview) {
+                alert('Preview buku tidak ditemukan');
+                return;
+            }
+
+            // Check if cover image exists
+            if (!coverPreview.src || (coverPreview.style.display === 'none' && !coverPreview.getAttribute('src'))) {
+                alert('Silakan upload cover buku terlebih dahulu');
+                return;
+            }
+
+            try {
+                generateThumbnailBtn.disabled = true;
+                generateThumbnailBtn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg> Generating...';
+
+                const canvas = await html2canvas(bookPreview, {
+                    backgroundColor: null,
+                    scale: 2,
+                    useCORS: true,
+                    allowTaint: true,
+                    logging: false
+                });
+
+                const dataUrl = canvas.toDataURL('image/png');
+                thumbnailPreview.src = dataUrl;
+                generatedThumbnailInput.value = dataUrl;
+                thumbnailPreviewContainer.classList.remove('hidden');
+
+                // Hide existing thumbnail if shown
+                if (existingThumbnail) {
+                    existingThumbnail.classList.add('hidden');
+                }
+
+                // Clear file input
+                if (thumbnailInput) {
+                    thumbnailInput.value = '';
+                }
+
+            } catch (error) {
+                console.error('Error generating thumbnail:', error);
+                alert('Gagal membuat thumbnail: ' + error.message);
+            } finally {
+                generateThumbnailBtn.disabled = false;
+                generateThumbnailBtn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg> Generate dari Preview';
+            }
+        });
+    }
+
+    // Remove thumbnail
+    if (removeThumbnailBtn) {
+        removeThumbnailBtn.addEventListener('click', function() {
+            generatedThumbnailInput.value = '';
+            thumbnailPreviewContainer.classList.add('hidden');
+            thumbnailPreview.src = '';
+
+            // Show existing thumbnail again
+            if (existingThumbnail) {
+                existingThumbnail.classList.remove('hidden');
+            }
+        });
+    }
 });
 </script>
 @endpush
 
 <style>
+.select-none {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+
 .line-clamp-2 {
     display: -webkit-box;
     -webkit-line-clamp: 2;

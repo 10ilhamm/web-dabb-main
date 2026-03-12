@@ -53,8 +53,25 @@
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Thumbnail Daftar</label>
-                    <input type="file" name="thumbnail" accept="image/*" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
-                    <p class="text-xs text-gray-500 mt-1.5">Gambar kecil untuk preview di daftar buku.</p>
+                    <input type="file" name="thumbnail" id="thumbnailInput" accept="image/*" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
+                    <input type="hidden" name="generated_thumbnail" id="generatedThumbnail">
+
+                    <!-- Thumbnail Preview -->
+                    <div id="thumbnailPreviewContainer" class="mt-2 hidden">
+                        <p class="text-xs text-gray-500 mb-1">Thumbnail yang akan disimpan:</p>
+                        <img id="thumbnailPreview" class="w-24 h-32 object-cover rounded-lg border border-gray-200" alt="Thumbnail Preview">
+                        <button type="button" id="removeThumbnail" class="mt-1 text-xs text-red-500 hover:text-red-700">Hapus</button>
+                    </div>
+
+                    <div class="flex items-center gap-2 mt-2">
+                        <button type="button" id="generateThumbnailBtn" class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-green-700 bg-green-50 rounded-md hover:bg-green-100 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            Generate dari Preview
+                        </button>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1.5">Atau upload manual. Generate akan membuat thumbnail dari preview buku.</p>
                 </div>
 
                 <div>
@@ -522,6 +539,67 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+
+    // Thumbnail Generation
+    const generateThumbnailBtn = document.getElementById('generateThumbnailBtn');
+    const thumbnailPreviewContainer = document.getElementById('thumbnailPreviewContainer');
+    const thumbnailPreview = document.getElementById('thumbnailPreview');
+    const generatedThumbnailInput = document.getElementById('generatedThumbnail');
+    const removeThumbnailBtn = document.getElementById('removeThumbnail');
+    const thumbnailInput = document.getElementById('thumbnailInput');
+
+    if (generateThumbnailBtn) {
+        generateThumbnailBtn.addEventListener('click', async function() {
+            const bookPreview = document.getElementById('bookPreview');
+            if (!bookPreview) {
+                alert('Preview buku tidak ditemukan');
+                return;
+            }
+
+            // Check if cover image exists
+            if (!coverPreview.src || coverPreview.style.display === 'none') {
+                alert('Silakan upload cover buku terlebih dahulu');
+                return;
+            }
+
+            try {
+                generateThumbnailBtn.disabled = true;
+                generateThumbnailBtn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg> Generating...';
+
+                const canvas = await html2canvas(bookPreview, {
+                    backgroundColor: null,
+                    scale: 2,
+                    useCORS: true,
+                    allowTaint: true,
+                    logging: false
+                });
+
+                const dataUrl = canvas.toDataURL('image/png');
+                thumbnailPreview.src = dataUrl;
+                generatedThumbnailInput.value = dataUrl;
+                thumbnailPreviewContainer.classList.remove('hidden');
+
+                // Clear file input
+                thumbnailInput.value = '';
+
+            } catch (error) {
+                console.error('Error generating thumbnail:', error);
+                alert('Gagal membuat thumbnail: ' + error.message);
+            } finally {
+                generateThumbnailBtn.disabled = false;
+                generateThumbnailBtn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg> Generate dari Preview';
+            }
+        });
+    }
+
+    // Remove thumbnail
+    if (removeThumbnailBtn) {
+        removeThumbnailBtn.addEventListener('click', function() {
+            generatedThumbnailInput.value = '';
+            thumbnailPreviewContainer.classList.add('hidden');
+            thumbnailPreview.src = '';
+        });
+    }
 });
 </script>
 @endpush

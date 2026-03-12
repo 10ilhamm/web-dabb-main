@@ -45,6 +45,7 @@ class BookController extends Controller
             'cover_texts' => 'nullable|json',
             'title_position' => 'nullable|json',
             'thumbnail' => 'nullable|image|mimes:jpg,jpeg,png,webp',
+            'generated_thumbnail' => 'nullable|string',
             'order' => 'required|integer|min:0',
         ]);
 
@@ -78,6 +79,17 @@ class BookController extends Controller
         // Handle thumbnail
         if ($request->hasFile('thumbnail')) {
             $validated['thumbnail'] = $request->file('thumbnail')->store('features/virtual-books/thumbnails', 'public');
+        } elseif ($request->has('generated_thumbnail') && !empty($request->generated_thumbnail)) {
+            // Handle generated thumbnail from preview (base64 data URL)
+            $generatedThumbnail = $request->generated_thumbnail;
+            if (preg_match('/^data:image\/(\w+);base64,/', $generatedThumbnail, $matches)) {
+                $imageData = base64_decode(substr($generatedThumbnail, strpos($generatedThumbnail, ',') + 1));
+                $extension = $matches[1];
+                $filename = 'thumb_' . time() . '_' . uniqid() . '.' . $extension;
+                $path = 'features/virtual-books/thumbnails/' . $filename;
+                Storage::disk('public')->put($path, $imageData);
+                $validated['thumbnail'] = $path;
+            }
         }
 
         Book::create($validated);
@@ -109,6 +121,7 @@ class BookController extends Controller
             'cover_texts' => 'nullable|json',
             'title_position' => 'nullable|json',
             'thumbnail' => 'nullable|image|mimes:jpg,jpeg,png,webp',
+            'generated_thumbnail' => 'nullable|string',
             'remove_cover_image' => 'boolean',
             'remove_thumbnail' => 'boolean',
             'order' => 'required|integer|min:0',
@@ -153,6 +166,21 @@ class BookController extends Controller
                 Storage::disk('public')->delete($book->thumbnail);
             }
             $validated['thumbnail'] = $request->file('thumbnail')->store('features/virtual-books/thumbnails', 'public');
+        } elseif ($request->has('generated_thumbnail') && !empty($request->generated_thumbnail)) {
+            // Handle generated thumbnail from preview (base64 data URL)
+            $generatedThumbnail = $request->generated_thumbnail;
+            if (preg_match('/^data:image\/(\w+);base64,/', $generatedThumbnail, $matches)) {
+                // Delete old thumbnail if exists
+                if ($book->thumbnail) {
+                    Storage::disk('public')->delete($book->thumbnail);
+                }
+                $imageData = base64_decode(substr($generatedThumbnail, strpos($generatedThumbnail, ',') + 1));
+                $extension = $matches[1];
+                $filename = 'thumb_' . time() . '_' . uniqid() . '.' . $extension;
+                $path = 'features/virtual-books/thumbnails/' . $filename;
+                Storage::disk('public')->put($path, $imageData);
+                $validated['thumbnail'] = $path;
+            }
         } elseif ($request->boolean('remove_thumbnail')) {
             if ($book->thumbnail) {
                 Storage::disk('public')->delete($book->thumbnail);
