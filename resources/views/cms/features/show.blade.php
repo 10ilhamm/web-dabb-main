@@ -233,6 +233,7 @@
                     <select name="page_type" x-model="addSubModal.pageType"
                         class="w-full px-3.5 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition bg-white">
                         <option value="none">{{ __('cms.page_types.none') }}</option>
+                        <option value="beranda">{{ __('cms.page_types.beranda') }}</option>
                         <option value="onsite">{{ __('cms.page_types.onsite') }}</option>
                         <option value="real">{{ __('cms.page_types.real') }}</option>
                         <option value="3d">{{ __('cms.page_types.3d') }}</option>
@@ -302,6 +303,7 @@
                     <select name="page_type" x-model="editSubModal.pageType"
                         class="w-full px-3.5 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition bg-white">
                         <option value="none">{{ __('cms.page_types.none') }}</option>
+                        <option value="beranda">{{ __('cms.page_types.beranda') }}</option>
                         <option value="onsite">{{ __('cms.page_types.onsite') }}</option>
                         <option value="real">{{ __('cms.page_types.real') }}</option>
                         <option value="3d">{{ __('cms.page_types.3d') }}</option>

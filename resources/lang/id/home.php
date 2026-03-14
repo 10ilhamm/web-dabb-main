@@ -19,8 +19,17 @@ return [
     'feature_strip' => [
         'left' => 'Kunjungi pameran arsip virtual dan juga pameran kontemporer onsite yang tersedia di Depot Arsip Berkelanjutan Bandung.',
         'middle' => 'Kunjungi Pameran',
+        'middle_link' => '/pameran-arsip-virtual/pameran-arsip-virtual-real',
         'right_button' => 'Layanan Publik',
+        'right_button_link' => '/layanan-publik/layanan-penelitian',
         'right_text' => 'Jelajahi berbagai fasilitas layanan kami. Daftarkan kunjungan Anda, manfaatkan layanan perawatan arsip (LARASKA), atau ajukan konsultasi kearsipan langsung kepada ahlinya.',
+        'related_links' => [
+            [
+                'title' => 'ANRI',
+                'link' => 'https://www.anri.go.id/',
+                'photo' => 'home/related/wkMY4hkyf8JPyqddKGuZ7VHuodNOYNqV6CT8aYE8.png',
+            ],
+        ],
     ],
     'sections' => [
         'info_title' => 'Informasi DABB sebagai Depot Arsip Berkelanjutan',
@@ -33,6 +42,8 @@ return [
         'youtube' => 'Youtube',
         'instagram' => 'Instagram Feed',
         'faq' => 'Pertanyaan Umum',
+        'info_image_1' => 'home/info/995CyKK5TZLR9HtWCV0x5ZSAfQJEp903F1oitLkS.jpg',
+        'info_image_2' => 'home/info/sgMSl1L9lV7pwvL2ZIy6grzlLnnhziLeQ8eXlLNG.png',
     ],
     'activity_items' => [
         'Kegiatan Akuisisi Arsip',
@@ -116,7 +127,6 @@ Disclaimer | #',
         'view_site' => 'Lihat Website',
         'logout' => 'Keluar',
     ],
-
     'virtual_3d_tour' => [
         'hero_desc' => 'Jelajahi ruangan pameran arsip secara virtual',
         'select_room' => 'Pilih Ruangan',
@@ -134,7 +144,6 @@ Disclaimer | #',
         'close' => 'Keluar',
         'hint' => 'Gunakan tombol View untuk membalik sudut pandang, atau seret/drag untuk menggeser.',
     ],
-
     'virtual_tour' => [
         'hero_desc' => 'Jelajahi pameran arsip 360° secara virtual',
         'select_room' => 'Pilih Ruangan',
@@ -143,5 +152,14 @@ Disclaimer | #',
         'enter_room' => 'MASUK RUANGAN',
         'hotspot_count' => ':count hotspot',
         'room_title' => 'Ruangan',
+    ],
+    'instagram_username' => 'arsipnasionalri',
+    'instagram_codes' => [
+        'DULJ3gDkkDZ',
+        'DUIkzDcEjtW',
+        'DUGS9NCkiTd',
+        'DUDcoEWkpPr',
+        'DUCla4wku-w',
+        'DUA1BeEEsun',
     ],
 ];

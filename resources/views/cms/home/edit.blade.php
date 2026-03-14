@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('breadcrumb_parent', 'CMS / ' . __('cms.features.title'))
-@section('breadcrumb_active', 'Beranda')
+@section('breadcrumb_active', $feature->name)
 
 @section('content')
 <div class="space-y-6">
@@ -9,10 +9,10 @@
     <!-- Page Header -->
     <div class="flex items-center gap-3">
         <div>
-            <h1 class="text-2xl font-bold text-gray-800">{{ __('cms.home.title') }}</h1>
+            <h1 class="text-2xl font-bold text-gray-800">{{ __('cms.home.title') }}: {{ $feature->name }}</h1>
             <p class="text-sm text-gray-500 mt-0.5">{{ __('cms.home.desc') }}</p>
         </div>
-        <a href="{{ route('home') }}" target="_blank"
+        <a href="{{ url($feature->path) }}" target="_blank"
             class="ml-auto inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-[#174E93] bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors border border-blue-100">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
@@ -23,8 +23,9 @@
 
     {{-- ===== BAHASA INDONESIA ONLY, ENGLISH TAB REMOVED AS PER USER REQUEST ===== --}}
     <div>
-        <form action="{{ route('cms.home.update') }}" method="POST" class="flex flex-col gap-0">
+        <form action="{{ route('cms.home.update', $feature->id) }}" method="POST" enctype="multipart/form-data" class="flex flex-col gap-0">
             @csrf
+            @method('PUT')
             <input type="hidden" name="locale" value="id">
 
             {{-- Hero Section --}}
@@ -77,10 +78,18 @@
                         <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">{{ __('cms.home.feature_strip.middle') }}</label>
                         <input type="text" name="feature_strip[middle]" value="{{ $idContent['feature_strip']['middle'] ?? '' }}"
                             class="w-full px-3.5 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                        <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5 mt-3">{{ __('cms.home.feature_strip.middle_link') }}</label>
+                        <input type="text" name="feature_strip[middle_link]" value="{{ $idContent['feature_strip']['middle_link'] ?? '' }}"
+                            placeholder="https://example.com"
+                            class="w-full px-3.5 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">{{ __('cms.home.feature_strip.right_button') }}</label>
                         <input type="text" name="feature_strip[right_button]" value="{{ $idContent['feature_strip']['right_button'] ?? '' }}"
+                            class="w-full px-3.5 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                        <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5 mt-3">{{ __('cms.home.feature_strip.right_button_link') }}</label>
+                        <input type="text" name="feature_strip[right_button_link]" value="{{ $idContent['feature_strip']['right_button_link'] ?? '' }}"
+                            placeholder="https://example.com"
                             class="w-full px-3.5 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
                     </div>
                     <div>
@@ -90,6 +99,96 @@
                     </div>
                 </div>
             </div>
+
+            {{-- Related Links Section --}}
+            @php
+                $relatedLinks = $idContent['feature_strip']['related_links'] ?? [];
+                if (!is_array($relatedLinks)) {
+                    $relatedLinks = [];
+                }
+            @endphp
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-6">
+                <div class="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-purple-50 to-white flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-purple-500 flex items-center justify-center">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-semibold text-gray-800">{{ __('cms.home.feature_strip.related_links') }}</h3>
+                        <p class="text-xs text-gray-500">Tautan dengan foto yang dapat diklik</p>
+                    </div>
+                </div>
+                <div class="p-6" id="related-links-container">
+                    @foreach($relatedLinks as $index => $link)
+                    <div class="related-link-item flex gap-3 items-start mb-4 p-4 bg-gray-50 rounded-lg">
+                        <div class="flex-1">
+                            <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">{{ __('cms.home.feature_strip.related_link') }}</label>
+                            <input type="text" name="feature_strip[related_links][{{ $index }}][link]" value="{{ $link['link'] ?? '' }}"
+                                placeholder="https://example.com"
+                                class="w-full px-3.5 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                        </div>
+                        <div class="flex-1">
+                            <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">{{ __('cms.home.feature_strip.related_photo') }}</label>
+                            @if(!empty($link['photo']))
+                                <div class="mb-2">
+                                    <img src="{{ asset('storage/' . $link['photo']) }}" alt="Related Link Photo" class="h-16 rounded-lg border border-gray-200 object-cover">
+                                </div>
+                            @endif
+                            <input type="file" name="feature_strip[related_links][{{ $index }}][photo_file]" accept="image/*"
+                                class="w-full px-3.5 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                            <input type="hidden" name="feature_strip[related_links][{{ $index }}][photo]" value="{{ $link['photo'] ?? '' }}">
+                        </div>
+                        <button type="button" onclick="this.closest('.related-link-item').remove()"
+                            class="mt-6 px-3 py-2 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    @endforeach
+                </div>
+                <div class="px-6 pb-6">
+                    <button type="button" onclick="addRelatedLink()"
+                        class="inline-flex items-center gap-2 px-4 py-2 bg-purple-100 hover:bg-purple-200 text-purple-700 rounded-lg transition-colors text-sm font-medium">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                        </svg>
+                        {{ __('cms.home.feature_strip.add_related') }}
+                    </button>
+                </div>
+            </div>
+
+            <script>
+                let relatedLinkIndex = {{ count($relatedLinks) }};
+                function addRelatedLink() {
+                    const container = document.getElementById('related-links-container');
+                    const item = document.createElement('div');
+                    item.className = 'related-link-item flex gap-3 items-start mb-4 p-4 bg-gray-50 rounded-lg';
+                    item.innerHTML = `
+                        <div class="flex-1">
+                            <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">{{ __('cms.home.feature_strip.related_link') }}</label>
+                            <input type="text" name="feature_strip[related_links][${relatedLinkIndex}][link]" value=""
+                                placeholder="https://example.com"
+                                class="w-full px-3.5 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                        </div>
+                        <div class="flex-1">
+                            <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">{{ __('cms.home.feature_strip.related_photo') }}</label>
+                            <input type="file" name="feature_strip[related_links][${relatedLinkIndex}][photo_file]" accept="image/*"
+                                class="w-full px-3.5 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                            <input type="hidden" name="feature_strip[related_links][${relatedLinkIndex}][photo]" value="">
+                        </div>
+                        <button type="button" onclick="this.closest('.related-link-item').remove()"
+                            class="mt-6 px-3 py-2 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
+                        </button>
+                    `;
+                    container.appendChild(item);
+                    relatedLinkIndex++;
+                }
+            </script>
 
             {{-- Info Section --}}
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-6">
@@ -110,15 +209,41 @@
                         <input type="text" name="sections[info_title]" value="{{ $idContent['sections']['info_title'] ?? '' }}"
                             class="w-full px-3.5 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
                     </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">{{ __('cms.home.info.paragraph1') }}</label>
-                        <textarea name="sections[info_1]" rows="4"
-                            class="w-full px-3.5 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition resize-y">{{ $idContent['sections']['info_1'] ?? '' }}</textarea>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">{{ __('cms.home.info.image1') }}</label>
+                            @if(!empty($idContent['sections']['info_image_1']))
+                                <div class="mb-2">
+                                    <img src="{{ asset('storage/' . $idContent['sections']['info_image_1']) }}" alt="Info Image 1" class="h-24 rounded-lg border border-gray-200 object-cover">
+                                </div>
+                            @endif
+                            <input type="file" name="info_image_1" accept="image/jpeg,image/png,image/webp"
+                                class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                            <p class="text-xs text-gray-400 mt-1">{{ __('cms.home.info.image_help') }}</p>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">{{ __('cms.home.info.paragraph1') }}</label>
+                            <textarea name="sections[info_1]" rows="4"
+                                class="w-full px-3.5 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition resize-y">{{ $idContent['sections']['info_1'] ?? '' }}</textarea>
+                        </div>
                     </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">{{ __('cms.home.info.paragraph2') }}</label>
-                        <textarea name="sections[info_2]" rows="4"
-                            class="w-full px-3.5 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition resize-y">{{ $idContent['sections']['info_2'] ?? '' }}</textarea>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">{{ __('cms.home.info.image2') }}</label>
+                            @if(!empty($idContent['sections']['info_image_2']))
+                                <div class="mb-2">
+                                    <img src="{{ asset('storage/' . $idContent['sections']['info_image_2']) }}" alt="Info Image 2" class="h-24 rounded-lg border border-gray-200 object-cover">
+                                </div>
+                            @endif
+                            <input type="file" name="info_image_2" accept="image/jpeg,image/png,image/webp"
+                                class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                            <p class="text-xs text-gray-400 mt-1">{{ __('cms.home.info.image_help') }}</p>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">{{ __('cms.home.info.paragraph2') }}</label>
+                            <textarea name="sections[info_2]" rows="4"
+                                class="w-full px-3.5 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition resize-y">{{ $idContent['sections']['info_2'] ?? '' }}</textarea>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -143,8 +268,15 @@
                             class="w-full px-3.5 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        @php $actColors = ['#D06767','#3598DB','#89DB51','#000000','#DB420F','#E660D4']; @endphp
-                        @foreach(($idContent['activity_items'] ?? []) as $i => $item)
+                        @php
+                            $actColors = ['#D06767','#3598DB','#89DB51','#000000','#DB420F','#E660D4'];
+                            $activityItems = $idContent['activity_items'] ?? [];
+                            // Always show 6 fields
+                            for ($ai = count($activityItems); $ai < 6; $ai++) {
+                                $activityItems[$ai] = '';
+                            }
+                        @endphp
+                        @foreach($activityItems as $i => $item)
                         <div class="flex items-center gap-2">
                             <div class="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold shrink-0"
                                 style="background: {{ $actColors[$i] ?? '#999' }}">{{ str_pad($i+1, 2, '0', STR_PAD_LEFT) }}</div>
@@ -231,15 +363,19 @@
                     </div>
                 </div>
                 <div class="p-6">
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="youtube-fields">
                         @php
-                            $youtubeIds = $idContent['youtube_ids'] ?? ['F2NhNTiNxoY','kasMsnf9Cys','LgdR55MPAnU','NC9_ugD6vxo','F2NhNTiNxoY'];
+                            $youtubeIds = $idContent['youtube_ids'] ?? [];
+                            // Show at least one empty field if no youtube IDs exist
+                            if (empty($youtubeIds)) {
+                                $youtubeIds = [''];
+                            }
                         @endphp
                         @foreach($youtubeIds as $yi => $vid)
-                        <div>
+                        <div class="youtube-field">
                             <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">{{ __('cms.home.youtube.video_label', ['number' => $yi + 1]) }}</label>
                             <div class="flex gap-2">
-                                <input type="text" name="youtube_ids[{{ $yi }}]" value="{{ $vid }}"
+                                <input type="text" name="youtube_ids[]" value="{{ $vid }}"
                                     placeholder="{{ __('cms.home.youtube.placeholder') }}"
                                     class="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
                                 @if($vid)
@@ -254,8 +390,113 @@
                         </div>
                         @endforeach
                     </div>
+                    <div class="flex items-center gap-3 mt-4">
+                        <button type="button" onclick="addYoutubeField()"
+                            class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                            </svg>
+                            Tambah Video
+                        </button>
+                    </div>
                     <p class="text-xs text-gray-400 mt-3">{!! __('cms.home.youtube.help') !!}</p>
                 </div>
+
+                <script>
+                    function addYoutubeField() {
+                        const container = document.getElementById('youtube-fields');
+                        const fieldCount = container.querySelectorAll('.youtube-field').length;
+                        const newField = document.createElement('div');
+                        newField.className = 'youtube-field';
+                        newField.innerHTML = `
+                            <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">Video ${fieldCount + 1}</label>
+                            <div class="flex gap-2">
+                                <input type="text" name="youtube_ids[]" value=""
+                                    placeholder="Contoh: F2NhNTiNxoY"
+                                    class="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                            </div>
+                        `;
+                        container.appendChild(newField);
+                    }
+                </script>
+            </div>
+
+            {{-- Instagram Feed --}}
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-6">
+                <div class="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-pink-50 to-white flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-pink-500 flex items-center justify-center">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-semibold text-gray-800">{{ __('cms.home.instagram.title') }}</h3>
+                        <p class="text-xs text-gray-500">{{ __('cms.home.instagram.desc') }}</p>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <div class="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">{{ __('cms.home.instagram.username_label') }}</label>
+                        <input type="text" name="instagram_username" value="{{ $idContent['instagram_username'] ?? 'arsipnasionalri' }}"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <p class="text-xs text-gray-400 mt-1">{{ __('cms.home.instagram.username_help') }}</p>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="instagram-fields">
+                        @php
+                            $igCodes = $idContent['instagram_codes'] ?? [];
+                            if (empty($igCodes)) {
+                                $igCodes = [''];
+                            }
+                        @endphp
+                        @foreach($igCodes as $ii => $code)
+                        <div class="instagram-field">
+                            <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">{{ __('cms.home.instagram.post_label', ['number' => $ii + 1]) }}</label>
+                            <div class="flex gap-2">
+                                <input type="text" name="instagram_codes[]" value="{{ $code }}"
+                                    placeholder="{{ __('cms.home.instagram.placeholder') }}"
+                                    class="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                                @if($code)
+                                <a href="https://www.instagram.com/p/{{ strtok($code, '?') }}/" target="_blank"
+                                    class="inline-flex items-center justify-center w-9 h-9 bg-pink-50 hover:bg-pink-100 text-pink-500 rounded-lg transition-colors border border-pink-100">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                                    </svg>
+                                </a>
+                                @endif
+                            </div>
+                        </div>
+                        @endforeach
+                    </div>
+                    <div class="flex items-center gap-3 mt-4">
+                        <button type="button" onclick="addInstagramField()"
+                            class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                            </svg>
+                            {{ __('cms.home.instagram.add_post') }}
+                        </button>
+                    </div>
+                    <p class="text-xs text-gray-400 mt-3">{!! __('cms.home.instagram.help') !!}</p>
+                </div>
+
+                <script>
+                    function addInstagramField() {
+                        const container = document.getElementById('instagram-fields');
+                        const fieldCount = container.querySelectorAll('.instagram-field').length;
+                        const newField = document.createElement('div');
+                        newField.className = 'instagram-field';
+                        newField.innerHTML = `
+                            <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">Post ${fieldCount + 1}</label>
+                            <div class="flex gap-2">
+                                <input type="text" name="instagram_codes[]" value=""
+                                    placeholder="Contoh: DULJ3gDkkDZ"
+                                    class="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                            </div>
+                        `;
+                        container.appendChild(newField);
+                    }
+                </script>
             </div>
 
             <!-- Save Button -->

@@ -71,7 +71,7 @@
                                     {{ __('cms.features.detail') }}
                                 </a>
                                 <!-- Edit Button -->
-                                <button @click="openEditModal({{ $feature->id }}, '{{ addslashes($feature->name) }}', '{{ $feature->type }}', '{{ $feature->path ?? '' }}', {{ $feature->order }})"
+                                <button @click="openEditModal({{ $feature->id }}, '{{ addslashes($feature->name) }}', '{{ $feature->type }}', '{{ $feature->path ?? '' }}', {{ $feature->order }}, '{{ $feature->page_type ?? 'none' }}')"
                                     class="inline-flex items-center justify-center w-8 h-8 bg-yellow-400 hover:bg-yellow-500 text-white rounded-md transition-colors">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
@@ -147,6 +147,18 @@
                         <option value="dropdown">{{ __('cms.features.type_dropdown') }}</option>
                     </select>
                 </div>
+                <div x-show="editModal.type === 'link'">
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">{{ __('cms.page_types.label') }}</label>
+                    <select name="page_type" x-model="editModal.pageType"
+                        class="w-full px-3.5 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition bg-white">
+                        <option value="none">{{ __('cms.page_types.none') }}</option>
+                        <option value="beranda">{{ __('cms.page_types.beranda') }}</option>
+                        <option value="onsite">{{ __('cms.page_types.onsite') }}</option>
+                        <option value="real">{{ __('cms.page_types.real') }}</option>
+                        <option value="3d">{{ __('cms.page_types.3d') }}</option>
+                        <option value="book">{{ __('cms.page_types.book') }}</option>
+                    </select>
+                </div>
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1.5">{{ __('cms.features.form.order') }} <span class="text-red-500">*</span></label>
@@ -208,6 +220,18 @@
                         class="w-full px-3.5 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition bg-white">
                         <option value="link">{{ __('cms.features.type_link') }}</option>
                         <option value="dropdown">{{ __('cms.features.type_dropdown') }}</option>
+                    </select>
+                </div>
+                <div x-show="addModal.type === 'link'">
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">{{ __('cms.page_types.label') }}</label>
+                    <select name="page_type" x-model="addModal.pageType"
+                        class="w-full px-3.5 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition bg-white">
+                        <option value="none">{{ __('cms.page_types.none') }}</option>
+                        <option value="beranda">{{ __('cms.page_types.beranda') }}</option>
+                        <option value="onsite">{{ __('cms.page_types.onsite') }}</option>
+                        <option value="real">{{ __('cms.page_types.real') }}</option>
+                        <option value="3d">{{ __('cms.page_types.3d') }}</option>
+                        <option value="book">{{ __('cms.page_types.book') }}</option>
                     </select>
                 </div>
 

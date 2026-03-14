@@ -8,6 +8,7 @@ use App\Models\FeaturePageSection;
 use App\Services\TranslationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 
 class FeaturePageController extends Controller
@@ -250,6 +251,18 @@ class FeaturePageController extends Controller
         $feature = Feature::where('path', $path)->firstOrFail();
         $feature->loadCount('pages');
 
+        // Handle beranda page type - load content from language files
+        // Check if there's a dedicated home_{id}.php file for this feature (except for original beranda)
+        $homeFilePath = resource_path("lang/id/home_{$feature->id}.php");
+        if ($feature->id != 1 && File::exists($homeFilePath)) {
+            $locale = app()->getLocale();
+            $idContent = $this->loadBerandaContent($feature->id, 'id');
+            $enContent = $this->loadBerandaContent($feature->id, 'en');
+            $content = $locale === 'en' ? $enContent : $idContent;
+
+            return view('welcome', compact('feature', 'content'));
+        }
+
         // Pages under /pameran/virtual or /pameran-arsip-virtual require authentication — show login modal if guest
         $requiresLoginModal = !Auth::check() && (
             str_contains($path, '/pameran/virtual') || 
@@ -350,6 +363,25 @@ class FeaturePageController extends Controller
         return view('pages.virtual_3d_tour', compact(
             'feature', 'requiresLoginModal', 'loginModalPreview', 'loginModalRoomName', 'virtual3dRooms'
         ));
+    }
+
+    /**
+     * Load beranda content from language files.
+     */
+    private function loadBerandaContent(int $featureId, string $locale): array
+    {
+        // For feature ID 1, use original home.php
+        if ($featureId == 1) {
+            $path = resource_path("lang/{$locale}/home.php");
+        } else {
+            $path = resource_path("lang/{$locale}/home_{$featureId}.php");
+        }
+
+        if (File::exists($path)) {
+            return include $path;
+        }
+
+        return [];
     }
 
     private function deleteSectionImages(FeaturePageSection $section): void

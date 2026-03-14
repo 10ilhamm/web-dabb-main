@@ -211,8 +211,15 @@ return [
             'desc' => 'Two information boxes below the hero',
             'left' => 'Left Text',
             'middle' => 'Middle Button',
+            'middle_link' => 'Middle Button Link',
             'right_button' => 'Right Button',
+            'right_button_link' => 'Right Button Link',
             'right_text' => 'Right Text',
+            'related_links' => 'Related Links',
+            'related_title' => 'Title',
+            'related_photo' => 'Photo',
+            'related_link' => 'Link',
+            'add_related' => 'Add Link',
         ],
 
         'info' => [
@@ -252,6 +259,17 @@ return [
             'video_label' => 'Video :number',
             'placeholder' => 'YouTube ID',
             'help' => 'Copy the ID from the YouTube URL: youtube.com/watch?v=<strong>ID_HERE</strong>',
+        ],
+
+        'instagram' => [
+            'title' => 'Instagram Feed',
+            'desc' => 'Instagram post codes displayed on the home page',
+            'username_label' => 'Instagram Username',
+            'username_help' => 'Enter Instagram username without @',
+            'post_label' => 'Post :number',
+            'placeholder' => 'Instagram Post Code',
+            'add_post' => 'Add Post',
+            'help' => 'Copy the code from Instagram URL: instagram.com/p/<strong>CODE_HERE</strong>/',
         ],
     ],
 
@@ -635,6 +653,7 @@ return [
     'page_types' => [
         'label' => 'Page Type',
         'none' => 'None',
+        'beranda' => 'Homepage',
         'onsite' => 'Onsite Archive Exhibition',
         'real' => 'Virtual Archive Exhibition Real (360°)',
         '3d' => 'Virtual Archive Exhibition 3D',

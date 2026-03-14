@@ -28,23 +28,29 @@ class FeatureController extends Controller
             'type' => 'required|in:link,dropdown',
             'order' => 'required|integer|min:0',
             'parent_id' => 'nullable|exists:features,id',
-            'page_type' => 'nullable|in:none,onsite,real,3d,book',
+            'page_type' => 'nullable|in:none,beranda,onsite,real,3d,book',
         ]);
 
         $validated['name_en'] = $translationService->translate($validated['name']);
 
         if ($validated['type'] === 'link') {
-            $slug = \Illuminate\Support\Str::slug($validated['name']);
-            if (empty($validated['parent_id'])) {
+            // If page_type is beranda, set unique path based on feature name
+            if (isset($validated['page_type']) && $validated['page_type'] === 'beranda') {
+                $slug = \Illuminate\Support\Str::slug($validated['name']);
                 $validated['path'] = '/' . $slug;
             } else {
-                $parent = Feature::find($validated['parent_id']);
-                $parentPath = $parent->path ?: ('/' . \Illuminate\Support\Str::slug($parent->name));
-                $validated['path'] = rtrim($parentPath, '/') . '/' . $slug;
+                $slug = \Illuminate\Support\Str::slug($validated['name']);
+                if (empty($validated['parent_id'])) {
+                    $validated['path'] = '/' . $slug;
+                } else {
+                    $parent = Feature::find($validated['parent_id']);
+                    $parentPath = $parent->path ?: ('/' . \Illuminate\Support\Str::slug($parent->name));
+                    $validated['path'] = rtrim($parentPath, '/') . '/' . $slug;
+                }
             }
 
             // Set is_virtual_book if type is book
-            if ($validated['page_type'] === 'book') {
+            if (isset($validated['page_type']) && $validated['page_type'] === 'book') {
                 $validated['is_virtual_book'] = true;
             }
         } else {
@@ -72,20 +78,16 @@ class FeatureController extends Controller
     public function show(Feature $feature)
     {
         // Beranda has a dedicated structured editor
-        if ($feature->path === '/' || strtolower($feature->name) === 'beranda') {
-            return redirect()->route('cms.home.edit');
+        if ($feature->path === '/' || strtolower($feature->name) === 'beranda' || $feature->page_type === 'beranda') {
+            return redirect()->route('cms.home.edit', $feature->id);
         }
 
         // If it's a dropdown, skip redirects and show sub-features list
         if ($feature->type !== 'dropdown') {
             // Redirect based on page_type
             if ($feature->page_type === 'onsite') {
-                // Pameran Arsip Onsite - show regular pages/content
-                $feature->load(['subfeatures' => function ($query) {
-                    $query->withCount(['subfeatures', 'pages']);
-                }, 'parent']);
-                $feature->loadCount('pages');
-                return view('cms.features.show', compact('feature'));
+                // Pameran Arsip Onsite - redirect to pages directly
+                return redirect()->route('cms.features.pages.index', $feature);
             }
 
             if ($feature->page_type === 'real') {
@@ -114,6 +116,11 @@ class FeatureController extends Controller
             }
         }
 
+        // For dropdown types, check if page_type is onsite and redirect to pages
+        if ($feature->type === 'dropdown' && $feature->page_type === 'onsite') {
+            return redirect()->route('cms.features.pages.index', $feature);
+        }
+
         $feature->load(['subfeatures' => function ($query) {
             $query->withCount(['subfeatures', 'pages']);
         }, 'parent']);
@@ -131,18 +138,25 @@ class FeatureController extends Controller
             'name' => 'required|string|max:255',
             'type' => 'required|in:link,dropdown',
             'order' => 'required|integer|min:0',
+            'page_type' => 'nullable|in:none,beranda,onsite,real,3d,book',
         ]);
 
         $validated['name_en'] = $translationService->translate($validated['name']);
 
         if ($validated['type'] === 'link') {
-            $slug = \Illuminate\Support\Str::slug($validated['name']);
-            if (empty($feature->parent_id)) {
+            // If page_type is beranda, set unique path based on feature name
+            if (isset($validated['page_type']) && $validated['page_type'] === 'beranda') {
+                $slug = \Illuminate\Support\Str::slug($validated['name']);
                 $validated['path'] = '/' . $slug;
             } else {
-                $parent = Feature::find($feature->parent_id);
-                $parentPath = $parent->path ?: ('/' . \Illuminate\Support\Str::slug($parent->name));
-                $validated['path'] = rtrim($parentPath, '/') . '/' . $slug;
+                $slug = \Illuminate\Support\Str::slug($validated['name']);
+                if (empty($feature->parent_id)) {
+                    $validated['path'] = '/' . $slug;
+                } else {
+                    $parent = Feature::find($feature->parent_id);
+                    $parentPath = $parent->path ?: ('/' . \Illuminate\Support\Str::slug($parent->name));
+                    $validated['path'] = rtrim($parentPath, '/') . '/' . $slug;
+                }
             }
         } else {
             $validated['path'] = null;
@@ -197,23 +211,29 @@ class FeatureController extends Controller
             'name' => 'required|string|max:255',
             'type' => 'required|in:link,dropdown',
             'order' => 'required|integer|min:0',
-            'page_type' => 'nullable|in:none,onsite,real,3d,book',
+            'page_type' => 'nullable|in:none,beranda,onsite,real,3d,book',
         ]);
 
         $validated['name_en'] = $translationService->translate($validated['name']);
 
         if ($validated['type'] === 'link') {
-            $slug = \Illuminate\Support\Str::slug($validated['name']);
-            if (empty($feature->parent_id)) {
+            // If page_type is beranda, set unique path based on feature name
+            if (isset($validated['page_type']) && $validated['page_type'] === 'beranda') {
+                $slug = \Illuminate\Support\Str::slug($validated['name']);
                 $validated['path'] = '/' . $slug;
             } else {
-                $parent = Feature::find($feature->parent_id);
-                $parentPath = $parent->path ?: ('/' . \Illuminate\Support\Str::slug($parent->name));
-                $validated['path'] = rtrim($parentPath, '/') . '/' . $slug;
+                $slug = \Illuminate\Support\Str::slug($validated['name']);
+                if (empty($feature->parent_id)) {
+                    $validated['path'] = '/' . $slug;
+                } else {
+                    $parent = Feature::find($feature->parent_id);
+                    $parentPath = $parent->path ?: ('/' . \Illuminate\Support\Str::slug($parent->name));
+                    $validated['path'] = rtrim($parentPath, '/') . '/' . $slug;
+                }
             }
 
             // Set is_virtual_book if type is book
-            if ($validated['page_type'] === 'book') {
+            if (isset($validated['page_type']) && $validated['page_type'] === 'book') {
                 $validated['is_virtual_book'] = true;
             } else {
                 $validated['is_virtual_book'] = false;

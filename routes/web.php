@@ -55,10 +55,10 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // CMS Home Content Editor
-    Route::middleware('role:admin')->prefix('cms/home')->name('cms.home.')->group(function () {
+    // CMS Home Content Editor (supports multiple beranda pages by feature_id)
+    Route::middleware('role:admin')->prefix('cms/home/{feature_id}')->name('cms.home.')->group(function () {
         Route::get('/', [HomeContentController::class, 'edit'])->name('edit');
-        Route::post('/', [HomeContentController::class, 'update'])->name('update');
+        Route::put('/', [HomeContentController::class, 'update'])->name('update');
     });
 
     // CMS Settings
