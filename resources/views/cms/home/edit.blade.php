@@ -100,6 +100,137 @@
                 </div>
             </div>
 
+            {{-- Info Section --}}
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-6">
+                <div class="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-green-50 to-white flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-green-500 flex items-center justify-center">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-semibold text-gray-800">{{ __('cms.home.info.title') }}</h3>
+                        <p class="text-xs text-gray-500">{{ __('cms.home.info.desc') }}</p>
+                    </div>
+                </div>
+                <div class="p-6 space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">{{ __('cms.home.info.section') }}</label>
+                        <input type="text" name="sections[info_title]" value="{{ $idContent['sections']['info_title'] ?? '' }}"
+                            class="w-full px-3.5 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">{{ __('cms.home.info.image1') }}</label>
+                            @if(!empty($idContent['sections']['info_image_1']))
+                                <div class="mb-2">
+                                    <img src="{{ asset('storage/' . $idContent['sections']['info_image_1']) }}" alt="Info Image 1" class="h-24 rounded-lg border border-gray-200 object-cover">
+                                </div>
+                            @endif
+                            <input type="file" name="info_image_1" accept="image/jpeg,image/png,image/webp"
+                                class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                            <p class="text-xs text-gray-400 mt-1">{{ __('cms.home.info.image_help') }}</p>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">{{ __('cms.home.info.paragraph1') }}</label>
+                            <textarea name="sections[info_1]" rows="4"
+                                class="w-full px-3.5 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition resize-y">{{ $idContent['sections']['info_1'] ?? '' }}</textarea>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">{{ __('cms.home.info.image2') }}</label>
+                            @if(!empty($idContent['sections']['info_image_2']))
+                                <div class="mb-2">
+                                    <img src="{{ asset('storage/' . $idContent['sections']['info_image_2']) }}" alt="Info Image 2" class="h-24 rounded-lg border border-gray-200 object-cover">
+                                </div>
+                            @endif
+                            <input type="file" name="info_image_2" accept="image/jpeg,image/png,image/webp"
+                                class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                            <p class="text-xs text-gray-400 mt-1">{{ __('cms.home.info.image_help') }}</p>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">{{ __('cms.home.info.paragraph2') }}</label>
+                            <textarea name="sections[info_2]" rows="4"
+                                class="w-full px-3.5 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition resize-y">{{ $idContent['sections']['info_2'] ?? '' }}</textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Section Titles --}}
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-6">
+                <div class="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-purple-50 to-white flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-purple-500 flex items-center justify-center">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-semibold text-gray-800">{{ __('cms.home.section_titles.title') }}</h3>
+                        <p class="text-xs text-gray-500">{{ __('cms.home.section_titles.desc') }}</p>
+                    </div>
+                </div>
+                <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    @php
+                        $sectionLabels = [
+                            'related'    => __('cms.home.section_titles.related'),
+                            'gallery'    => __('cms.home.section_titles.gallery'),
+                            'stats'      => __('cms.home.section_titles.stats'),
+                            'youtube'    => __('cms.home.section_titles.youtube'),
+                            'instagram'  => __('cms.home.section_titles.instagram'),
+                        ];
+                    @endphp
+                    @foreach($sectionLabels as $key => $label)
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">{{ $label }}</label>
+                        <input type="text" name="sections[{{ $key }}]" value="{{ $idContent['sections'][$key] ?? '' }}"
+                            class="w-full px-3.5 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+
+            {{-- Activities Section --}}
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-6">
+                <div class="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-orange-50 to-white flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-semibold text-gray-800">{{ __('cms.home.activities.title') }}</h3>
+                        <p class="text-xs text-gray-500">{{ __('cms.home.activities.desc') }}</p>
+                    </div>
+                </div>
+                <div class="p-6 space-y-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">{{ __('cms.home.activities.section') }}</label>
+                        <input type="text" name="sections[activities]" value="{{ $idContent['sections']['activities'] ?? '' }}"
+                            class="w-full px-3.5 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        @php
+                            $actColors = ['#D06767','#3598DB','#89DB51','#000000','#DB420F','#E660D4'];
+                            $activityItems = $idContent['activity_items'] ?? [];
+                            // Always show 6 fields
+                            for ($ai = count($activityItems); $ai < 6; $ai++) {
+                                $activityItems[$ai] = '';
+                            }
+                        @endphp
+                        @foreach($activityItems as $i => $item)
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold shrink-0"
+                                style="background: {{ $actColors[$i] ?? '#999' }}">{{ str_pad($i+1, 2, '0', STR_PAD_LEFT) }}</div>
+                            <input type="text" name="activity_items[{{ $i }}]" value="{{ $item }}"
+                                class="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+
             {{-- Related Links Section --}}
             @php
                 $relatedLinks = $idContent['feature_strip']['related_links'] ?? [];
@@ -189,137 +320,6 @@
                     relatedLinkIndex++;
                 }
             </script>
-
-            {{-- Info Section --}}
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-6">
-                <div class="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-green-50 to-white flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-lg bg-green-500 flex items-center justify-center">
-                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                    </div>
-                    <div>
-                        <h3 class="text-sm font-semibold text-gray-800">{{ __('cms.home.info.title') }}</h3>
-                        <p class="text-xs text-gray-500">{{ __('cms.home.info.desc') }}</p>
-                    </div>
-                </div>
-                <div class="p-6 space-y-4">
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">{{ __('cms.home.info.section') }}</label>
-                        <input type="text" name="sections[info_title]" value="{{ $idContent['sections']['info_title'] ?? '' }}"
-                            class="w-full px-3.5 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">{{ __('cms.home.info.image1') }}</label>
-                            @if(!empty($idContent['sections']['info_image_1']))
-                                <div class="mb-2">
-                                    <img src="{{ asset('storage/' . $idContent['sections']['info_image_1']) }}" alt="Info Image 1" class="h-24 rounded-lg border border-gray-200 object-cover">
-                                </div>
-                            @endif
-                            <input type="file" name="info_image_1" accept="image/jpeg,image/png,image/webp"
-                                class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
-                            <p class="text-xs text-gray-400 mt-1">{{ __('cms.home.info.image_help') }}</p>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">{{ __('cms.home.info.paragraph1') }}</label>
-                            <textarea name="sections[info_1]" rows="4"
-                                class="w-full px-3.5 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition resize-y">{{ $idContent['sections']['info_1'] ?? '' }}</textarea>
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">{{ __('cms.home.info.image2') }}</label>
-                            @if(!empty($idContent['sections']['info_image_2']))
-                                <div class="mb-2">
-                                    <img src="{{ asset('storage/' . $idContent['sections']['info_image_2']) }}" alt="Info Image 2" class="h-24 rounded-lg border border-gray-200 object-cover">
-                                </div>
-                            @endif
-                            <input type="file" name="info_image_2" accept="image/jpeg,image/png,image/webp"
-                                class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
-                            <p class="text-xs text-gray-400 mt-1">{{ __('cms.home.info.image_help') }}</p>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">{{ __('cms.home.info.paragraph2') }}</label>
-                            <textarea name="sections[info_2]" rows="4"
-                                class="w-full px-3.5 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition resize-y">{{ $idContent['sections']['info_2'] ?? '' }}</textarea>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {{-- Activities Section --}}
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-6">
-                <div class="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-orange-50 to-white flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center">
-                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-                        </svg>
-                    </div>
-                    <div>
-                        <h3 class="text-sm font-semibold text-gray-800">{{ __('cms.home.activities.title') }}</h3>
-                        <p class="text-xs text-gray-500">{{ __('cms.home.activities.desc') }}</p>
-                    </div>
-                </div>
-                <div class="p-6 space-y-3">
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">{{ __('cms.home.activities.section') }}</label>
-                        <input type="text" name="sections[activities]" value="{{ $idContent['sections']['activities'] ?? '' }}"
-                            class="w-full px-3.5 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        @php
-                            $actColors = ['#D06767','#3598DB','#89DB51','#000000','#DB420F','#E660D4'];
-                            $activityItems = $idContent['activity_items'] ?? [];
-                            // Always show 6 fields
-                            for ($ai = count($activityItems); $ai < 6; $ai++) {
-                                $activityItems[$ai] = '';
-                            }
-                        @endphp
-                        @foreach($activityItems as $i => $item)
-                        <div class="flex items-center gap-2">
-                            <div class="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold shrink-0"
-                                style="background: {{ $actColors[$i] ?? '#999' }}">{{ str_pad($i+1, 2, '0', STR_PAD_LEFT) }}</div>
-                            <input type="text" name="activity_items[{{ $i }}]" value="{{ $item }}"
-                                class="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
-                        </div>
-                        @endforeach
-                    </div>
-                </div>
-            </div>
-
-            {{-- Section Titles --}}
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-6">
-                <div class="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-purple-50 to-white flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-lg bg-purple-500 flex items-center justify-center">
-                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
-                        </svg>
-                    </div>
-                    <div>
-                        <h3 class="text-sm font-semibold text-gray-800">{{ __('cms.home.section_titles.title') }}</h3>
-                        <p class="text-xs text-gray-500">{{ __('cms.home.section_titles.desc') }}</p>
-                    </div>
-                </div>
-                <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-                    @php
-                        $sectionLabels = [
-                            'related'    => __('cms.home.section_titles.related'),
-                            'gallery'    => __('cms.home.section_titles.gallery'),
-                            'stats'      => __('cms.home.section_titles.stats'),
-                            'youtube'    => __('cms.home.section_titles.youtube'),
-                            'instagram'  => __('cms.home.section_titles.instagram'),
-                        ];
-                    @endphp
-                    @foreach($sectionLabels as $key => $label)
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">{{ $label }}</label>
-                        <input type="text" name="sections[{{ $key }}]" value="{{ $idContent['sections'][$key] ?? '' }}"
-                            class="w-full px-3.5 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
-                    </div>
-                    @endforeach
-                </div>
-            </div>
 
             {{-- Stats --}}
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-6">

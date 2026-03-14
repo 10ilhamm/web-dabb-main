@@ -83,29 +83,39 @@
         </div>
     </div>
 
+    @if(home('sections.info_image_1') || home('sections.info_1') || home('sections.info_image_2') || home('sections.info_2'))
     <section id="info-section">
         <div class="container">
             <h2 class="section-title">{{ home('sections.info_title') }}</h2>
             <div class="separator"></div>
             <div class="info-grid">
-                <img class="info-photo" src="{{ home('sections.info_image_1') ? asset('storage/' . home('sections.info_image_1')) : asset('image/kantordabb.png') }}" alt="Kantor DABB">
+                @if(home('sections.info_image_1'))
+                <img class="info-photo" src="{{ asset('storage/' . home('sections.info_image_1')) }}" alt="Kantor DABB">
+                @endif
+                @if(home('sections.info_1'))
                 <p>{{ home('sections.info_1') }}</p>
-                <img class="info-photo" src="{{ home('sections.info_image_2') ? asset('storage/' . home('sections.info_image_2')) : asset('image/pegawai1.png') }}" alt="Pegawai DABB">
+                @endif
+                @if(home('sections.info_image_2'))
+                <img class="info-photo" src="{{ asset('storage/' . home('sections.info_image_2')) }}" alt="Pegawai DABB">
+                @endif
+                @if(home('sections.info_2'))
                 <p>{{ home('sections.info_2') }}</p>
+                @endif
             </div>
         </div>
     </section>
+    @endif
 
+    @php
+        $activityItems = home('activity_items', []);
+    @endphp
+    @if(!empty($activityItems) && is_array($activityItems))
     <section class="activities">
         <div class="container">
             <h2 class="section-title">{{ home('sections.activities') }}</h2>
             <div class="separator"></div>
             @php
                 $colors = ['#D06767', '#3598DB', '#89DB51', '#000000', '#DB420F', '#E660D4'];
-                $activityItems = home('activity_items', []);
-                if (empty($activityItems) || !is_array($activityItems)) {
-                    $activityItems = [' Kegiatan Akuisisi Arsip', 'Pengelolaan Arsip Statis', 'PPID Arsip Dinamis', 'Mekanisme Layanan', 'LARASKA', 'Konsultasi Kearsipan'];
-                }
             @endphp
             <div class="activity-list">
                 @foreach ($activityItems as $index => $item)
@@ -117,6 +127,7 @@
             </div>
         </div>
     </section>
+    @endif
 
     {{-- Links Related Section (Tautan Terkait) - displays CMS data --}}
     @php
@@ -358,6 +369,10 @@
         </div>
     </section>
 
+    @php
+        $youtubeIds = home('youtube_ids', []);
+    @endphp
+    @if(!empty($youtubeIds) && is_array($youtubeIds))
     <section class="related">
         <div class="container">
             <h2 class="section-title">{{ home('sections.youtube') }}</h2>
@@ -365,12 +380,6 @@
             <div class="youtube-wrap">
                 <div class="youtube-carousel-container">
                     <div id="youtube-carousel" class="youtube-carousel">
-                        @php
-                            $youtubeIds = home('youtube_ids', []);
-                            if (empty($youtubeIds) || !is_array($youtubeIds)) {
-                                $youtubeIds = ['F2NhNTiNxoY', 'kasMsnf9Cys', 'LgdR55MPAnU', 'NC9_ugD6vxo', 'F2NhNTiNxoY'];
-                            }
-                        @endphp
                         @foreach($youtubeIds as $index => $videoId)
                         <div class="youtube-item">
                             <div class="youtube-thumb">
@@ -407,27 +416,25 @@
             </div>
         </div>
     </section>
+    @endif
 
+    @php
+        $igCodes = home('instagram_codes', []);
+    @endphp
+    @if(!empty($igCodes) && is_array($igCodes))
     <section>
         <div class="container">
             <h2 class="section-title">{{ home('sections.instagram') }}</h2>
             <div class="separator"></div>
             @php
-                $igCodes = home('instagram_codes', []);
-                if (empty($igCodes) || !is_array($igCodes)) {
-                    $igCodes = ['DULJ3gDkkDZ', 'DUIkzDcEjtW', 'DUGS9NCkiTd', 'DUDcoEWkpPr', 'DUCla4wku-w', 'DUA1BeEEsun'];
-                }
                 $igPosts = [];
                 foreach($igCodes as $code) {
-                    // Strip query parameters if present (e.g., "DULJ3gDkkDZ/?utm_source=ig_embed" -> "DULJ3gDkkDZ")
                     $shortCode = strtok($code, '?');
                     $igPosts[] = [
                         'code' => $shortCode,
                         'url' => 'https://www.instagram.com/p/' . $shortCode . '/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==',
                     ];
                 }
-            @endphp
-            @php
                 $igUsername = home('instagram_username', 'arsipnasionalri');
             @endphp
             <div class="instagram-grid">
@@ -460,6 +467,7 @@
             </div>
         </div>
     </section>
+    @endif
 @endsection
 
 @push('scripts')

@@ -92,7 +92,7 @@ class HomeContentController extends Controller
         $translatedData = $translationService->translateArray($fullIdContent);
         $this->saveLangFile('en', $translatedData, $featureId);
 
-        return redirect()->route('cms.home.edit', $featureId)
+        return redirect()->route('cms.features.index', $featureId)
             ->with('success', 'Konten Beranda berhasil disimpan');
     }
 
