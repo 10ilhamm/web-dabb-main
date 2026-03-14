@@ -25,17 +25,12 @@ return [
         'right_text' => 'Explore our various service facilities. Register your visit, take advantage of the archive maintenance service (LARASKA), or submit an archive consultation directly to an expert.',
         'related_links' => [
             [
-                'title' => 'ANRI',
                 'link' => 'https://www.anri.go.id/',
                 'photo' => 'home/related/wkMY4hkyf8JPyqddKGuZ7VHuodNOYNqV6CT8aYE8.png',
             ],
             [
                 'link' => 'https://www.perpusnas.go.id/',
                 'photo' => 'home/related/eBbGmQeUtdKQwDmuVIMiKQFxrO7h8Q9sPvGiLbFs.png',
-            ],
-            [
-                'link' => 'fennel',
-                'photo' => 'home/related/VKEc7UL6NvTAEi0IqYUHoJxvnxho3gSoLHqJsxc4.png',
             ],
         ],
     ],

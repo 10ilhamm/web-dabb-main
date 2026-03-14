@@ -62,11 +62,11 @@ class HomeContentController extends Controller
             $data['stats']['image'] = $path;
         }
 
-        // Handle related_links photo uploads
-        if (isset($data['feature_strip']['related_links']) && is_array($data['feature_strip']['related_links'])) {
-            $existing = $this->loadLangFile('id', $featureId);
-            $existingRelatedLinks = $existing['feature_strip']['related_links'] ?? [];
+        // Handle related_links photo uploads and deletions
+        $existing = $this->loadLangFile('id', $featureId);
+        $existingRelatedLinks = $existing['feature_strip']['related_links'] ?? [];
 
+        if (isset($data['feature_strip']['related_links']) && is_array($data['feature_strip']['related_links'])) {
             foreach ($data['feature_strip']['related_links'] as $index => &$link) {
                 // Use dot notation for more reliable file upload detection
                 $photoFieldName = "feature_strip.related_links.{$index}.photo_file";
@@ -92,17 +92,37 @@ class HomeContentController extends Controller
                     unset($data['feature_strip']['related_links'][$index]);
                 }
             }
+            unset($link);
             // Reindex array
             $data['feature_strip']['related_links'] = array_values($data['feature_strip']['related_links']);
+        } else {
+            // No related_links submitted = user deleted all links
+            if (!isset($data['feature_strip'])) {
+                $data['feature_strip'] = [];
+            }
+            $data['feature_strip']['related_links'] = [];
         }
 
+        // Delete orphaned photos from storage (photos from links that were removed)
+        $newLinks = $data['feature_strip']['related_links'];
+        $newPhotos = array_filter(array_column($newLinks, 'photo'));
+        foreach ($existingRelatedLinks as $oldLink) {
+            $oldPhoto = $oldLink['photo'] ?? '';
+            if ($oldPhoto && !in_array($oldPhoto, $newPhotos)) {
+                Storage::disk('public')->delete($oldPhoto);
+            }
+        }
+
+        // related_links must be fully replaced (not deep-merged) so deleted items don't persist
+        $replaceKeys = [['feature_strip', 'related_links']];
+
         // 1. Save Indonesian version
-        $this->saveLangFile('id', $data, $featureId);
+        $this->saveLangFile('id', $data, $featureId, $replaceKeys);
 
         // 2. Load full ID file, translate, and save EN version
         $fullIdContent = $this->loadLangFile('id', $featureId);
         $translatedData = $translationService->translateArray($fullIdContent);
-        $this->saveLangFile('en', $translatedData, $featureId);
+        $this->saveLangFile('en', $translatedData, $featureId, $replaceKeys);
 
         return redirect()->route('cms.features.index', $featureId)
             ->with('success', 'Konten Beranda berhasil disimpan');
@@ -138,12 +158,30 @@ class HomeContentController extends Controller
      * Save data back to language file.
      * For new beranda pages, save only submitted data. For original beranda, merge with existing.
      */
-    private function saveLangFile(string $locale, array $data, int $featureId): void
+    private function saveLangFile(string $locale, array $data, int $featureId, array $replaceKeys = []): void
     {
         // For feature ID 1, always save to original home.php (with merge to preserve old data)
         if ($featureId == 1) {
             $path = resource_path("lang/{$locale}/home.php");
             $existing = File::exists($path) ? include $path : [];
+
+            // Before merging, clear specific keys so mergeDeep won't carry over deleted items.
+            // e.g. ['feature_strip', 'related_links'] => clear $existing['feature_strip']['related_links']
+            foreach ($replaceKeys as $keyPath) {
+                $ref = &$existing;
+                $lastKey = array_pop($keyPath);
+                foreach ($keyPath as $segment) {
+                    if (!isset($ref[$segment]) || !is_array($ref[$segment])) {
+                        continue 2; // path doesn't exist, skip
+                    }
+                    $ref = &$ref[$segment];
+                }
+                if (isset($ref[$lastKey])) {
+                    $ref[$lastKey] = [];
+                }
+                unset($ref);
+            }
+
             $updated = $this->mergeDeep($existing, $data);
         } else {
             // For new beranda pages (feature ID > 1), only save the data that was submitted
