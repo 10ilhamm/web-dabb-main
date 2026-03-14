@@ -45,13 +45,16 @@ function updateYoutubeClasses() {
     const items = getYoutubeItems();
     if (!items.length) return;
 
+    // For fewer than 5 items, use the middle item as active
+    const centerIdx = items.length >= 5 ? 2 : Math.floor(items.length / 2);
+
     items.forEach((item, idx) => {
         item.classList.remove('active', 'prev', 'next');
-        if (idx === 2) {
+        if (idx === centerIdx) {
             item.classList.add('active');
-        } else if (idx === 1) {
+        } else if (idx === centerIdx - 1) {
             item.classList.add('prev');
-        } else if (idx === 3) {
+        } else if (idx === centerIdx + 1) {
             item.classList.add('next');
         }
         // Reset play button when item leaves active position
@@ -65,7 +68,7 @@ function updateYoutubeClasses() {
         }
     });
 
-    const center = items[2];
+    const center = items[centerIdx];
     const centerIndex = center ? Number(center.dataset.videoIndex) : 0;
     youtubeDots.forEach((dot, idx) => {
         dot.classList.toggle('active', idx === centerIndex);
@@ -83,6 +86,13 @@ function initYoutubeItems() {
         const playBtn = item.querySelector('.youtube-play');
         if (playBtn) playBtn.classList.remove('playing');
     });
+
+    // For fewer than 5 items, enlarge active item and hide nav
+    if (items.length < 5) {
+        if (youtubeCarousel) youtubeCarousel.classList.add('youtube-few-items');
+        const nav = document.querySelector('.youtube-nav');
+        if (nav) nav.style.display = 'none';
+    }
 }
 
 function animateYoutubeStep(direction) {
@@ -154,7 +164,8 @@ youtubeDots.forEach((dot, idx) => {
         const items = getYoutubeItems();
         if (!items.length || youtubeIsAnimating) return;
 
-        const currentCenter = Number(items[2].dataset.videoIndex);
+        const centerIdx = items.length >= 5 ? 2 : Math.floor(items.length / 2);
+        const currentCenter = Number(items[centerIdx].dataset.videoIndex);
         const total = items.length;
         const forward = loopIndex(idx - currentCenter, total);
         const backward = loopIndex(currentCenter - idx, total);
@@ -179,7 +190,7 @@ youtubeDots.forEach((dot, idx) => {
     });
 });
 
-// Tombol play overlay hanya aktif di tengah
+// Tombol play overlay - aktif di item active
 document.querySelectorAll('.youtube-play').forEach((btn) => {
     btn.addEventListener('click', function(e) {
         e.preventDefault();
