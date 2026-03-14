@@ -239,11 +239,11 @@ return [
         'section_titles' => [
             'title' => 'Other Section Titles',
             'desc' => 'Titles for Gallery, Statistics, YouTube, Instagram sections, etc.',
-            'related' => 'Related Links',
+            'related' => 'Section Title',
             'gallery' => 'Archive Exhibition (Gallery)',
-            'stats' => 'Visitor Statistics',
-            'youtube' => 'YouTube',
-            'instagram' => 'Instagram Feed',
+            'stats' => 'Section Title',
+            'youtube' => 'Section Title',
+            'instagram' => 'Section Title',
         ],
 
         'stats' => [

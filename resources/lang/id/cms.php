@@ -242,11 +242,11 @@ return [
         'section_titles' => [
             'title' => 'Judul Seksi Lainnya',
             'desc' => 'Judul untuk seksi Galeri, Statistik, YouTube, Instagram, dll.',
-            'related' => 'Link Terkait',
+            'related' => 'Judul Seksi',
             'gallery' => 'Pameran Arsip (Galeri)',
-            'stats' => 'Statistik Pengunjung',
-            'youtube' => 'YouTube',
-            'instagram' => 'Instagram Feed',
+            'stats' => 'Judul Seksi',
+            'youtube' => 'Judul Seksi',
+            'instagram' => 'Judul Seksi',
         ],
 
         'stats' => [

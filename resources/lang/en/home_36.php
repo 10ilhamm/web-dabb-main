@@ -13,14 +13,12 @@ return [
         'info_title' => 'DABB Information as a Sustainable Archives Depot',
         'info_1' => 'Book',
         'info_2' => 'Writer',
+        'activities' => 'Archive Activities',
         'related' => 'Related Links',
         'gallery' => 'Archive Exhibition',
-        'stats' => 'Visitor Statistics',
+        'stats' => 'Website Visitor Statistics',
         'youtube' => 'YouTube',
         'instagram' => 'Instagram Feeds',
-        'activities' => 'Archive Activities',
-        'info_image_1' => 'home/info/LvXASXTLopMnEVkxNs58lT5fIhxeCrcBUvww7DPb.png',
-        'info_image_2' => 'home/info/uwn9ymfzIcgRWPNafLCxtYI1KmkQvsNTo57R5NFm.png',
     ],
     'activity_items' => [
         'Archives Acquisition Activities',
@@ -30,5 +28,15 @@ return [
         'LARASKA',
         'Archives Consultation',
     ],
+    'stats' => [
+        'total' => 'Total Visitors',
+        'today' => 'Today\'s Visitors',
+    ],
+    'youtube_ids' => [
+        'F2NhNTiNxoY',
+    ],
     'instagram_username' => 'RI National Archives',
+    'instagram_codes' => [
+        'DULJ3gDkkDZ',
+    ],
 ];

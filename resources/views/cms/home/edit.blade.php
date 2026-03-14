@@ -158,39 +158,6 @@
                 </div>
             </div>
 
-            {{-- Section Titles --}}
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-6">
-                <div class="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-purple-50 to-white flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-lg bg-purple-500 flex items-center justify-center">
-                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
-                        </svg>
-                    </div>
-                    <div>
-                        <h3 class="text-sm font-semibold text-gray-800">{{ __('cms.home.section_titles.title') }}</h3>
-                        <p class="text-xs text-gray-500">{{ __('cms.home.section_titles.desc') }}</p>
-                    </div>
-                </div>
-                <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-                    @php
-                        $sectionLabels = [
-                            'related'    => __('cms.home.section_titles.related'),
-                            'gallery'    => __('cms.home.section_titles.gallery'),
-                            'stats'      => __('cms.home.section_titles.stats'),
-                            'youtube'    => __('cms.home.section_titles.youtube'),
-                            'instagram'  => __('cms.home.section_titles.instagram'),
-                        ];
-                    @endphp
-                    @foreach($sectionLabels as $key => $label)
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">{{ $label }}</label>
-                        <input type="text" name="sections[{{ $key }}]" value="{{ $idContent['sections'][$key] ?? '' }}"
-                            class="w-full px-3.5 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
-                    </div>
-                    @endforeach
-                </div>
-            </div>
-
             {{-- Activities Section --}}
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-6">
                 <div class="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-orange-50 to-white flex items-center gap-3">
@@ -250,7 +217,14 @@
                         <p class="text-xs text-gray-500">Tautan dengan foto yang dapat diklik</p>
                     </div>
                 </div>
-                <div class="p-6" id="related-links-container">
+                <div class="p-6">
+                    <div class="mb-4">
+                        <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">{{ __('cms.home.section_titles.related') }}</label>
+                        <input type="text" name="sections[related]" value="{{ $idContent['sections']['related'] ?? '' }}"
+                            class="w-full px-3.5 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                    </div>
+                </div>
+                <div class="px-6 pb-6" id="related-links-container">
                     @foreach($relatedLinks as $index => $link)
                     <div class="related-link-item flex gap-3 items-start mb-4 p-4 bg-gray-50 rounded-lg">
                         <div class="flex-1">
@@ -321,6 +295,29 @@
                 }
             </script>
 
+            {{-- Gallery / Pameran Arsip --}}
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-6">
+                <div class="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-amber-50 to-white flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-semibold text-gray-800">{{ __('cms.home.section_titles.gallery') }}</h3>
+                        <p class="text-xs text-gray-500">Judul seksi pameran arsip pada halaman beranda</p>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">{{ __('cms.home.section_titles.gallery') }}</label>
+                        <input type="text" name="sections[gallery]" value="{{ $idContent['sections']['gallery'] ?? '' }}"
+                            class="w-full px-3.5 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                    </div>
+                    <p class="text-xs text-gray-400 mt-2">Konten galeri pameran arsip diambil otomatis dari data pameran virtual.</p>
+                </div>
+            </div>
+
             {{-- Stats --}}
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-6">
                 <div class="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-indigo-50 to-white flex items-center gap-3">
@@ -334,16 +331,37 @@
                         <p class="text-xs text-gray-500">{{ __('cms.home.stats.desc') }}</p>
                     </div>
                 </div>
-                <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="p-6 space-y-4">
                     <div>
-                        <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">{{ __('cms.home.stats.total') }}</label>
-                        <input type="text" name="stats[total]" value="{{ $idContent['stats']['total'] ?? '' }}"
+                        <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">{{ __('cms.home.section_titles.stats') }}</label>
+                        <input type="text" name="sections[stats]" value="{{ $idContent['sections']['stats'] ?? '' }}"
                             class="w-full px-3.5 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
                     </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">{{ __('cms.home.stats.total') }}</label>
+                            <input type="text" name="stats[total]" value="{{ $idContent['stats']['total'] ?? '' }}"
+                                class="w-full px-3.5 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">{{ __('cms.home.stats.today') }}</label>
+                            <input type="text" name="stats[today]" value="{{ $idContent['stats']['today'] ?? '' }}"
+                                class="w-full px-3.5 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                        </div>
+                    </div>
                     <div>
-                        <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">{{ __('cms.home.stats.today') }}</label>
-                        <input type="text" name="stats[today]" value="{{ $idContent['stats']['today'] ?? '' }}"
-                            class="w-full px-3.5 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                        <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">Gambar Statistik</label>
+                        @if(!empty($idContent['stats']['image']))
+                            <div class="mb-2">
+                                <img src="{{ asset('storage/' . $idContent['stats']['image']) }}" alt="Stats Image" class="h-24 rounded-lg border border-gray-200 object-cover">
+                            </div>
+                        @endif
+                        <input type="file" name="stats_image" accept="image/jpeg,image/png,image/webp"
+                            class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                        <p class="text-xs text-gray-400 mt-1">{{ __('cms.home.info.image_help') }}</p>
+                    </div>
+                    <div class="p-3 bg-blue-50 rounded-lg border border-blue-100">
+                        <p class="text-xs text-blue-600">Angka statistik pengunjung dihitung otomatis berdasarkan jumlah akses halaman oleh pengunjung.</p>
                     </div>
                 </div>
             </div>
@@ -362,7 +380,12 @@
                         <p class="text-xs text-gray-500">{{ __('cms.home.youtube.desc') }}</p>
                     </div>
                 </div>
-                <div class="p-6">
+                <div class="p-6 space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">{{ __('cms.home.section_titles.youtube') }}</label>
+                        <input type="text" name="sections[youtube]" value="{{ $idContent['sections']['youtube'] ?? '' }}"
+                            class="w-full px-3.5 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                    </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="youtube-fields">
                         @php
                             $youtubeIds = $idContent['youtube_ids'] ?? [];
@@ -435,8 +458,13 @@
                         <p class="text-xs text-gray-500">{{ __('cms.home.instagram.desc') }}</p>
                     </div>
                 </div>
-                <div class="p-6">
-                    <div class="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <div class="p-6 space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">{{ __('cms.home.section_titles.instagram') }}</label>
+                        <input type="text" name="sections[instagram]" value="{{ $idContent['sections']['instagram'] ?? '' }}"
+                            class="w-full px-3.5 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                    </div>
+                    <div class="p-4 bg-gray-50 rounded-lg border border-gray-200">
                         <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">{{ __('cms.home.instagram.username_label') }}</label>
                         <input type="text" name="instagram_username" value="{{ $idContent['instagram_username'] ?? 'arsipnasionalri' }}"
                             class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">

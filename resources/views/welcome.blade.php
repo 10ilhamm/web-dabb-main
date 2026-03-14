@@ -83,11 +83,12 @@
         </div>
     </div>
 
-    @if(home('sections.info_image_1') || home('sections.info_1') || home('sections.info_image_2') || home('sections.info_2'))
+    @if(home('sections.info_title') || home('sections.info_image_1') || home('sections.info_1') || home('sections.info_image_2') || home('sections.info_2'))
     <section id="info-section">
         <div class="container">
             <h2 class="section-title">{{ home('sections.info_title') }}</h2>
             <div class="separator"></div>
+            @if(home('sections.info_image_1') || home('sections.info_1') || home('sections.info_image_2') || home('sections.info_2'))
             <div class="info-grid">
                 @if(home('sections.info_image_1'))
                 <img class="info-photo" src="{{ asset('storage/' . home('sections.info_image_1')) }}" alt="Kantor DABB">
@@ -102,6 +103,7 @@
                 <p>{{ home('sections.info_2') }}</p>
                 @endif
             </div>
+            @endif
         </div>
     </section>
     @endif
@@ -109,11 +111,12 @@
     @php
         $activityItems = home('activity_items', []);
     @endphp
-    @if(!empty($activityItems) && is_array($activityItems))
+    @if(home('sections.activities') || (!empty($activityItems) && is_array($activityItems)))
     <section class="activities">
         <div class="container">
             <h2 class="section-title">{{ home('sections.activities') }}</h2>
             <div class="separator"></div>
+            @if(!empty($activityItems) && is_array($activityItems))
             @php
                 $colors = ['#D06767', '#3598DB', '#89DB51', '#000000', '#DB420F', '#E660D4'];
             @endphp
@@ -125,6 +128,7 @@
                     </div>
                 @endforeach
             </div>
+            @endif
         </div>
     </section>
     @endif
@@ -133,11 +137,12 @@
     @php
         $relatedLinks = home('feature_strip.related_links', []);
     @endphp
-    @if(!empty($relatedLinks))
+    @if(home('sections.related') || !empty($relatedLinks))
     <section class="links-related">
         <div class="container">
             <h2 class="section-title">{{ home('sections.related') }}</h2>
             <div class="separator"></div>
+            @if(!empty($relatedLinks))
             <div class="related-links-grid">
                 @foreach($relatedLinks as $link)
                     @if(!empty($link['photo']))
@@ -149,6 +154,7 @@
                     @endif
                 @endforeach
             </div>
+            @endif
         </div>
     </section>
     @endif
@@ -351,32 +357,41 @@
         </div>
     </section>
 
+    @if(home('sections.stats') || home('stats.total') || home('stats.today'))
     <section class="stats-section">
         <div class="container">
+            @if(home('sections.stats'))
             <h2 class="section-title">{{ home('sections.stats') }}</h2>
             <div class="separator"></div>
+            @endif
             <div class="stats-grid">
+                @if(home('stats.image'))
+                <img src="{{ asset('storage/' . home('stats.image')) }}" alt="Statistik">
+                @else
                 <img src="{{ asset('image/statistik_pengunjung.png') }}" alt="Statistik">
+                @endif
                 <div class="counter">
-                    <div class="number">10</div>
+                    <div class="number">{{ \App\Models\PageView::count() }}</div>
                     <div>{{ home('stats.total') }}</div>
                 </div>
                 <div class="counter">
-                    <div class="number">3</div>
+                    <div class="number">{{ \App\Models\PageView::where('viewed_date', now()->toDateString())->count() }}</div>
                     <div>{{ home('stats.today') }}</div>
                 </div>
             </div>
         </div>
     </section>
+    @endif
 
     @php
         $youtubeIds = home('youtube_ids', []);
     @endphp
-    @if(!empty($youtubeIds) && is_array($youtubeIds))
+    @if(home('sections.youtube') || (!empty($youtubeIds) && is_array($youtubeIds)))
     <section class="related">
         <div class="container">
             <h2 class="section-title">{{ home('sections.youtube') }}</h2>
             <div class="separator"></div>
+            @if(!empty($youtubeIds) && is_array($youtubeIds))
             <div class="youtube-wrap">
                 <div class="youtube-carousel-container">
                     <div id="youtube-carousel" class="youtube-carousel">
@@ -414,29 +429,35 @@
                     </button>
                 </div>
             </div>
+            @endif
         </div>
     </section>
     @endif
 
     @php
         $igCodes = home('instagram_codes', []);
-    @endphp
-    @if(!empty($igCodes) && is_array($igCodes))
-    <section>
-        <div class="container">
-            <h2 class="section-title">{{ home('sections.instagram') }}</h2>
-            <div class="separator"></div>
-            @php
-                $igPosts = [];
-                foreach($igCodes as $code) {
+        $igUsername = home('instagram_username', '');
+        $igPosts = [];
+        if (!empty($igCodes) && is_array($igCodes)) {
+            foreach($igCodes as $code) {
+                if (!empty($code)) {
                     $shortCode = strtok($code, '?');
                     $igPosts[] = [
                         'code' => $shortCode,
                         'url' => 'https://www.instagram.com/p/' . $shortCode . '/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==',
                     ];
                 }
-                $igUsername = home('instagram_username', 'arsipnasionalri');
-            @endphp
+            }
+        }
+    @endphp
+    @if(home('sections.instagram') || !empty($igUsername) || !empty($igPosts))
+    <section>
+        <div class="container">
+            @if(home('sections.instagram'))
+            <h2 class="section-title">{{ home('sections.instagram') }}</h2>
+            <div class="separator"></div>
+            @endif
+            @if(!empty($igUsername))
             <div class="instagram-grid">
                 <div class="left">
                     <a class="ig-profile-preview"
@@ -454,6 +475,7 @@
                     <a href="https://www.instagram.com/{{ $igUsername }}/?utm_source=ig_web_button_share_sheet"
                         class="follow-btn" target="_blank" rel="noopener noreferrer">Follow Kami</a>
                 </div>
+                @if(!empty($igPosts))
                 <div class="right">
                     @foreach ($igPosts as $index => $post)
                         <div class="ig-post" aria-label="Instagram konten {{ $index + 1 }}">
@@ -464,7 +486,9 @@
                         </div>
                     @endforeach
                 </div>
+                @endif
             </div>
+            @endif
         </div>
     </section>
     @endif

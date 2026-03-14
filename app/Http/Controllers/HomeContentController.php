@@ -32,7 +32,7 @@ class HomeContentController extends Controller
     {
         $feature = Feature::findOrFail($featureId);
 
-        $data = $request->except(['_token', '_method', 'locale', 'info_image_1', 'info_image_2', 'photo_file']);
+        $data = $request->except(['_token', '_method', 'locale', 'info_image_1', 'info_image_2', 'stats_image', 'photo_file']);
 
         // Handle info section image uploads
         foreach ([1, 2] as $num) {
@@ -48,6 +48,18 @@ class HomeContentController extends Controller
                 }
                 $data['sections']["info_image_{$num}"] = $path;
             }
+        }
+
+        // Handle stats image upload
+        if ($request->hasFile('stats_image')) {
+            $file = $request->file('stats_image');
+            $path = $file->store('home/stats', 'public');
+            $existing = $this->loadLangFile('id', $featureId);
+            $oldPath = $existing['stats']['image'] ?? null;
+            if ($oldPath) {
+                Storage::disk('public')->delete($oldPath);
+            }
+            $data['stats']['image'] = $path;
         }
 
         // Handle related_links photo uploads

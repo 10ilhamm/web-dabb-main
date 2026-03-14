@@ -13,14 +13,12 @@ return [
         'info_title' => 'Informasi DABB sebagai Depot Arsip Berkelanjutan',
         'info_1' => 'Buku',
         'info_2' => 'Penulis',
+        'activities' => 'Kegiatan Kearsipan',
         'related' => 'Link Terkait',
         'gallery' => 'Pameran Arsip',
-        'stats' => 'Statistik Pengunjung',
+        'stats' => 'Statistik Pengunjung Website',
         'youtube' => 'Youtube',
         'instagram' => 'Instagram Feed',
-        'activities' => 'Kegiatan Kearsipan',
-        'info_image_1' => 'home/info/LvXASXTLopMnEVkxNs58lT5fIhxeCrcBUvww7DPb.png',
-        'info_image_2' => 'home/info/uwn9ymfzIcgRWPNafLCxtYI1KmkQvsNTo57R5NFm.png',
     ],
     'activity_items' => [
         'Kegiatan Akuisisi Arsip',
@@ -30,5 +28,15 @@ return [
         'LARASKA',
         'Konsultasi Kearsipan',
     ],
+    'stats' => [
+        'total' => 'Total Pengunjung',
+        'today' => 'Pengunjung Hari Ini',
+    ],
+    'youtube_ids' => [
+        'F2NhNTiNxoY',
+    ],
     'instagram_username' => 'arsipnasionalri',
+    'instagram_codes' => [
+        'DULJ3gDkkDZ',
+    ],
 ];
