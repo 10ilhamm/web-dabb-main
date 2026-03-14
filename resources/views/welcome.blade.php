@@ -143,17 +143,69 @@
             <h2 class="section-title">{{ home('sections.related') }}</h2>
             <div class="separator"></div>
             @if(!empty($relatedLinks))
-            <div class="related-links-grid">
-                @foreach($relatedLinks as $link)
-                    @if(!empty($link['photo']))
-                    <a href="{{ $link['link'] ?? '#' }}" class="related-link-card" target="{{ !empty($link['link']) ? '_blank' : '_self' }}">
-                        <div class="related-link-image">
-                            <img src="{{ asset('storage/' . $link['photo']) }}" alt="{{ $link['title'] ?? 'Related Link' }}">
-                        </div>
-                    </a>
+            @php
+                $validLinks = array_values(array_filter($relatedLinks, fn($l) => !empty($l['photo'])));
+            @endphp
+            @if(count($validLinks) > 0)
+            <div class="related-links-marquee" id="related-links-marquee">
+                <div class="related-links-track" id="related-links-track">
+                    {{-- Slide 1: gambar ditengah, selebar viewport --}}
+                    <div class="related-links-slide">
+                        @foreach($validLinks as $link)
+                        <a href="{{ $link['link'] ?? '#' }}" class="related-link-card" target="{{ !empty($link['link']) ? '_blank' : '_self' }}">
+                            <div class="related-link-image">
+                                <img src="{{ asset('storage/' . $link['photo']) }}" alt="{{ $link['title'] ?? 'Related Link' }}">
+                            </div>
+                        </a>
+                        @endforeach
+                    </div>
+                    {{-- Slide 2: duplikat tersembunyi untuk seamless loop --}}
+                    @if(count($validLinks) > 1)
+                    <div class="related-links-slide" aria-hidden="true">
+                        @foreach($validLinks as $link)
+                        <a href="{{ $link['link'] ?? '#' }}" class="related-link-card" target="{{ !empty($link['link']) ? '_blank' : '_self' }}" tabindex="-1">
+                            <div class="related-link-image">
+                                <img src="{{ asset('storage/' . $link['photo']) }}" alt="">
+                            </div>
+                        </a>
+                        @endforeach
+                    </div>
                     @endif
-                @endforeach
+                </div>
             </div>
+            @if(count($validLinks) > 1)
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    var marquee = document.getElementById('related-links-marquee');
+                    var track = document.getElementById('related-links-track');
+                    if (!marquee || !track) return;
+
+                    var firstSlide = track.querySelector('.related-links-slide');
+                    if (!firstSlide) return;
+
+                    // Measure real content: sum of each card width + gaps
+                    var cards = firstSlide.querySelectorAll('.related-link-card');
+                    var gap = 32;
+                    var contentW = 0;
+                    cards.forEach(function(card) { contentW += card.offsetWidth; });
+                    contentW += gap * Math.max(cards.length - 1, 0);
+
+                    track.style.setProperty('--slide-width', contentW + 'px');
+                    marquee.style.maxWidth = contentW + 'px';
+                    marquee.style.margin = '24px auto 0';
+                    track.style.animationDuration = Math.max(contentW / 50, 6) + 's';
+                    track.classList.add('scrolling');
+
+                    marquee.addEventListener('mouseenter', function() {
+                        track.style.animationPlayState = 'paused';
+                    });
+                    marquee.addEventListener('mouseleave', function() {
+                        track.style.animationPlayState = 'running';
+                    });
+                });
+            </script>
+            @endif
+            @endif
             @endif
         </div>
     </section>

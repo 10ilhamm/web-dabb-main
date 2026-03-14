@@ -341,26 +341,41 @@ section { padding: 48px 0; }
     background: var(--muted);
     padding: 48px 0;
 }
-.related-links-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 20px;
+.related-links-marquee {
+    overflow: hidden;
     margin-top: 24px;
+}
+.related-links-track {
+    display: flex;
+    width: calc(var(--slide-width, 100%) * 2);
+}
+.related-links-slide {
+    flex: 0 0 var(--slide-width, 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 32px;
+}
+.related-links-track.scrolling {
+    animation: marquee-scroll linear infinite;
+}
+@keyframes marquee-scroll {
+    0%   { transform: translateX(0); }
+    100% { transform: translateX(calc(var(--slide-width) * -1)); }
 }
 .related-link-card {
     display: block;
     text-decoration: none;
+    flex-shrink: 0;
 }
 .related-link-image {
-    width: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 12px;
+    padding: 8px;
 }
 .related-link-image img {
-    max-width: 100%;
-    max-height: 100px;
+    max-height: 80px;
     width: auto;
     height: auto;
     object-fit: contain;

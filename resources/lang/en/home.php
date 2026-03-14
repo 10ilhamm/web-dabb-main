@@ -29,6 +29,14 @@ return [
                 'link' => 'https://www.anri.go.id/',
                 'photo' => 'home/related/wkMY4hkyf8JPyqddKGuZ7VHuodNOYNqV6CT8aYE8.png',
             ],
+            [
+                'link' => 'https://www.perpusnas.go.id/',
+                'photo' => 'home/related/eBbGmQeUtdKQwDmuVIMiKQFxrO7h8Q9sPvGiLbFs.png',
+            ],
+            [
+                'link' => 'fennel',
+                'photo' => 'home/related/VKEc7UL6NvTAEi0IqYUHoJxvnxho3gSoLHqJsxc4.png',
+            ],
         ],
     ],
     'sections' => [
