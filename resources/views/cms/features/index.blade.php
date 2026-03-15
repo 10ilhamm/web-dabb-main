@@ -310,8 +310,8 @@
 <script>
 $(document).ready(function() {
     $('#tableFeatures').DataTable({
-        columnDefs: [{ orderable: false, targets: [0, 5] }],
-        order: [[4, 'asc']],
+        columnDefs: [{ orderable: false, targets: [5] }],
+        order: [[0, 'asc']],
     });
 });
 </script>

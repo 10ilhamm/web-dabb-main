@@ -384,8 +384,8 @@
 <script>
 $(document).ready(function() {
     $('#tableSubFeatures').DataTable({
-        columnDefs: [{ orderable: false, targets: [0, 6] }],
-        order: [[5, 'asc']],
+        columnDefs: [{ orderable: false, targets: [6] }],
+        order: [[0, 'asc']],
     });
 });
 </script>

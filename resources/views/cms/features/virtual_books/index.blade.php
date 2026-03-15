@@ -159,9 +159,9 @@
 @push('scripts')
 <script>
 $(document).ready(function() {
-    $('#tableBooks').DataTable({
-        columnDefs: [{ orderable: false, targets: [0, 1, 5] }],
-        order: [[4, 'asc']],
+    $('#tableVirtualBooks').DataTable({
+        columnDefs: [{ orderable: false, targets: [1, 5] }],
+        order: [[0, 'asc']],
     });
 });
 </script>

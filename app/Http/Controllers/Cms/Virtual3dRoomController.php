@@ -14,7 +14,11 @@ class Virtual3dRoomController extends Controller
 {
     public function index(Feature $feature)
     {
-        $virtual3dRooms = $feature->virtual3dRooms()->latest()->get();
+        // Order berdasarkan urutan dari yang paling awal dibuat
+        $virtual3dRooms = $feature->virtual3dRooms()->orderBy('created_at', 'asc')->get();
+
+        // Order berdasarkan data yang baru dibuat
+        // $virtual3dRooms = $feature->virtual3dRooms()->latest()->get();
         return view('cms.features.virtual_3d_rooms.index', compact('feature', 'virtual3dRooms'));
     }
 
@@ -43,7 +47,7 @@ class Virtual3dRoomController extends Controller
         $room->wall_color = $validated['wall_color'] ?? '#e5e7eb';
         $room->floor_color = $validated['floor_color'] ?? '#8B7355';
         $room->ceiling_color = $validated['ceiling_color'] ?? '#f5f5f5';
-        
+
         // Default doors structure
         $defaultDoors = [
             'front' => ['link_type' => 'none', 'target' => null, 'label' => null],
@@ -51,7 +55,7 @@ class Virtual3dRoomController extends Controller
             'left'  => ['link_type' => 'none', 'target' => null, 'label' => null],
             'right' => ['link_type' => 'none', 'target' => null, 'label' => null],
         ];
-        
+
         $room->doors = array_merge($defaultDoors, $validated['doors'] ?? []);
 
         if ($request->hasFile('thumbnail')) {
@@ -62,11 +66,11 @@ class Virtual3dRoomController extends Controller
             if (preg_match('/^data:image\/(\w+);base64,/', $imgData, $type)) {
                 $imgData = substr($imgData, strpos($imgData, ',') + 1);
                 $imgData = base64_decode($imgData);
-                
+
                 $extension = strtolower($type[1]); // jpeg, png
                 $fileName = 'thumbnail_' . Str::random(10) . '_' . time() . '.' . $extension;
                 $path = 'virtual_3d_rooms/thumbnails/' . $fileName;
-                
+
                 Storage::disk('public')->put($path, $imgData);
                 $room->thumbnail_path = $path;
             }
@@ -102,15 +106,15 @@ class Virtual3dRoomController extends Controller
         $room->description  = $validated['description'];
         $room->wall_color   = $validated['wall_color']   ?? '#e5e7eb';
         $room->floor_color  = $validated['floor_color']  ?? '#8B7355';
-        $room->ceiling_color= $validated['ceiling_color']?? '#f5f5f5';
-        
+        $room->ceiling_color = $validated['ceiling_color'] ?? '#f5f5f5';
+
         $defaultDoors = [
             'front' => ['link_type' => 'none', 'target' => null, 'label' => null],
             'back'  => ['link_type' => 'none', 'target' => null, 'label' => null],
             'left'  => ['link_type' => 'none', 'target' => null, 'label' => null],
             'right' => ['link_type' => 'none', 'target' => null, 'label' => null],
         ];
-        
+
         $room->doors = array_merge($defaultDoors, $validated['doors'] ?? []);
 
         if ($request->hasFile('thumbnail')) {
@@ -120,7 +124,6 @@ class Virtual3dRoomController extends Controller
             }
             $room->thumbnail_path = $request->file('thumbnail')
                 ->store('virtual_3d_rooms/thumbnails', 'public');
-
         } elseif ($request->input('remove_thumbnail') == '1') {
             // ② User deleted thumbnail → remove file, then immediately auto-generate
             if ($room->thumbnail_path) {
@@ -130,7 +133,6 @@ class Virtual3dRoomController extends Controller
             // Auto-generate right away so it's never left empty
             $room->load('media');
             $room->thumbnail_path = $this->generateAutoThumbnail($room);
-
         } elseif (!$room->thumbnail_path) {
             // ③ No thumbnail at all → auto-generate
             $room->load('media');
@@ -180,7 +182,7 @@ class Virtual3dRoomController extends Controller
         // Fill wall color background
         $hex = ltrim($room->wall_color ?? '#e5e7eb', '#');
         if (strlen($hex) === 3) {
-            $hex = $hex[0].$hex[0].$hex[1].$hex[1].$hex[2].$hex[2];
+            $hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
         }
         $bg = imagecolorallocate(
             $canvas,
@@ -199,7 +201,7 @@ class Virtual3dRoomController extends Controller
             $srcPath = Storage::disk('public')->path($media->file_path);
             $ext     = strtolower(pathinfo($srcPath, PATHINFO_EXTENSION));
 
-            $src = match($ext) {
+            $src = match ($ext) {
                 'jpg', 'jpeg' => @imagecreatefromjpeg($srcPath),
                 'png'         => @imagecreatefrompng($srcPath),
                 'webp'        => @imagecreatefromwebp($srcPath),
@@ -230,11 +232,16 @@ class Virtual3dRoomController extends Controller
             $drawY = $slotY + intdiv($slotH - $drawH, 2);
 
             imagecopyresampled(
-                $canvas, $src,
-                $drawX, $drawY,
-                0, 0,
-                $drawW, $drawH,
-                $srcW, $srcH
+                $canvas,
+                $src,
+                $drawX,
+                $drawY,
+                0,
+                0,
+                $drawW,
+                $drawH,
+                $srcW,
+                $srcH
             );
             imagedestroy($src);
         }
@@ -259,8 +266,8 @@ class Virtual3dRoomController extends Controller
         if ($room->thumbnail_path) {
             Storage::disk('public')->delete($room->thumbnail_path);
         }
-        
-        foreach($room->media as $media) {
+
+        foreach ($room->media as $media) {
             Storage::disk('public')->delete($media->file_path);
         }
 
@@ -297,7 +304,7 @@ class Virtual3dRoomController extends Controller
         $media->save();
 
         return response()->json([
-            'success' => true, 
+            'success' => true,
             'media' => $media,
             'url' => asset('storage/' . $path)
         ]);

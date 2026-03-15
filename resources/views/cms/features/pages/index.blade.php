@@ -224,8 +224,8 @@
 <script>
 $(document).ready(function() {
     $('#tablePages').DataTable({
-        columnDefs: [{ orderable: false, targets: [0, 4] }],
-        order: [[3, 'asc']],
+        columnDefs: [{ orderable: false, targets: [4] }],
+        order: [[0, 'asc']],
     });
 });
 </script>

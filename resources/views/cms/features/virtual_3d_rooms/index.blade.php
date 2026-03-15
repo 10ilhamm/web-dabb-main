@@ -140,8 +140,8 @@
 <script>
 $(document).ready(function() {
     $('#tableVirtual3dRooms').DataTable({
-        columnDefs: [{ orderable: false, targets: [0, 1, 5] }],
-        order: [[2, 'asc']],
+        columnDefs: [{ orderable: false, targets: [1, 5] }],
+        order: [[0, 'asc']],
     });
 });
 </script>
