@@ -126,7 +126,7 @@
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-sm font-semibold text-gray-800">{{ __('cms.virtual_3d_rooms.media_title') }}</h3>
-                    <span class="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">{{ __('cms.virtual_3d_rooms.media_items', ['count' => $room->media()->count()]) }}</span>
+                    <span id="mediaCountBadge" class="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">0 item</span>
                 </div>
 
                 <div id="uploadMediaSection">
@@ -162,10 +162,10 @@
                     </button>
                 </div>
 
-                <!-- List of uploaded media -->
+                <!-- List of uploaded media (filtered per wall) -->
                 <div id="mediaList" class="mt-4 space-y-2">
                     @forelse($room->media as $media)
-                    <div class="flex items-center gap-3 p-2 bg-gray-50 rounded-lg border border-gray-100 media-list-item" data-id="{{ $media->id }}">
+                    <div class="flex items-center gap-3 p-2 bg-gray-50 rounded-lg border border-gray-100 media-list-item" data-id="{{ $media->id }}" data-wall="{{ $media->wall }}">
                         <div class="w-12 h-10 flex-shrink-0 rounded overflow-hidden bg-gray-200">
                             @if($media->type === 'image')
                             <img src="{{ asset('storage/'.$media->file_path) }}" class="w-full h-full object-cover">

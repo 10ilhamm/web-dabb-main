@@ -20,6 +20,7 @@ function initWallEditor() {
         try { mediaItems = JSON.parse(dataEl.textContent); } catch(e) { mediaItems = []; }
     }
     renderWallItems();
+    filterMediaList(); // Filter the sidebar list on init
 
     // Deselect if clicking on empty wall area
     const wallEditor = document.getElementById('wallEditor');
@@ -70,6 +71,46 @@ function switchWallView(wall) {
 
     deselectItem();
     renderWallItems();
+    filterMediaList(); // Filter the sidebar media list by active wall
+}
+
+// --- Filter Media List by Wall ---
+
+function filterMediaList() {
+    var listItems = document.querySelectorAll('#mediaList .media-list-item');
+    var visibleCount = 0;
+
+    listItems.forEach(function(item) {
+        var itemWall = item.getAttribute('data-wall');
+        if (itemWall === currentWall) {
+            item.style.display = '';
+            visibleCount++;
+        } else {
+            item.style.display = 'none';
+        }
+    });
+
+    // Update count badge
+    var badge = document.getElementById('mediaCountBadge');
+    if (badge) {
+        badge.textContent = visibleCount + ' item';
+    }
+
+    // Show/hide empty message
+    var noMsg = document.getElementById('noMediaMsg');
+    if (noMsg) {
+        noMsg.style.display = visibleCount === 0 ? '' : 'none';
+    } else if (visibleCount === 0) {
+        // Create empty message if not present
+        var list = document.getElementById('mediaList');
+        if (list && !list.querySelector('#noMediaMsg')) {
+            var emptyDiv = document.createElement('div');
+            emptyDiv.id = 'noMediaMsg';
+            emptyDiv.className = 'text-center py-4 text-sm text-gray-400 border-2 border-dashed border-gray-100 rounded-lg';
+            emptyDiv.textContent = 'Belum ada media di dinding ini';
+            list.appendChild(emptyDiv);
+        }
+    }
 }
 
 

@@ -81,6 +81,7 @@ async function deleteMediaItem(id, btnEl) {
             renderWallItems();
             const listItem = btnEl.closest('.media-list-item');
             if (listItem) listItem.remove();
+            filterMediaList(); // Re-filter to update count and empty message
             showToast('Media berhasil dihapus.');
         }
     } catch (error) {
@@ -94,7 +95,7 @@ function addMediaToList(media) {
     if (noMsg) noMsg.remove();
     const list = document.getElementById('mediaList');
     const html = `
-    <div class="flex items-center gap-3 p-2 bg-gray-50 rounded-lg border border-gray-100 media-list-item" data-id="${media.id}">
+    <div class="flex items-center gap-3 p-2 bg-gray-50 rounded-lg border border-gray-100 media-list-item" data-id="${media.id}" data-wall="${media.wall}">
         <div class="w-12 h-10 flex-shrink-0 rounded overflow-hidden bg-gray-200">
             ${media.type === 'image'
                 ? `<img src="/storage/${media.file_path}" class="w-full h-full object-cover">`
@@ -109,6 +110,7 @@ function addMediaToList(media) {
         </button>
     </div>`;
     list.insertAdjacentHTML('beforeend', html);
+    filterMediaList(); // Re-filter to show/hide based on current wall
 }
 
 /* ── Upload media (injected via window.uploadNewMedia in blade) ─ */
