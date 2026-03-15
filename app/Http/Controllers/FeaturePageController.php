@@ -338,11 +338,22 @@ class FeaturePageController extends Controller
         }
 
         // Virtual Book Pages - show flip book
-        if ($feature->is_virtual_book || $feature->virtualBookPages()->exists()) {
-            $bookPages = $feature->virtualBookPages()->orderBy('order')->get();
+        if ($feature->is_virtual_book || $feature->books()->exists()) {
+            $books = $feature->books()->with('pages')->orderBy('order')->get();
+            $readBookId = request('read');
 
-            return view('pages.virtual_book', compact(
-                'feature', 'bookPages', 'requiresLoginModal',
+            if ($readBookId) {
+                $book = $books->firstWhere('id', $readBookId);
+                if ($book) {
+                    return view('pages.virtual_book_viewer', compact(
+                        'feature', 'book', 'requiresLoginModal',
+                        'loginModalPreview', 'loginModalRoomName'
+                    ));
+                }
+            }
+
+            return view('pages.virtual_book_grid', compact(
+                'feature', 'books', 'requiresLoginModal',
                 'loginModalPreview', 'loginModalRoomName'
             ));
         }
