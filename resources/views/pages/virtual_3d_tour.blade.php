@@ -223,20 +223,35 @@
             <div id="vt3d-ceiling" class="vt3d-surface"></div>
             <div id="vt3d-wall-front" data-wall="front" class="vt3d-wall">
                 <div class="vt3d-media-layer" data-wall="front"></div>
+                <div class="vt3d-door-slot" data-wall="front" style="display:none; cursor:pointer;" onclick="handleDoorClick(event, this)">
+                    <img class="vt3d-door-portal" src="" style="display:none;" />
+                    <div class="vt3d-door-frame"><div class="vt3d-door-panel"><div class="vt3d-door-knob"></div></div></div>
+                    <div class="vt3d-door-label"></div>
+                </div>
             </div>
             <div id="vt3d-wall-back" data-wall="back" class="vt3d-wall">
                 <div class="vt3d-media-layer" data-wall="back"></div>
-                <div id="vt3d-door" style="display:none; cursor:pointer;" onclick="handleDoorClick(event)" onpointerdown="handleDoorClick(event)">
-                    <img id="vt3d-door-portal" src="" style="display:none;" />
+                <div class="vt3d-door-slot" data-wall="back" style="display:none; cursor:pointer;" onclick="handleDoorClick(event, this)">
+                    <img class="vt3d-door-portal" src="" style="display:none;" />
                     <div class="vt3d-door-frame"><div class="vt3d-door-panel"><div class="vt3d-door-knob"></div></div></div>
-                    <div class="vt3d-door-label" id="vt3d-door-label"></div>
+                    <div class="vt3d-door-label"></div>
                 </div>
             </div>
             <div id="vt3d-wall-left" data-wall="left" class="vt3d-wall">
                 <div class="vt3d-media-layer" data-wall="left"></div>
+                <div class="vt3d-door-slot" data-wall="left" style="display:none; cursor:pointer;" onclick="handleDoorClick(event, this)">
+                    <img class="vt3d-door-portal" src="" style="display:none;" />
+                    <div class="vt3d-door-frame"><div class="vt3d-door-panel"><div class="vt3d-door-knob"></div></div></div>
+                    <div class="vt3d-door-label"></div>
+                </div>
             </div>
             <div id="vt3d-wall-right" data-wall="right" class="vt3d-wall">
                 <div class="vt3d-media-layer" data-wall="right"></div>
+                <div class="vt3d-door-slot" data-wall="right" style="display:none; cursor:pointer;" onclick="handleDoorClick(event, this)">
+                    <img class="vt3d-door-portal" src="" style="display:none;" />
+                    <div class="vt3d-door-frame"><div class="vt3d-door-panel"><div class="vt3d-door-knob"></div></div></div>
+                    <div class="vt3d-door-label"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -255,9 +270,7 @@
             'wall_color'     => $r->wall_color,
             'floor_color'    => $r->floor_color,
             'ceiling_color'  => $r->ceiling_color,
-            'door_link_type' => $r->door_link_type,
-            'door_target'    => $r->door_target,
-            'door_label'     => $r->door_label,
+            'doors'          => $r->doors,
             'thumbnail_url'  => $r->thumbnail_path ? asset('storage/' . $r->thumbnail_path) : null,
             'media'          => $r->media->map(function($m) {
                 return [

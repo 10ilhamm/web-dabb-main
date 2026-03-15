@@ -3,6 +3,7 @@
    ============================================ */
 
 var mediaItems = [];
+var doorsData = {}; // Stores door config for all walls
 var currentWall = 'front';
 var activeItem = null;
 var activeMediaId = null;
@@ -17,7 +18,19 @@ function initWallEditor() {
     // Parse data from the page
     const dataEl = document.getElementById('roomMediaData');
     if (dataEl) {
-        try { mediaItems = JSON.parse(dataEl.textContent); } catch(e) { mediaItems = []; }
+        try { 
+            const parsed = JSON.parse(dataEl.textContent); 
+            if (parsed.media) {
+                mediaItems = parsed.media;
+                doorsData = parsed.doors || {};
+            } else {
+                // Backward compatibility
+                mediaItems = parsed;
+            }
+        } catch(e) { 
+            mediaItems = []; 
+            doorsData = {};
+        }
     }
     renderWallItems();
     filterMediaList(); // Filter the sidebar list on init
@@ -57,10 +70,11 @@ function switchWallView(wall) {
     const titleEl = document.getElementById('wallTitleLabel');
     if (titleEl) titleEl.innerText = labels[wall] || wall;
 
-    // Show/hide door on back wall
+    // Show/hide door on the wall it belongs to
     const doorEl = document.getElementById('doorRender');
     if (doorEl) {
-        doorEl.style.display = (wall === 'back' && doorEl.dataset.active === '1') ? 'flex' : 'none';
+        const doorWall = doorEl.dataset.doorWall || 'back';
+        doorEl.style.display = (wall === doorWall && doorEl.dataset.active === '1') ? 'flex' : 'none';
     }
 
     // Sync upload section wall value and label
@@ -72,6 +86,35 @@ function switchWallView(wall) {
     deselectItem();
     renderWallItems();
     filterMediaList(); // Filter the sidebar media list by active wall
+
+    // Dispatch event to sync with door settings panel (Alpine.js)
+    window.dispatchEvent(new CustomEvent('wall-changed', { detail: { wall: wall } }));
+    
+    // Update the door preview on the wall
+    updateWallEditorDoors();
+}
+
+/**
+ * Updates the door preview in the wall editor based on the current wall's config.
+ * Called when switching walls or when door settings change in the sidebar.
+ */
+function updateWallEditorDoors() {
+    const doorEl = document.getElementById('doorRender');
+    if (!doorEl) return;
+
+    // Use current settings from Alpine if available, else from doorsData
+    // Actually, it's easier to just read from the active wall's config
+    const wallConfig = doorsData[currentWall] || { link_type: 'none', label: '' };
+    
+    const isActive = wallConfig.link_type !== 'none';
+    doorEl.style.display = isActive ? 'flex' : 'none';
+    
+    if (isActive) {
+        const labelEl = doorEl.querySelector('.text-xs');
+        if (labelEl) {
+            labelEl.textContent = wallConfig.label || 'Tujuan Tautan';
+        }
+    }
 }
 
 // --- Filter Media List by Wall ---

@@ -16,9 +16,15 @@ class Virtual3dRoom extends Model
         'wall_color',
         'floor_color',
         'ceiling_color',
-        'door_link_type',
-        'door_target',
-        'door_label',
+        'doors',
+        'door_link_type', // Keep for backward compatibility/migration
+        'door_wall',      // Keep for backward compatibility/migration
+        'door_target',    // Keep for backward compatibility/migration
+        'door_label',     // Keep for backward compatibility/migration
+    ];
+
+    protected $casts = [
+        'doors' => 'array',
     ];
 
     public function feature()

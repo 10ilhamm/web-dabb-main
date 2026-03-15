@@ -87,37 +87,68 @@
             </div>
 
             <!-- Door / Hotspot -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5" x-data="{ doorType: '{{ old('door_link_type', $room->door_link_type) }}' }">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5" 
+                 x-data="{ 
+                    currentWall: 'front',
+                    doors: {{ json_encode($room->doors ?? [
+                        'front' => ['link_type' => 'none', 'target' => null, 'label' => null],
+                        'back'  => ['link_type' => 'none', 'target' => null, 'label' => null],
+                        'left'  => ['link_type' => 'none', 'target' => null, 'label' => null],
+                        'right' => ['link_type' => 'none', 'target' => null, 'label' => null],
+                    ]) }},
+                    syncDoors() {
+                        // Keep global JS state in sync for the wall editor preview
+                        window.doorsData = JSON.parse(JSON.stringify(this.doors));
+                        if(window.updateWallEditorDoors) window.updateWallEditorDoors();
+                    },
+                    init() {
+                        // Listen for wall change events from the JS wall editor
+                        window.addEventListener('wall-changed', (e) => {
+                            this.currentWall = e.detail.wall;
+                        });
+                        this.syncDoors();
+                    }
+                 }">
                 <h3 class="text-sm font-semibold text-gray-800 mb-2">{{ __('cms.virtual_3d_rooms.door_title') }}</h3>
-                <p class="text-xs text-gray-500 mb-4">{{ __('cms.virtual_3d_rooms.door_desc_edit') }}</p>
+                <p class="text-xs text-gray-500 mb-4">Pengaturan pintu untuk <span class="font-bold text-blue-600" x-text="currentWall === 'front' ? 'Dinding Depan' : (currentWall === 'back' ? 'Dinding Belakang' : (currentWall === 'left' ? 'Dinding Kiri' : 'Dinding Kanan'))"></span></p>
+                
                 <div class="space-y-4">
+                    {{-- Loop through walls to create hidden inputs for ALL walls --}}
+                    <template x-for="(wall) in ['front', 'back', 'left', 'right']">
+                        <div>
+                            <input type="hidden" :name="'doors[' + wall + '][link_type]'" :value="doors[wall].link_type">
+                            <input type="hidden" :name="'doors[' + wall + '][target]'" :value="doors[wall].target">
+                            <input type="hidden" :name="'doors[' + wall + '][label]'" :value="doors[wall].label">
+                        </div>
+                    </template>
+
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('cms.virtual_3d_rooms.label_door_type') }}</label>
-                        <select name="door_link_type" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" x-model="doorType">
+                        <select class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" x-model="doors[currentWall].link_type" @change="syncDoors()">
                             <option value="none">{{ __('cms.virtual_3d_rooms.door_type_none') }}</option>
                             <option value="room">{{ __('cms.virtual_3d_rooms.door_type_room') }}</option>
                             <option value="url">{{ __('cms.virtual_3d_rooms.door_type_url') }}</option>
                         </select>
                     </div>
 
-                    <div x-show="doorType === 'room'">
+                    <div x-show="doors[currentWall].link_type === 'room'">
                         <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('cms.virtual_3d_rooms.label_target_room') }}</label>
-                        <select x-bind:name="doorType === 'room' ? 'door_target' : ''" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                        <select class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" x-model="doors[currentWall].target">
                             <option value="">{{ __('cms.virtual_3d_rooms.target_room_placeholder') }}</option>
                             @foreach($allRooms as $r)
-                            <option value="{{ $r->id }}" {{ $room->door_target == $r->id ? 'selected' : '' }}>{{ $r->name }}</option>
+                            <option value="{{ $r->id }}">{{ $r->name }}</option>
                             @endforeach
                         </select>
                     </div>
 
-                    <div x-show="doorType === 'url'">
+                    <div x-show="doors[currentWall].link_type === 'url'">
                         <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('cms.virtual_3d_rooms.label_target_url') }}</label>
-                        <input type="text" x-bind:name="doorType === 'url' ? 'door_target' : ''" value="{{ old('door_target', $room->door_target) }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="https://...">
+                        <input type="text" x-model="doors[currentWall].target" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="https://...">
                     </div>
 
-                    <div x-show="doorType !== 'none'">
+                    <div x-show="doors[currentWall].link_type !== 'none'">
                         <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('cms.virtual_3d_rooms.label_door_label') }}</label>
-                        <input type="text" name="door_label" value="{{ old('door_label', $room->door_label) }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="{{ __('cms.virtual_3d_rooms.door_label_placeholder') }}">
+                        <input type="text" x-model="doors[currentWall].label" @input="syncDoors()" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="{{ __('cms.virtual_3d_rooms.door_label_placeholder') }}">
                     </div>
                 </div>
             </div>
@@ -245,7 +276,7 @@
 
                 <div id="wallEditor" class="wall-panel" data-wall-color="{{ $room->wall_color }}">
                     <div class="wall-panel-title" id="wallTitleLabel">{{ __('cms.virtual_3d_rooms.editor_wall_title_front') }}</div>
-                    <div id="doorRender" class="door-rendered" style="display: none;" data-active="{{ $room->door_link_type !== 'none' ? '1' : '0' }}">
+                    <div id="doorRender" class="door-rendered" style="display: none;" data-active="{{ $room->door_link_type !== 'none' ? '1' : '0' }}" data-door-wall="{{ $room->door_wall ?? 'back' }}">
                         <div class="text-center">{{ __('cms.virtual_3d_rooms.preview_door') }}<br><span class="text-xs opacity-70">{{ $room->door_label ?: __('cms.virtual_3d_rooms.door_label_placeholder') }}</span></div>
                     </div>
                 </div>
@@ -294,7 +325,7 @@
 </form>
 
 {{-- Room media data for JS wall editor --}}
-<script type="application/json" id="roomMediaData">@json($room->media)</script>
+<script type="application/json" id="roomMediaData">@json(['media' => $room->media, 'doors' => $room->doors])</script>
 @endsection
 
 @push('scripts')

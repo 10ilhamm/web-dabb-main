@@ -87,25 +87,57 @@
             </div>
 
             <!-- Door / Hotspot Settings -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5" x-data="{ doorType: '{{ old('door_link_type', 'none') }}' }">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5" 
+                 x-data="{ 
+                    currentWall: 'front',
+                    doors: {
+                        'front': {'link_type': 'none', 'target': null, 'label': null},
+                        'back':  {'link_type': 'none', 'target': null, 'label' => null},
+                        'left':  {'link_type': 'none', 'target' => null, 'label' => null},
+                        'right': {'link_type': 'none', 'target' => null, 'label' => null},
+                    },
+                    init() {
+                        // In create mode, we don't have the wall editor yet, 
+                        // but we might want to keep the wall indicator synced if added later.
+                        // For now we just allow setting the doors.
+                    }
+                 }">
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-sm font-semibold text-gray-800">{{ __('cms.virtual_3d_rooms.door_title') }}</h3>
+                    <div class="flex gap-1 p-1 bg-gray-100 rounded-lg">
+                        <template x-for="wall in ['front', 'left', 'right', 'back']">
+                            <button type="button" 
+                                    @click="currentWall = wall"
+                                    :class="currentWall === wall ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'"
+                                    class="px-2 py-1 text-[10px] font-bold rounded capitalize"
+                                    x-text="wall">
+                            </button>
+                        </template>
+                    </div>
                 </div>
-                <p class="text-xs text-gray-500 mb-4">{{ __('cms.virtual_3d_rooms.door_desc') }}</p>
-
+                
                 <div class="space-y-4">
+                    {{-- Loop through walls to create hidden inputs for ALL walls --}}
+                    <template x-for="(wall) in ['front', 'back', 'left', 'right']">
+                        <div>
+                            <input type="hidden" :name="'doors[' + wall + '][link_type]'" :value="doors[wall].link_type">
+                            <input type="hidden" :name="'doors[' + wall + '][target]'" :value="doors[wall].target">
+                            <input type="hidden" :name="'doors[' + wall + '][label]'" :value="doors[wall].label">
+                        </div>
+                    </template>
+
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('cms.virtual_3d_rooms.label_door_type') }}</label>
-                        <select name="door_link_type" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" x-model="doorType">
+                        <select class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" x-model="doors[currentWall].link_type">
                             <option value="none">{{ __('cms.virtual_3d_rooms.door_type_none') }}</option>
                             <option value="room">{{ __('cms.virtual_3d_rooms.door_type_room') }}</option>
                             <option value="url">{{ __('cms.virtual_3d_rooms.door_type_url') }}</option>
                         </select>
                     </div>
 
-                    <div x-show="doorType === 'room'">
+                    <div x-show="doors[currentWall].link_type === 'room'">
                         <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('cms.virtual_3d_rooms.label_target_room') }}</label>
-                        <select x-bind:name="doorType === 'room' ? 'door_target' : ''" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                        <select class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" x-model="doors[currentWall].target">
                             <option value="">{{ __('cms.virtual_3d_rooms.target_room_placeholder') }}</option>
                             @foreach($allRooms as $r)
                             <option value="{{ $r->id }}">{{ $r->name }}</option>
@@ -114,14 +146,14 @@
                         <p class="text-xs text-gray-500 mt-1">{{ __('cms.virtual_3d_rooms.rooms_available', ['count' => $allRooms->count()]) }}</p>
                     </div>
 
-                    <div x-show="doorType === 'url'">
+                    <div x-show="doors[currentWall].link_type === 'url'">
                         <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('cms.virtual_3d_rooms.label_target_url') }}</label>
-                        <input type="text" x-bind:name="doorType === 'url' ? 'door_target' : ''" value="{{ old('door_target') }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="https://...">
+                        <input type="text" x-model="doors[currentWall].target" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="https://...">
                     </div>
 
-                    <div x-show="doorType !== 'none'">
+                    <div x-show="doors[currentWall].link_type !== 'none'">
                         <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('cms.virtual_3d_rooms.label_door_label') }}</label>
-                        <input type="text" name="door_label" value="{{ old('door_label') }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="{{ __('cms.virtual_3d_rooms.door_label_placeholder') }}">
+                        <input type="text" x-model="doors[currentWall].label" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="{{ __('cms.virtual_3d_rooms.door_label_placeholder') }}">
                     </div>
                 </div>
             </div>

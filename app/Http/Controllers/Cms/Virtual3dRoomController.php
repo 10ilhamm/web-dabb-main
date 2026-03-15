@@ -33,9 +33,7 @@ class Virtual3dRoomController extends Controller
             'wall_color' => 'nullable|string',
             'floor_color' => 'nullable|string',
             'ceiling_color' => 'nullable|string',
-            'door_link_type' => 'nullable|in:none,feature,room,url',
-            'door_target' => 'nullable|string',
-            'door_label' => 'nullable|string',
+            'doors' => 'nullable|array',
         ]);
 
         $room = new Virtual3dRoom();
@@ -45,9 +43,16 @@ class Virtual3dRoomController extends Controller
         $room->wall_color = $validated['wall_color'] ?? '#e5e7eb';
         $room->floor_color = $validated['floor_color'] ?? '#8B7355';
         $room->ceiling_color = $validated['ceiling_color'] ?? '#f5f5f5';
-        $room->door_link_type = $validated['door_link_type'] ?? 'none';
-        $room->door_target = $validated['door_target'] ?? null;
-        $room->door_label = $validated['door_label'] ?? null;
+        
+        // Default doors structure
+        $defaultDoors = [
+            'front' => ['link_type' => 'none', 'target' => null, 'label' => null],
+            'back'  => ['link_type' => 'none', 'target' => null, 'label' => null],
+            'left'  => ['link_type' => 'none', 'target' => null, 'label' => null],
+            'right' => ['link_type' => 'none', 'target' => null, 'label' => null],
+        ];
+        
+        $room->doors = array_merge($defaultDoors, $validated['doors'] ?? []);
 
         if ($request->hasFile('thumbnail')) {
             $room->thumbnail_path = $request->file('thumbnail')->store('virtual_3d_rooms/thumbnails', 'public');
@@ -90,9 +95,7 @@ class Virtual3dRoomController extends Controller
             'wall_color'       => 'nullable|string',
             'floor_color'      => 'nullable|string',
             'ceiling_color'    => 'nullable|string',
-            'door_link_type'   => 'nullable|in:none,feature,room,url',
-            'door_target'      => 'nullable|string',
-            'door_label'       => 'nullable|string',
+            'doors'            => 'nullable|array',
         ]);
 
         $room->name         = $validated['name'];
@@ -100,9 +103,15 @@ class Virtual3dRoomController extends Controller
         $room->wall_color   = $validated['wall_color']   ?? '#e5e7eb';
         $room->floor_color  = $validated['floor_color']  ?? '#8B7355';
         $room->ceiling_color= $validated['ceiling_color']?? '#f5f5f5';
-        $room->door_link_type = $validated['door_link_type'] ?? 'none';
-        $room->door_target  = $validated['door_target']  ?? null;
-        $room->door_label   = $validated['door_label']   ?? null;
+        
+        $defaultDoors = [
+            'front' => ['link_type' => 'none', 'target' => null, 'label' => null],
+            'back'  => ['link_type' => 'none', 'target' => null, 'label' => null],
+            'left'  => ['link_type' => 'none', 'target' => null, 'label' => null],
+            'right' => ['link_type' => 'none', 'target' => null, 'label' => null],
+        ];
+        
+        $room->doors = array_merge($defaultDoors, $validated['doors'] ?? []);
 
         if ($request->hasFile('thumbnail')) {
             // ① Manual upload — replace existing

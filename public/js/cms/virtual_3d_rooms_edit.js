@@ -17,6 +17,19 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('virtual3d-room-form').submit();
         });
     }
+
+    /* Sync door wall selector with wall editor preview */
+    const doorWallSelect = document.getElementById('doorWallSelect');
+    if (doorWallSelect) {
+        doorWallSelect.addEventListener('change', function () {
+            const doorEl = document.getElementById('doorRender');
+            if (doorEl) {
+                doorEl.dataset.doorWall = this.value;
+                // Re-render the current wall view to show/hide door
+                switchWallView(currentWall);
+            }
+        });
+    }
 });
 
 /* ── Colour preview ─────────────────────────────────────────── */

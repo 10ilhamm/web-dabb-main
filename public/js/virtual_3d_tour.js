@@ -63,21 +63,28 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Robust manual 2D hit-test for the door avoiding CSS 3D shielding bugs
                 const dist = Math.hypot(e.clientX - dragStartPos.x, e.clientY - dragStartPos.y);
                 if (dist < 5) {
-                    const door = document.getElementById('vt3d-door');
-                    if (door) {
-                        const rect = door.getBoundingClientRect();
+                    // Find all active door slots
+                    const activeDoors = document.querySelectorAll('.vt3d-door-slot[style*="display: block"], .vt3d-door-slot[style*="display:block"]');
+                    activeDoors.forEach(activeDoor => {
+                        const rect = activeDoor.getBoundingClientRect();
                         // Check if click is inside door's 2D screen bounding box
                         if (e.clientX >= rect.left && e.clientX <= rect.right &&
                             e.clientY >= rect.top && e.clientY <= rect.bottom) {
                             
-                            // Make sure the door is actually facing the camera (rotation Y is approx 180 degrees)
-                            // Scene rotation Y % 360 should be between 90 and 270 degrees to be looking at the back wall.
-                            let rotY = ((currentRotationY % 360) + 360) % 360; 
-                            if (rotY > 90 && rotY < 270) {
-                                window.handleDoorClick(e);
+                            // Check if the door's wall is actually facing the camera
+                            const doorWall = activeDoor.dataset.wall;
+                            let rotY = ((currentRotationY % 360) + 360) % 360;
+                            let isFacing = false;
+                            if (doorWall === 'back')  isFacing = (rotY > 90 && rotY < 270);
+                            if (doorWall === 'front') isFacing = (rotY < 90 || rotY > 270);
+                            if (doorWall === 'left')  isFacing = (rotY > 0 && rotY < 180);
+                            if (doorWall === 'right') isFacing = (rotY > 180 && rotY < 360);
+                            
+                            if (isFacing) {
+                                window.handleDoorClick(e, activeDoor);
                             }
                         }
-                    }
+                    });
                 }
             }
         });
@@ -130,18 +137,25 @@ document.addEventListener('DOMContentLoaded', () => {
                     const touch = e.changedTouches[0];
                     const dist = Math.hypot(touch.clientX - dragStartPos.x, touch.clientY - dragStartPos.y);
                     if (dist < 10) {
-                        const door = document.getElementById('vt3d-door');
-                        if (door) {
-                            const rect = door.getBoundingClientRect();
+                        const activeDoors = document.querySelectorAll('.vt3d-door-slot[style*="display: block"], .vt3d-door-slot[style*="display:block"]');
+                        activeDoors.forEach(activeDoor => {
+                            const rect = activeDoor.getBoundingClientRect();
                             if (touch.clientX >= rect.left && touch.clientX <= rect.right &&
                                 touch.clientY >= rect.top && touch.clientY <= rect.bottom) {
                                 
-                                let rotY = ((currentRotationY % 360) + 360) % 360; 
-                                if (rotY > 90 && rotY < 270) {
-                                    window.handleDoorClick(e);
+                                const doorWall = activeDoor.dataset.wall;
+                                let rotY = ((currentRotationY % 360) + 360) % 360;
+                                let isFacing = false;
+                                if (doorWall === 'back')  isFacing = (rotY > 90 && rotY < 270);
+                                if (doorWall === 'front') isFacing = (rotY < 90 || rotY > 270);
+                                if (doorWall === 'left')  isFacing = (rotY > 0 && rotY < 180);
+                                if (doorWall === 'right') isFacing = (rotY > 180 && rotY < 360);
+                                
+                                if (isFacing) {
+                                    window.handleDoorClick(e, activeDoor);
                                 }
                             }
-                        }
+                        });
                     }
                 }
             }
@@ -170,37 +184,40 @@ function openRoom3D(roomId) {
     // Render Media
     renderRoomMedia();
 
-    // Render Door
-    const door = document.getElementById('vt3d-door');
-    const doorPortal = document.getElementById('vt3d-door-portal');
-    
-    if (currentRoom.door_link_type && currentRoom.door_link_type !== 'none') {
-        door.style.display = 'block';
-        document.getElementById('vt3d-door-label').innerText = currentRoom.door_label || 'KELUAR';
-        
-        // Setup Peek/Portal effect for door
-        if (doorPortal) {
-            doorPortal.style.display = 'none';
-            door.style.backgroundColor = '#000'; // default void
+    // Render Doors on their respective walls
+    document.querySelectorAll('.vt3d-door-slot').forEach(slot => {
+        slot.style.display = 'none';
+        const wall = slot.dataset.wall;
+        const config = (currentRoom.doors && currentRoom.doors[wall]) ? currentRoom.doors[wall] : null;
+
+        if (config && config.link_type && config.link_type !== 'none') {
+            slot.style.display = 'block';
+            const doorLabel = slot.querySelector('.vt3d-door-label');
+            if (doorLabel) doorLabel.innerText = config.label || 'KELUAR';
             
-            if (currentRoom.door_link_type === 'room') {
-                const targetId = parseInt(currentRoom.door_target);
-                const targetRoom = window.virtualRooms3D.find(r => r.id === targetId);
-                if (targetRoom) {
-                    if (targetRoom.thumbnail_url) {
-                        doorPortal.src = targetRoom.thumbnail_url;
-                        doorPortal.style.display = 'block';
-                    } else {
-                        door.style.backgroundColor = targetRoom.wall_color || '#1e293b';
+            // Setup Peek/Portal effect for door
+            const doorPortal = slot.querySelector('.vt3d-door-portal');
+            if (doorPortal) {
+                doorPortal.style.display = 'none';
+                slot.style.backgroundColor = '#000'; // default void
+                
+                if (config.link_type === 'room') {
+                    const targetId = parseInt(config.target);
+                    const targetRoom = window.virtualRooms3D.find(r => r.id === targetId);
+                    if (targetRoom) {
+                        if (targetRoom.thumbnail_url) {
+                            doorPortal.src = targetRoom.thumbnail_url;
+                            doorPortal.style.display = 'block';
+                        } else {
+                            slot.style.backgroundColor = targetRoom.wall_color || '#1e293b';
+                        }
                     }
+                } else if (config.link_type === 'url') {
+                    slot.style.backgroundColor = '#e0f2fe'; // Bright light for external URL
                 }
-            } else if (currentRoom.door_link_type === 'url') {
-                door.style.backgroundColor = '#e0f2fe'; // Bright light for external URL
             }
         }
-    } else {
-        door.style.display = 'none';
-    }
+    });
 
     // Show viewer and reset view
     document.getElementById('room3d-viewer').style.display = 'block';
@@ -299,7 +316,7 @@ function setView(view) {
     });
 }
 
-window.handleDoorClick = function(e) {
+window.handleDoorClick = function(e, doorEl) {
     if (e) {
         e.preventDefault();
         e.stopPropagation();
@@ -307,10 +324,21 @@ window.handleDoorClick = function(e) {
     
     if (!currentRoom) return;
     if (window.isNavigatingToDoor) return;
+
+    // If doorEl is not passed (legacy/fallback), try to find the active one
+    if (!doorEl) {
+        doorEl = document.querySelector('.vt3d-door-slot[style*="display: block"], .vt3d-door-slot[style*="display:block"]');
+    }
+
+    // Find the config for THIS specific door based on its wall
+    const wall = doorEl ? doorEl.dataset.wall : 'back';
+    const config = (currentRoom.doors && currentRoom.doors[wall]) ? currentRoom.doors[wall] : null;
+    
+    if (!config || config.link_type === 'none') return;
+    
     window.isNavigatingToDoor = true;
 
     // 1. Play smooth door open animation without moving the user's camera
-    const doorEl = document.getElementById('vt3d-door');
     if (doorEl) {
         doorEl.classList.add('vt3d-door-open');
     }
@@ -320,18 +348,18 @@ window.handleDoorClick = function(e) {
         window.isNavigatingToDoor = false; // Reset lock
         if(doorEl) doorEl.classList.remove('vt3d-door-open'); // Close door behind us
 
-        if (currentRoom.door_link_type === 'url' && currentRoom.door_target) {
-            if(currentRoom.door_target.startsWith('http')) {
-                window.open(currentRoom.door_target, '_blank');
+        if (config.link_type === 'url' && config.target) {
+            if(config.target.startsWith('http')) {
+                window.open(config.target, '_blank');
             } else {
-                window.location.href = currentRoom.door_target;
+                window.location.href = config.target;
             }
-        } else if (currentRoom.door_link_type === 'room' && currentRoom.door_target) {
-            const targetRoomId = parseInt(currentRoom.door_target);
+        } else if (config.link_type === 'room' && config.target) {
+            const targetRoomId = parseInt(config.target);
             if(!isNaN(targetRoomId)) {
                 closeRoom3D();
                 setTimeout(() => { openRoom3D(targetRoomId); }, 50);
             }
         }
     }, 1200); // match CSS door open animation duration
-}
+};

@@ -197,7 +197,7 @@
     backface-visibility: hidden;
 }
 
-#vt3d-door {
+.vt3d-door-slot {
     position: absolute; bottom: 0; left: 50%; transform: translateX(-50%) translateZ(2px);
     width: 160px; height: 350px;
     border: 6px solid #475569; border-bottom: none;
@@ -206,14 +206,14 @@
     pointer-events: auto;
     transform-style: preserve-3d;
 }
-#vt3d-door-portal {
+.vt3d-door-portal {
     position: absolute; inset: 0;
     width: 100%; height: 100%;
     object-fit: cover;
     opacity: 1; 
     z-index: 1; /* Renders BELOW the door frame */
 }
-#vt3d-door:hover .vt3d-door-frame { background: #334155; }
+.vt3d-door-slot:hover .vt3d-door-frame { background: #334155; }
 .vt3d-door-frame { 
     width:100%; height:100%; position:absolute; inset: 0;
     background: #1e293b; transition: background 0.2s, transform 1.2s cubic-bezier(0.25, 1, 0.5, 1);
