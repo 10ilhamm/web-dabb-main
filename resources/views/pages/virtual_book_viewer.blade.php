@@ -57,10 +57,12 @@
             flex: 1;
             padding: 1rem;
             position: relative;
-            overflow-y: auto;
+            overflow: hidden; /* Prevent scrolling */
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center; /* Center everything vertically */
+            background: transparent;
         }
 
         /* Books Styles */
@@ -78,7 +80,9 @@
 
         .flip-book-wrapper {
             width: 100%;
-            max-width: 1200px;
+            /* 550x733 ratio per page -> 1100x733 total = ~1.5 ratio */
+            /* Scale width dynamically based on available height to ensure it fits without scrolling */
+            max-width: min(1200px, calc((100vh - 200px) * 1.5));
             margin: 0 auto;
             display: block;
             position: relative;
@@ -116,7 +120,7 @@
         .page.page-cover-top { box-shadow: inset 0px 0 30px 0px rgba(36, 10, 3, 0.5), -2px 0 5px 2px rgba(0, 0, 0, 0.4); }
         .page.page-cover-bottom { box-shadow: inset 0px 0 30px 0px rgba(36, 10, 3, 0.5), 10px 0 8px 0px rgba(0, 0, 0, 0.4); }
 
-        .vb-controls { display: flex; align-items: center; justify-content: center; gap: 0.75rem; flex-wrap: wrap; margin-top: 2rem;}
+        .vb-controls { display: flex; align-items: center; justify-content: center; gap: 0.75rem; flex-wrap: wrap; margin-top: 1rem; padding-bottom: 0.5rem;}
         .vb-controls button { padding: 0.5rem 1.25rem; background: #0d9488; color: white; border: none; border-radius: 0.375rem; cursor: pointer; font-weight: 500; font-size: 0.9rem; transition: background 0.2s; }
         .vb-controls button:hover { background: #0f766e; }
         .vb-state-info { display: none; }
@@ -285,7 +289,7 @@
                 var pageFlip = new window.PageFlip(bookEl, {
                     width: 550,
                     height: 733,
-                    size: "stretch",
+                    size: "stretch", // Stretch ensures book matches container's width, which we cap dynamically
                     minWidth: 315,
                     maxWidth: 1000,
                     minHeight: 420,
