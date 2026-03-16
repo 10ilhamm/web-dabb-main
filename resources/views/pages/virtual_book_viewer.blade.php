@@ -131,7 +131,7 @@
     <div class="viewer-header">
         <a href="?" class="viewer-back">
             <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-            Kembali ke Pameran
+            {{ app()->getLocale() === 'en' ? 'Back to Exhibition' : 'Kembali ke Pameran' }}
         </a>
         <div class="viewer-title">
             {{ app()->getLocale() === 'en' && $book->title_en ? $book->title_en : $book->title }}
@@ -262,9 +262,9 @@
         </div>
 
         <div class="vb-controls" data-book="{{ $bookId }}">
-            <button type="button" class="btn-prev">Previous page</button>
-            <span class="page-info" style="color:#4b5563">[<span class="page-current">1</span> of <span class="page-total">-</span>]</span>
-            <button type="button" class="btn-next">Next page</button>
+            <button type="button" class="btn-prev">{{ app()->getLocale() === 'en' ? 'Previous page' : 'Halaman sebelumnya' }}</button>
+            <span class="page-info" style="color:#4b5563">[<span class="page-current">1</span> {{ app()->getLocale() === 'en' ? 'of' : 'dari' }} <span class="page-total">-</span>]</span>
+            <button type="button" class="btn-next">{{ app()->getLocale() === 'en' ? 'Next page' : 'Halaman selanjutnya' }}</button>
         </div>
         <div class="vb-state-info" data-book="{{ $bookId }}">
             State: <i class="page-state">read</i>, orientation: <i class="page-orientation">landscape</i>

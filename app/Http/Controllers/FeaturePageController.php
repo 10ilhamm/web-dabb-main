@@ -258,14 +258,14 @@ class FeaturePageController extends Controller
             $locale = app()->getLocale();
             $idContent = $this->loadBerandaContent($feature->id, 'id');
             $enContent = $this->loadBerandaContent($feature->id, 'en');
-            $content = $locale === 'en' ? $enContent : $idContent;
+            $content = $locale === 'id' ? $enContent : $idContent;
 
             return view('welcome', compact('feature', 'content'));
         }
 
         // Pages under /pameran/virtual or /pameran-arsip-virtual require authentication — show login modal if guest
         $requiresLoginModal = !Auth::check() && (
-            str_contains($path, '/pameran/virtual') || 
+            str_contains($path, '/pameran/virtual') ||
             str_contains($path, '/pameran-virtual') ||
             str_contains($path, '/pameran-arsip-virtual')
         );
