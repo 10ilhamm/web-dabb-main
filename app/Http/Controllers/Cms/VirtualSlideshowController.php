@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Cms;
 use App\Http\Controllers\Controller;
 use App\Models\Feature;
 use App\Models\FeaturePage;
+use App\Models\VirtualSlideshowPage;
 use App\Models\VirtualSlideshowSlide;
 use App\Services\TranslationService;
 use Illuminate\Http\Request;
@@ -18,15 +19,16 @@ class VirtualSlideshowController extends Controller
     public function index(Feature $feature)
     {
         $feature->load('parent');
-        $pages = $feature->pages()->withCount('slideshowSlides')->orderBy('order')->get();
+        $pages = $feature->slideshowPages()->withCount('slideshowSlides')->orderBy('order')->get();
         return view('cms.features.virtual_slideshow.index', compact('feature', 'pages'));
     }
 
     /**
      * Show slides for a specific page
      */
-    public function slidesIndex(Feature $feature, FeaturePage $page)
+    public function slidesIndex(Feature $feature, $pageId)
     {
+        $page = VirtualSlideshowPage::findOrFail($pageId);
         $feature->load('parent');
         $page->load('slideshowSlides');
         $slides = $page->slideshowSlides()->orderBy('order')->get();
@@ -39,7 +41,7 @@ class VirtualSlideshowController extends Controller
     public function create(Feature $feature)
     {
         $feature->load('parent');
-        $pages = $feature->pages()->orderBy('order')->get();
+        $pages = $feature->slideshowPages()->orderBy('order')->get();
         return view('cms.features.virtual_slideshow.create', compact('feature', 'pages'));
     }
 
@@ -54,8 +56,9 @@ class VirtualSlideshowController extends Controller
     /**
      * Create slide for specific page
      */
-    public function createSlide(Feature $feature, FeaturePage $page)
+    public function createSlide(Feature $feature, $pageId)
     {
+        $page = VirtualSlideshowPage::findOrFail($pageId);
         $feature->load('parent');
         return view('cms.features.virtual_slideshow.pages.create', compact('feature', 'page'));
     }
@@ -63,15 +66,16 @@ class VirtualSlideshowController extends Controller
     /**
      * Store slide for specific page
      */
-    public function storeSlide(Request $request, Feature $feature, FeaturePage $page, TranslationService $translationService)
+    public function storeSlide(Request $request, Feature $feature, $pageId, TranslationService $translationService)
     {
+        $page = VirtualSlideshowPage::findOrFail($pageId);
         return $this->storeSlideData($request, $feature, $page, $translationService);
     }
 
     /**
      * Shared method to store slide data
      */
-    private function storeSlideData(Request $request, Feature $feature, ?FeaturePage $page, TranslationService $translationService)
+    private function storeSlideData(Request $request, Feature $feature, ?VirtualSlideshowPage $page, TranslationService $translationService)
     {
         $validated = $request->validate([
             'feature_page_id' => 'nullable|exists:feature_pages,id',
@@ -163,8 +167,9 @@ class VirtualSlideshowController extends Controller
     /**
      * Edit slide for specific page
      */
-    public function editSlide(Feature $feature, FeaturePage $page, VirtualSlideshowSlide $slide)
+    public function editSlide(Feature $feature, $pageId, VirtualSlideshowSlide $slide)
     {
+        $page = VirtualSlideshowPage::findOrFail($pageId);
         $feature->load('parent');
         return view('cms.features.virtual_slideshow.pages.edit', compact('feature', 'page', 'slide'));
     }
@@ -172,15 +177,16 @@ class VirtualSlideshowController extends Controller
     /**
      * Update slide for specific page
      */
-    public function updateSlide(Request $request, Feature $feature, FeaturePage $page, VirtualSlideshowSlide $slide, TranslationService $translationService)
+    public function updateSlide(Request $request, Feature $feature, $pageId, VirtualSlideshowSlide $slide, TranslationService $translationService)
     {
+        $page = VirtualSlideshowPage::findOrFail($pageId);
         return $this->updateSlideData($request, $feature, $slide, $translationService, $page);
     }
 
     /**
      * Shared method to update slide data
      */
-    private function updateSlideData(Request $request, Feature $feature, VirtualSlideshowSlide $slide, TranslationService $translationService, ?FeaturePage $page = null)
+    private function updateSlideData(Request $request, Feature $feature, VirtualSlideshowSlide $slide, TranslationService $translationService, ?VirtualSlideshowPage $page = null)
     {
         $validated = $request->validate([
             'feature_page_id' => 'nullable|exists:feature_pages,id',
@@ -274,15 +280,16 @@ class VirtualSlideshowController extends Controller
     /**
      * Destroy slide for specific page
      */
-    public function destroySlide(Feature $feature, FeaturePage $page, VirtualSlideshowSlide $slide)
+    public function destroySlide(Feature $feature, $pageId, VirtualSlideshowSlide $slide)
     {
+        $page = VirtualSlideshowPage::findOrFail($pageId);
         return $this->destroySlideData($feature, $slide, $page);
     }
 
     /**
      * Shared method to destroy slide
      */
-    private function destroySlideData(Feature $feature, VirtualSlideshowSlide $slide, ?FeaturePage $page = null)
+    private function destroySlideData(Feature $feature, VirtualSlideshowSlide $slide, ?VirtualSlideshowPage $page = null)
     {
         // Delete images from storage
         if ($slide->images) {

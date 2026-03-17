@@ -74,7 +74,9 @@
 
                 {{-- Thumbnail --}}
                 <div class="w-20 h-14 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0 flex items-center justify-center">
-                    @if($page->slideshowSlides && $page->slideshowSlides->count() > 0)
+                    @if($page->thumbnail_path)
+                        <img src="{{ asset('storage/' . $page->thumbnail_path) }}" class="w-full h-full object-cover" alt="">
+                    @elseif($page->slideshowSlides && $page->slideshowSlides->count() > 0)
                         @php
                             $firstSlide = $page->slideshowSlides->first();
                         @endphp

@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('breadcrumb_parent', 'CMS / ' . __('cms.features.title') . ' / <a href="' . route('cms.features.slideshow.index', $feature) . '">' . __('cms.virtual_slideshow.title') . '</a>')
-@section('breadcrumb_active', $page->title . ' — Slides')
+@section('breadcrumb_parent', 'CMS / ' . __('cms.features.title') . ' / ' . $feature->name . ' / ' . $page->title)
+@section('breadcrumb_active', 'Slides')
 
 @section('content')
 <div class="space-y-6" x-data="{ deleteModal: { open: false, id: null, name: '' } }">

@@ -210,7 +210,9 @@
                         $pageSlides = $page->slideshowSlides ?? collect();
                         $firstSlide = $pageSlides->sortBy('order')->first();
                     @endphp
-                    @if($firstSlide && $firstSlide->images && count($firstSlide->images) > 0)
+                    @if($page->thumbnail_path)
+                        <img src="{{ asset('storage/'.$page->thumbnail_path) }}" alt="{{ $page->title }}" loading="lazy">
+                    @elseif($firstSlide && $firstSlide->images && count($firstSlide->images) > 0)
                         <img src="{{ asset('storage/'.$firstSlide->images[0]) }}" alt="{{ $page->title }}" loading="lazy">
                     @else
                         <div class="vss-room-thumb-placeholder">🎞</div>

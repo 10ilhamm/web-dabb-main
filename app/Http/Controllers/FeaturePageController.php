@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Feature;
 use App\Models\FeaturePage;
 use App\Models\FeaturePageSection;
+use App\Models\VirtualSlideshowPage;
 use App\Services\TranslationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -48,15 +49,17 @@ class FeaturePageController extends Controller
     /**
      * Show the form for editing a page.
      */
-    public function edit(Feature $feature, FeaturePage $page)
+    public function edit(Feature $feature, $pageId)
     {
         $feature->load('parent');
 
-        // Use different view based on page_type
+        // Use VirtualSlideshowPage for slideshow page_type
         if ($feature->page_type === 'slideshow') {
+            $page = VirtualSlideshowPage::findOrFail($pageId);
             return view('cms.features.virtual_slideshow.edit', compact('feature', 'page'));
         }
 
+        $page = FeaturePage::findOrFail($pageId);
         return view('cms.features.pages.edit', compact('feature', 'page'));
     }
 
@@ -69,6 +72,7 @@ class FeaturePageController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'order' => 'required|integer|min:0',
+            'thumbnail' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
 
         $validated['feature_id'] = $feature->id;
@@ -77,13 +81,18 @@ class FeaturePageController extends Controller
             $validated['description_en'] = $translationService->translate($validated['description']);
         }
 
-        FeaturePage::create($validated);
+        if ($request->hasFile('thumbnail')) {
+            $validated['thumbnail_path'] = $request->file('thumbnail')->store('features/pages/thumbnails', 'public');
+        }
 
-        // Redirect based on page_type
+        // Use VirtualSlideshowPage for slideshow page_type
         if ($feature->page_type === 'slideshow') {
+            VirtualSlideshowPage::create($validated);
             return redirect()->route('cms.features.slideshow.index', $feature)
                 ->with('success', __('cms.feature_pages.flash.page_added'));
         }
+
+        FeaturePage::create($validated);
 
         return redirect()->route('cms.features.pages.index', $feature)
             ->with('success', __('cms.feature_pages.flash.page_added'));
@@ -103,12 +112,20 @@ class FeaturePageController extends Controller
     /**
      * Update a page.
      */
-    public function update(Request $request, Feature $feature, FeaturePage $page, TranslationService $translationService)
+    public function update(Request $request, Feature $feature, $pageId, TranslationService $translationService)
     {
+        // Use VirtualSlideshowPage for slideshow page_type
+        if ($feature->page_type === 'slideshow') {
+            $page = VirtualSlideshowPage::findOrFail($pageId);
+        } else {
+            $page = FeaturePage::findOrFail($pageId);
+        }
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'order' => 'required|integer|min:0',
+            'thumbnail' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
 
         $validated['title_en'] = $translationService->translate($validated['title']);
@@ -116,9 +133,25 @@ class FeaturePageController extends Controller
             ? $translationService->translate($validated['description'])
             : null;
 
+        // Handle thumbnail only for slideshow pages
+        if ($feature->page_type === 'slideshow') {
+            // Handle remove thumbnail request
+            if ($request->input('remove_thumbnail') === '1' && $page->thumbnail_path) {
+                Storage::disk('public')->delete($page->thumbnail_path);
+                $page->thumbnail_path = null;
+            }
+            
+            // Handle new thumbnail upload
+            if ($request->hasFile('thumbnail')) {
+                if ($page->thumbnail_path) {
+                    Storage::disk('public')->delete($page->thumbnail_path);
+                }
+                $validated['thumbnail_path'] = $request->file('thumbnail')->store('features/pages/thumbnails', 'public');
+            }
+        }
+
         $page->update($validated);
 
-        // Redirect based on page_type
         if ($feature->page_type === 'slideshow') {
             return redirect()->route('cms.features.slideshow.index', $feature)
                 ->with('success', __('cms.feature_pages.flash.page_updated'));
@@ -131,20 +164,27 @@ class FeaturePageController extends Controller
     /**
      * Delete a page.
      */
-    public function destroy(Feature $feature, FeaturePage $page)
+    public function destroy(Feature $feature, $pageId)
     {
+        // Use VirtualSlideshowPage for slideshow page_type
+        if ($feature->page_type === 'slideshow') {
+            $page = VirtualSlideshowPage::findOrFail($pageId);
+            // Delete thumbnail
+            if ($page->thumbnail_path) {
+                Storage::disk('public')->delete($page->thumbnail_path);
+            }
+            $page->delete();
+            return redirect()->route('cms.features.slideshow.index', $feature)
+                ->with('success', __('cms.feature_pages.flash.page_deleted'));
+        }
+
+        $page = FeaturePage::findOrFail($pageId);
         // Delete section images
         foreach ($page->sections as $section) {
             $this->deleteSectionImages($section);
         }
 
         $page->delete();
-
-        // Redirect based on page_type
-        if ($feature->page_type === 'slideshow') {
-            return redirect()->route('cms.features.slideshow.index', $feature)
-                ->with('success', __('cms.feature_pages.flash.page_deleted'));
-        }
 
         return redirect()->route('cms.features.pages.index', $feature)
             ->with('success', __('cms.feature_pages.flash.page_deleted'));
@@ -317,7 +357,7 @@ class FeaturePageController extends Controller
 
         // Virtual Slideshow — show SimHive-style interactive page with page selection
         if ($feature->page_type === 'slideshow') {
-            $pages = $feature->pages()->with('slideshowSlides')->orderBy('order')->get();
+            $pages = $feature->slideshowPages()->with('slideshowSlides')->orderBy('order')->get();
             $selectedPage = null;
             $slides = collect();
             $locale = app()->getLocale();

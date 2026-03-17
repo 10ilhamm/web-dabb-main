@@ -54,4 +54,9 @@ class VirtualSlideshowSlide extends Model
     {
         return $this->belongsTo(FeaturePage::class);
     }
+
+    public function slideshowPage()
+    {
+        return $this->belongsTo(VirtualSlideshowPage::class, 'feature_page_id');
+    }
 }

@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('breadcrumb_parent', 'CMS / ' . __('cms.features.title') . ' / <a href="' . route('cms.features.slideshow.index', $feature) . '">' . ($page ?? null ? ($page->title . ' - Slides') : __('cms.virtual_slideshow.title')) . '</a>')
+@section('breadcrumb_parent', 'CMS / ' . __('cms.features.title') . ' / ' . $feature->name . ' / ' . $page->title)
 @section('breadcrumb_active', 'Tambah Slide')
 
 @push('styles')
