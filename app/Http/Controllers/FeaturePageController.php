@@ -18,11 +18,46 @@ class FeaturePageController extends Controller
      */
     public function index(Feature $feature)
     {
+        // Redirect to slideshow for slideshow page_type
+        if ($feature->page_type === 'slideshow') {
+            return redirect()->route('cms.features.slideshow.index', $feature);
+        }
+
         $feature->load(['pages' => function ($q) {
             $q->withCount('sections');
         }, 'parent']);
 
         return view('cms.features.pages.index', compact('feature'));
+    }
+
+    /**
+     * Show the form for creating a new page.
+     */
+    public function create(Feature $feature)
+    {
+        $feature->load('parent');
+
+        // Use different view based on page_type
+        if ($feature->page_type === 'slideshow') {
+            return view('cms.features.virtual_slideshow.create', compact('feature'));
+        }
+
+        return view('cms.features.pages.create', compact('feature'));
+    }
+
+    /**
+     * Show the form for editing a page.
+     */
+    public function edit(Feature $feature, FeaturePage $page)
+    {
+        $feature->load('parent');
+
+        // Use different view based on page_type
+        if ($feature->page_type === 'slideshow') {
+            return view('cms.features.virtual_slideshow.edit', compact('feature', 'page'));
+        }
+
+        return view('cms.features.pages.edit', compact('feature', 'page'));
     }
 
     /**
@@ -43,6 +78,12 @@ class FeaturePageController extends Controller
         }
 
         FeaturePage::create($validated);
+
+        // Redirect based on page_type
+        if ($feature->page_type === 'slideshow') {
+            return redirect()->route('cms.features.slideshow.index', $feature)
+                ->with('success', __('cms.feature_pages.flash.page_added'));
+        }
 
         return redirect()->route('cms.features.pages.index', $feature)
             ->with('success', __('cms.feature_pages.flash.page_added'));
@@ -77,6 +118,12 @@ class FeaturePageController extends Controller
 
         $page->update($validated);
 
+        // Redirect based on page_type
+        if ($feature->page_type === 'slideshow') {
+            return redirect()->route('cms.features.slideshow.index', $feature)
+                ->with('success', __('cms.feature_pages.flash.page_updated'));
+        }
+
         return redirect()->route('cms.features.pages.index', $feature)
             ->with('success', __('cms.feature_pages.flash.page_updated'));
     }
@@ -92,6 +139,12 @@ class FeaturePageController extends Controller
         }
 
         $page->delete();
+
+        // Redirect based on page_type
+        if ($feature->page_type === 'slideshow') {
+            return redirect()->route('cms.features.slideshow.index', $feature)
+                ->with('success', __('cms.feature_pages.flash.page_deleted'));
+        }
 
         return redirect()->route('cms.features.pages.index', $feature)
             ->with('success', __('cms.feature_pages.flash.page_deleted'));
@@ -251,6 +304,45 @@ class FeaturePageController extends Controller
         $feature = Feature::where('path', $path)->firstOrFail();
         $feature->loadCount('pages');
 
+        // Pages under /pameran/virtual or /pameran-arsip-virtual require authentication — show login modal if guest
+        $requiresLoginModal = !Auth::check() && (
+            str_contains($path, '/pameran/virtual') ||
+            str_contains($path, '/pameran-virtual') ||
+            str_contains($path, '/pameran-arsip-virtual')
+        );
+
+        // Resolve preview image for the login modal right panel
+        $loginModalPreview = null;
+        $loginModalRoomName = null;
+
+        // Virtual Slideshow — show SimHive-style interactive page with page selection
+        if ($feature->page_type === 'slideshow') {
+            $pages = $feature->pages()->with('slideshowSlides')->orderBy('order')->get();
+            $selectedPage = null;
+            $slides = collect();
+            $locale = app()->getLocale();
+
+            // Check if specific page is requested
+            $pageNum = $request->input('page');
+            if ($pageNum) {
+                $selectedPage = $pages->firstWhere('order', $pageNum);
+                if ($selectedPage) {
+                    $slides = $selectedPage->slideshowSlides->sortBy('order')->values();
+                }
+            }
+
+            // Use separate views for landing vs content
+            if ($selectedPage) {
+                return view('pages.virtual_slideshow_content', compact(
+                    'feature', 'pages', 'selectedPage', 'slides', 'locale'
+                ));
+            }
+
+            return view('pages.virtual_slideshow_landing', compact(
+                'feature', 'pages'
+            ));
+        }
+
         // Handle beranda page type - load content from language files
         // Check if there's a dedicated home_{id}.php file for this feature (except for original beranda)
         $homeFilePath = resource_path("lang/id/home_{$feature->id}.php");
@@ -262,17 +354,6 @@ class FeaturePageController extends Controller
 
             return view('welcome', compact('feature', 'content'));
         }
-
-        // Pages under /pameran/virtual or /pameran-arsip-virtual require authentication — show login modal if guest
-        $requiresLoginModal = !Auth::check() && (
-            str_contains($path, '/pameran/virtual') ||
-            str_contains($path, '/pameran-virtual') ||
-            str_contains($path, '/pameran-arsip-virtual')
-        );
-
-        // Resolve preview image for the login modal right panel
-        $loginModalPreview = null;
-        $loginModalRoomName = null;
         if ($requiresLoginModal) {
             // Try direct virtual rooms on this feature
             $firstRoom = $feature->virtual3dRooms()->first() ?? $feature->virtualRooms()->first();

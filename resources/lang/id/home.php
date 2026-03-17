@@ -156,6 +156,12 @@ Disclaimer | #',
         'hotspot_count' => ':count hotspot',
         'room_title' => 'Ruangan',
     ],
+    'virtual_slideshow' => [
+        'hero_desc' => 'Jelajahi pameran arsip virtual dengan berbagai konten interaktif',
+        'select_exhibition' => 'Pilih Pameran',
+        'select_exhibition_desc' => 'Klik salah satu pameran di bawah untuk melihat konten',
+        'no_exhibitions' => 'Belum ada pameran yang tersedia.',
+    ],
     'instagram_username' => 'arsipnasionalri',
     'instagram_codes' => [
         'DULJ3gDkkDZ',

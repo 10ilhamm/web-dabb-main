@@ -56,4 +56,14 @@ class Feature extends Model
     {
         return $this->hasMany(Book::class)->orderBy('order');
     }
+
+    public function slideshowSlides()
+    {
+        return $this->hasMany(VirtualSlideshowSlide::class)->orderBy('order');
+    }
+
+    public function allSlideshowSlides()
+    {
+        return $this->hasMany(VirtualSlideshowSlide::class, 'feature_id')->orderBy('order');
+    }
 }

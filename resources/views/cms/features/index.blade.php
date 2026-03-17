@@ -157,6 +157,7 @@
                         <option value="real">{{ __('cms.page_types.real') }}</option>
                         <option value="3d">{{ __('cms.page_types.3d') }}</option>
                         <option value="book">{{ __('cms.page_types.book') }}</option>
+                        <option value="slideshow">{{ __('cms.page_types.slideshow') }}</option>
                     </select>
                 </div>
 
@@ -232,6 +233,7 @@
                         <option value="real">{{ __('cms.page_types.real') }}</option>
                         <option value="3d">{{ __('cms.page_types.3d') }}</option>
                         <option value="book">{{ __('cms.page_types.book') }}</option>
+                        <option value="slideshow">{{ __('cms.page_types.slideshow') }}</option>
                     </select>
                 </div>
 

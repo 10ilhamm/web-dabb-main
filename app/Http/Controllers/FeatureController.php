@@ -28,7 +28,7 @@ class FeatureController extends Controller
             'type' => 'required|in:link,dropdown',
             'order' => 'required|integer|min:0',
             'parent_id' => 'nullable|exists:features,id',
-            'page_type' => 'nullable|in:none,beranda,onsite,real,3d,book',
+            'page_type' => 'nullable|in:none,beranda,onsite,real,3d,book,slideshow',
         ]);
 
         $validated['name_en'] = $translationService->translate($validated['name']);
@@ -102,6 +102,10 @@ class FeatureController extends Controller
                 return redirect()->route('cms.features.virtual_books.index', $feature);
             }
 
+            if ($feature->page_type === 'slideshow') {
+                return redirect()->route('cms.features.slideshow.index', $feature);
+            }
+
             // Fallback to old logic based on name for backward compatibility
             if ($feature->id === 22 || strtolower($feature->name) === 'pameran virtual real') {
                 return redirect()->route('cms.features.virtual_rooms.index', $feature);
@@ -121,6 +125,11 @@ class FeatureController extends Controller
             return redirect()->route('cms.features.pages.index', $feature);
         }
 
+        // For dropdown types with slideshow, redirect to slideshow index
+        if ($feature->type === 'dropdown' && $feature->page_type === 'slideshow') {
+            return redirect()->route('cms.features.slideshow.index', $feature);
+        }
+
         $feature->load(['subfeatures' => function ($query) {
             $query->withCount(['subfeatures', 'pages']);
         }, 'parent']);
@@ -138,7 +147,7 @@ class FeatureController extends Controller
             'name' => 'required|string|max:255',
             'type' => 'required|in:link,dropdown',
             'order' => 'required|integer|min:0',
-            'page_type' => 'nullable|in:none,beranda,onsite,real,3d,book',
+            'page_type' => 'nullable|in:none,beranda,onsite,real,3d,book,slideshow',
         ]);
 
         $validated['name_en'] = $translationService->translate($validated['name']);
@@ -211,7 +220,7 @@ class FeatureController extends Controller
             'name' => 'required|string|max:255',
             'type' => 'required|in:link,dropdown',
             'order' => 'required|integer|min:0',
-            'page_type' => 'nullable|in:none,beranda,onsite,real,3d,book',
+            'page_type' => 'nullable|in:none,beranda,onsite,real,3d,book,slideshow',
         ]);
 
         $validated['name_en'] = $translationService->translate($validated['name']);

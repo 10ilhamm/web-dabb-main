@@ -156,6 +156,12 @@ Disclaimer | #',
         'hotspot_count' => ':count hotspots',
         'room_title' => 'Room',
     ],
+    'virtual_slideshow' => [
+        'hero_desc' => 'Explore virtual archive exhibitions with various interactive content',
+        'select_exhibition' => 'Select Exhibition',
+        'select_exhibition_desc' => 'Click on any exhibition below to view content',
+        'no_exhibitions' => 'There are no exhibitions available yet.',
+    ],
     'instagram_username' => 'RI National Archives',
     'instagram_codes' => [
         'DULJ3gDkkDZ',

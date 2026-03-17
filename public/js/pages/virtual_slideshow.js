@@ -1,0 +1,196 @@
+/**
+ * virtual_slideshow.js — Pameran Arsip Virtual SlideShow
+ * Handles: scroll animations, carousels, video embeds, info popups
+ */
+
+(function () {
+    'use strict';
+
+    /* ========================================================
+       1. SCROLL PROGRESS BAR
+    ======================================================== */
+    const progressBar = document.getElementById('vss-progress');
+    if (progressBar) {
+        window.addEventListener('scroll', () => {
+            const scrolled = window.scrollY;
+            const total    = document.documentElement.scrollHeight - window.innerHeight;
+            progressBar.style.width = (total > 0 ? (scrolled / total) * 100 : 0) + '%';
+        }, { passive: true });
+    }
+
+    /* ========================================================
+       2. SCROLL ANIMATIONS (IntersectionObserver)
+    ======================================================== */
+    const animEls = document.querySelectorAll('.vsshow-anim');
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const delay = entry.target.dataset.delay || 0;
+                setTimeout(() => {
+                    entry.target.classList.add('vsshow-visible');
+                }, Number(delay));
+                observer.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.12, rootMargin: '0px 0px -60px 0px' });
+
+    animEls.forEach(el => observer.observe(el));
+
+    /* ========================================================
+       3. CAROUSEL
+    ======================================================== */
+    document.querySelectorAll('.vsshow-carousel').forEach(carousel => {
+        const track  = carousel.querySelector('.vsshow-carousel-track');
+        const slides = carousel.querySelectorAll('.vsshow-carousel-slide');
+        const dots   = carousel.querySelectorAll('.vsshow-dot');
+        const prevBtn = carousel.querySelector('.vsshow-carousel-btn.prev');
+        const nextBtn = carousel.querySelector('.vsshow-carousel-btn.next');
+        let current = 0;
+        let autoTimer = null;
+
+        function goTo(idx) {
+            current = (idx + slides.length) % slides.length;
+            track.style.transform = `translateX(-${current * 100}%)`;
+            dots.forEach((d, i) => d.classList.toggle('active', i === current));
+        }
+
+        if (prevBtn) prevBtn.addEventListener('click', () => { goTo(current - 1); resetAuto(); });
+        if (nextBtn) nextBtn.addEventListener('click', () => { goTo(current + 1); resetAuto(); });
+
+        dots.forEach((dot, i) => dot.addEventListener('click', () => { goTo(i); resetAuto(); }));
+
+        // Touch/swipe
+        let touchStartX = 0;
+        carousel.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+        carousel.addEventListener('touchend', e => {
+            const diff = touchStartX - e.changedTouches[0].clientX;
+            if (Math.abs(diff) > 40) { diff > 0 ? goTo(current + 1) : goTo(current - 1); resetAuto(); }
+        }, { passive: true });
+
+        // Keyboard
+        carousel.setAttribute('tabindex', '0');
+        carousel.addEventListener('keydown', e => {
+            if (e.key === 'ArrowLeft')  { goTo(current - 1); resetAuto(); }
+            if (e.key === 'ArrowRight') { goTo(current + 1); resetAuto(); }
+        });
+
+        // Auto-play (5 sec) only if more than 1 slide
+        function startAuto() {
+            if (slides.length <= 1) return;
+            autoTimer = setInterval(() => goTo(current + 1), 5000);
+        }
+
+        function resetAuto() {
+            clearInterval(autoTimer);
+            startAuto();
+        }
+
+        // Pause on hover
+        carousel.addEventListener('mouseenter', () => clearInterval(autoTimer));
+        carousel.addEventListener('mouseleave', startAuto);
+
+        goTo(0);
+        startAuto();
+    });
+
+    /* ========================================================
+       4. INFO POPUP
+    ======================================================== */
+    let popupOverlay  = document.getElementById('vss-popup-overlay');
+    let popupCard     = document.getElementById('vss-popup-card');
+    let popupBody     = document.getElementById('vss-popup-body');
+    let popupImgEl    = document.getElementById('vss-popup-img');
+    let popupCloseBtn = document.getElementById('vss-popup-close');
+
+    function showPopup(text, imgSrc) {
+        if (!popupCard || !popupOverlay) return;
+
+        popupBody.textContent = text || '';
+
+        if (imgSrc && popupImgEl) {
+            popupImgEl.src = imgSrc;
+            popupImgEl.style.display = 'block';
+        } else if (popupImgEl) {
+            popupImgEl.style.display = 'none';
+        }
+
+        popupOverlay.classList.add('active');
+        // Trigger CSS transition
+        requestAnimationFrame(() => {
+            popupCard.style.display = 'block';
+            requestAnimationFrame(() => popupCard.classList.add('active'));
+        });
+        document.body.style.overflow = 'hidden';
+    }
+
+    function hidePopup() {
+        if (!popupCard || !popupOverlay) return;
+        popupCard.classList.remove('active');
+        popupOverlay.classList.remove('active');
+        setTimeout(() => { popupCard.style.display = 'none'; }, 300);
+        document.body.style.overflow = '';
+    }
+
+    // Bind all info buttons
+    document.querySelectorAll('.vsshow-info-btn').forEach(btn => {
+        btn.addEventListener('click', e => {
+            e.stopPropagation();
+            const text   = btn.dataset.popup || '';
+            const imgSrc = btn.dataset.imgSrc || '';
+            showPopup(text, imgSrc);
+        });
+    });
+
+    if (popupCloseBtn) popupCloseBtn.addEventListener('click', hidePopup);
+    if (popupOverlay)  popupOverlay.addEventListener('click', hidePopup);
+
+    // ESC to close
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') hidePopup(); });
+
+    /* ========================================================
+       5. HERO PARTICLES
+    ======================================================== */
+    const particleContainer = document.getElementById('vss-particles');
+    if (particleContainer) {
+        const sizes  = [40, 60, 80, 100, 130, 180];
+        const count  = 12;
+        for (let i = 0; i < count; i++) {
+            const p = document.createElement('div');
+            p.className = 'vsshow-hero-particle';
+            const size = sizes[Math.floor(Math.random() * sizes.length)];
+            p.style.cssText = `
+                width: ${size}px; height: ${size}px;
+                left: ${Math.random() * 100}%;
+                bottom: -${size}px;
+                animation-duration: ${10 + Math.random() * 20}s;
+                animation-delay: ${Math.random() * 15}s;
+                opacity: ${0.04 + Math.random() * 0.06};
+            `;
+            particleContainer.appendChild(p);
+        }
+    }
+
+    /* ========================================================
+       6. VIDEO — Lazy load (play when visible)
+    ======================================================== */
+    const videoWrappers = document.querySelectorAll('.vsshow-video-iframe-wrap[data-src]');
+    if (videoWrappers.length > 0) {
+        const videoObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const wrap = entry.target;
+                    const iframe = wrap.querySelector('iframe[data-src]');
+                    if (iframe && iframe.dataset.src) {
+                        iframe.src = iframe.dataset.src;
+                        iframe.removeAttribute('data-src');
+                    }
+                    videoObserver.unobserve(wrap);
+                }
+            });
+        }, { threshold: 0.3 });
+
+        videoWrappers.forEach(w => videoObserver.observe(w));
+    }
+
+})();

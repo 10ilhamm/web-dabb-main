@@ -658,6 +658,7 @@ return [
         'real' => 'Virtual Archive Exhibition Real (360°)',
         '3d' => 'Virtual Archive Exhibition 3D',
         'book' => 'Virtual Archive Exhibition Book',
+        'slideshow' => 'Virtual Archive Exhibition SlideShow',
     ],
 
     /*
@@ -673,6 +674,16 @@ return [
         'back' => 'Back',
         'required' => '*',
         'saved_successfully' => 'Settings saved successfully.',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | CMS — Virtual Slideshow
+    |--------------------------------------------------------------------------
+    */
+
+    'virtual_slideshow' => [
+        'title' => 'Virtual Archive Slideshow',
     ],
 
 ];

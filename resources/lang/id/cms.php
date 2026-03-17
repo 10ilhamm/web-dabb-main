@@ -661,6 +661,7 @@ return [
         'real' => 'Pameran Arsip Virtual Real (360°)',
         '3d' => 'Pameran Arsip Virtual 3D',
         'book' => 'Pameran Arsip Virtual Buku',
+        'slideshow' => 'Pameran Arsip Virtual SlideShow',
     ],
 
     /*
@@ -676,6 +677,16 @@ return [
         'back' => 'Kembali',
         'required' => '*',
         'saved_successfully' => 'Pengaturan berhasil disimpan.',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | CMS — Virtual Slideshow
+    |--------------------------------------------------------------------------
+    */
+
+    'virtual_slideshow' => [
+        'title' => 'Pameran Arsip Virtual Slideshow',
     ],
 
 ];

@@ -24,4 +24,9 @@ class FeaturePage extends Model
     {
         return $this->hasMany(FeaturePageSection::class)->orderBy('order');
     }
+
+    public function slideshowSlides()
+    {
+        return $this->hasMany(VirtualSlideshowSlide::class)->orderBy('order');
+    }
 }

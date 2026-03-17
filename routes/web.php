@@ -10,6 +10,7 @@ use App\Http\Controllers\RoleDashboardController;
 use App\Http\Controllers\Cms\SettingController;
 use App\Http\Controllers\Cms\VirtualRoomController;
 use App\Http\Controllers\Cms\VirtualBookPageController;
+use App\Http\Controllers\Cms\VirtualSlideshowController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -130,6 +131,29 @@ Route::middleware('auth')->group(function () {
         Route::get('/{feature}/virtual-books/{book}/pages/{virtualBookPage}/edit', [VirtualBookPageController::class, 'edit'])->name('virtual_books.pages.edit');
         Route::put('/{feature}/virtual-books/{book}/pages/{virtualBookPage}', [VirtualBookPageController::class, 'update'])->name('virtual_books.pages.update');
         Route::delete('/{feature}/virtual-books/{book}/pages/{virtualBookPage}', [VirtualBookPageController::class, 'destroy'])->name('virtual_books.pages.destroy');
+
+        // Virtual Slideshow (Pameran Arsip Virtual SlideShow)
+        Route::get('/{feature}/slideshow', [VirtualSlideshowController::class, 'index'])->name('slideshow.index');
+        Route::get('/{feature}/slideshow/create', [VirtualSlideshowController::class, 'create'])->name('slideshow.create');
+        Route::post('/{feature}/slideshow', [VirtualSlideshowController::class, 'store'])->name('slideshow.store');
+        Route::get('/{feature}/slideshow/{slide}/edit', [VirtualSlideshowController::class, 'edit'])->name('slideshow.edit');
+        Route::put('/{feature}/slideshow/{slide}', [VirtualSlideshowController::class, 'update'])->name('slideshow.update');
+        Route::delete('/{feature}/slideshow/{slide}', [VirtualSlideshowController::class, 'destroy'])->name('slideshow.destroy');
+
+        // Pages/Exhibition untuk Virtual Slideshow
+        Route::get('/{feature}/slideshow/pages/create', [FeaturePageController::class, 'create'])->name('slideshow.pages.create');
+        Route::post('/{feature}/slideshow/pages', [FeaturePageController::class, 'store'])->name('slideshow.pages.store');
+        Route::get('/{feature}/slideshow/pages/{page}/edit', [FeaturePageController::class, 'edit'])->name('slideshow.pages.edit');
+        Route::put('/{feature}/slideshow/pages/{page}', [FeaturePageController::class, 'update'])->name('slideshow.pages.update');
+        Route::delete('/{feature}/slideshow/pages/{page}', [FeaturePageController::class, 'destroy'])->name('slideshow.pages.destroy');
+
+        // Slides per FeaturePage
+        Route::get('/{feature}/slideshow/pages/{page}/slides', [VirtualSlideshowController::class, 'slidesIndex'])->name('slideshow.pages.slides.index');
+        Route::get('/{feature}/slideshow/pages/{page}/slides/create', [VirtualSlideshowController::class, 'createSlide'])->name('slideshow.pages.slides.create');
+        Route::post('/{feature}/slideshow/pages/{page}/slides', [VirtualSlideshowController::class, 'storeSlide'])->name('slideshow.pages.slides.store');
+        Route::get('/{feature}/slideshow/pages/{page}/slides/{slide}/edit', [VirtualSlideshowController::class, 'editSlide'])->name('slideshow.pages.slides.edit');
+        Route::put('/{feature}/slideshow/pages/{page}/slides/{slide}', [VirtualSlideshowController::class, 'updateSlide'])->name('slideshow.pages.slides.update');
+        Route::delete('/{feature}/slideshow/pages/{page}/slides/{slide}', [VirtualSlideshowController::class, 'destroySlide'])->name('slideshow.pages.slides.destroy');
 
         // Legacy routes - redirect to new structure
         Route::get('/{feature}/virtual-book-pages', function($feature) {
