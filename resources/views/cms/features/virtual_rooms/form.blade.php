@@ -1,7 +1,6 @@
 @extends('layouts.app')
 
 @push('styles')
-<!-- Pannellum CSS -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css"/>
 <link rel="stylesheet" href="{{ asset('css/cms/virtual_rooms.css') }}">
 @endpush
@@ -12,6 +11,7 @@
 @endphp
 
 @section('breadcrumb_parent', __('cms.virtual_rooms.breadcrumb_form_parent'))
+@section('breadcrumb_parent_url', route('cms.features.virtual_rooms.index', $feature))
 @section('breadcrumb_active', $isEdit ? __('cms.virtual_rooms.breadcrumb_edit') : __('cms.virtual_rooms.breadcrumb_create'))
 
 @section('content')

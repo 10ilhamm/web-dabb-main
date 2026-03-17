@@ -2,7 +2,7 @@
 
 @section('header')
     <div class="text-[13px] text-gray-500 font-medium">
-        <span class="text-gray-400">{{ __('dashboard.header.breadcrumb_home') }} /</span>
+        <a href="{{ route('dashboard') }}" class="text-gray-400 hover:text-gray-600">{{ __('dashboard.header.breadcrumb_home') }}</a> /
         <span class="text-[#0ea5e9]">{{ __('dashboard.profile.activity_log') }}</span>
     </div>
 @endsection

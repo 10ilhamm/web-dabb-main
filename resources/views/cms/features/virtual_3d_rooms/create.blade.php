@@ -5,11 +5,10 @@
 <link rel="stylesheet" href="{{ asset('css/cms/virtual_3d_rooms_form.css') }}">
 @endpush
 
-@php
-    $isEdit = false;
-@endphp
+@php $isEdit = false; @endphp
 
 @section('breadcrumb_parent', __('cms.virtual_3d_rooms.breadcrumb_parent'))
+@section('breadcrumb_parent_url', route('cms.features.virtual_3d_rooms.index', $feature))
 @section('breadcrumb_active', __('cms.virtual_3d_rooms.breadcrumb_create'))
 
 @section('content')

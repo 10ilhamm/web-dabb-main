@@ -6,6 +6,7 @@
 @endpush
 
 @section('breadcrumb_parent', __('cms.virtual_3d_rooms.breadcrumb_parent'))
+@section('breadcrumb_parent_url', route('cms.features.virtual_3d_rooms.index', $feature))
 @section('breadcrumb_active', __('cms.virtual_3d_rooms.breadcrumb_edit', ['name' => $room->name]))
 
 @section('content')

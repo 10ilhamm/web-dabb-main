@@ -207,12 +207,19 @@
                         @else
                             <div class="text-[13px] text-gray-500 font-medium flex items-center gap-1">
                                 @hasSection('breadcrumb_parent')
-                                    <span class="text-gray-400">@yield('breadcrumb_parent')</span>
-                                    <span class="text-gray-300">/</span>
+                                    @hasSection('breadcrumb_parent_url')
+                                        <a href="@yield('breadcrumb_parent_url')" class="text-gray-400 hover:text-gray-600 transition-colors">
+                                            @yield('breadcrumb_parent')
+                                        </a>
+                                    @else
+                                        <span class="text-gray-400">@yield('breadcrumb_parent')</span>
+                                    @endif
                                 @else
-                                    <span class="text-gray-400">{{ __('dashboard.header.breadcrumb_home') }}</span>
-                                    <span class="text-gray-300">/</span>
+                                    <a href="{{ route('dashboard') }}" class="text-gray-400 hover:text-gray-600 transition-colors">
+                                        {{ __('dashboard.header.breadcrumb_home') }}
+                                    </a>
                                 @endif
+                                <span class="text-gray-300">/</span>
                                 <span class="text-[#0ea5e9]">@yield('breadcrumb_active', __('dashboard.header.breadcrumb_home'))</span>
                             </div>
                         @endif
@@ -426,7 +433,7 @@
 
                 <form method="POST" action="{{ route('password.set') }}">
                     @csrf
-                    
+
                     <div class="space-y-4">
                         <!-- Role Selector -->
                         <div>
@@ -494,7 +501,7 @@
                 </form>
             </div>
         </div>
-        
+
         @if($errors->setPassword->any())
             <!-- If there are validation errors, ensure modal stays open -->
             <script>
@@ -521,15 +528,15 @@
         @php
             $tType = 'info';
             $tMsg = session('info');
-            
+
             if (session('success')) {
-                $tType = 'success'; 
+                $tType = 'success';
                 $tMsg = session('success');
             } elseif (session('error') || $errors->any()) {
-                $tType = 'error'; 
+                $tType = 'error';
                 $tMsg = session('error') ?? $errors->first();
             } elseif (session('warning')) {
-                $tType = 'warning'; 
+                $tType = 'warning';
                 $tMsg = session('warning');
             }
         @endphp

@@ -1,5 +1,8 @@
 @extends('layouts.app')
 
+@section('breadcrumb_parent', 'CMS')
+@section('breadcrumb_active', __('dashboard.disclaimer.title'))
+
 @push('styles')
 <link rel="stylesheet" href="https://richtexteditor.com/richtexteditor/rte_theme_default.css" />
 @endpush

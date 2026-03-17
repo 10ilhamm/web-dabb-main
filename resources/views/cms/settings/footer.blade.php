@@ -1,5 +1,8 @@
 @extends('layouts.app')
 
+@section('breadcrumb_parent', 'CMS')
+@section('breadcrumb_active', __('dashboard.sidebar.cms_footer'))
+
 @section('content')
 <div class="px-4 py-6 max-w-7xl mx-auto sm:px-6 lg:px-8">
     <div class="flex items-center justify-between mb-6">

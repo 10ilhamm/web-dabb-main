@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('breadcrumb_parent', __('cms.virtual_book_pages.breadcrumb_parent'))
+@section('breadcrumb_parent_url', route('cms.features.virtual_books.index', $feature))
 @section('breadcrumb_active', __('cms.virtual_books.breadcrumb_edit'))
 
 @push('styles')

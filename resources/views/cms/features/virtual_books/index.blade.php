@@ -4,7 +4,8 @@
 <link rel="stylesheet" href="{{ asset('css/cms/virtual_book_pages.css') }}">
 @endpush
 
-@section('breadcrumb_parent', 'CMS / ' . $feature->name)
+@section('breadcrumb_parent', 'CMS / ' . __('cms.features.title'))
+@section('breadcrumb_parent_url', route('cms.features.show', $feature))
 @section('breadcrumb_active', __('cms.virtual_books.breadcrumb_list'))
 
 @section('content')

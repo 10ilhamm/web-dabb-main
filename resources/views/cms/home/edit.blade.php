@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('breadcrumb_parent', 'CMS / ' . __('cms.features.title'))
+@section('breadcrumb_parent_url', route('cms.features.index'))
 @section('breadcrumb_active', $feature->name)
 
 @section('content')

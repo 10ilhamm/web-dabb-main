@@ -5,6 +5,7 @@
 @endpush
 
 @section('breadcrumb_parent', 'CMS / ' . $feature->name)
+@section('breadcrumb_parent_url', route('cms.features.virtual_books.index', $feature))
 @section('breadcrumb_active', __('cms.virtual_book_pages.breadcrumb_list'))
 
 @section('content')
