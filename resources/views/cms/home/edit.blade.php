@@ -4,8 +4,6 @@
     <span class="text-gray-400">CMS</span>
     <span class="text-gray-300">/</span>
     <a href="{{ route('cms.features.index') }}" class="text-gray-400 hover:text-gray-600 transition-colors">Manajemen Fitur</a>
-    <span class="text-gray-300">/</span>
-    <span class="text-gray-400">{{ $feature->name }}</span>
 @endsection
 @section('breadcrumb_active', $feature->name)
 

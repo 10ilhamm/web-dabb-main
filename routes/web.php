@@ -76,6 +76,7 @@ Route::middleware('auth')->group(function () {
     Route::middleware('role:admin')->prefix('cms/features')->name('cms.features.')->group(function () {
         Route::get('/', [FeatureController::class, 'index'])->name('index');
         Route::post('/', [FeatureController::class, 'store'])->name('store');
+        Route::get('/{feature}/', [FeatureController::class, 'show'])->name('show.slash');
         Route::get('/{feature}', [FeatureController::class, 'show'])->name('show');
         Route::put('/{feature}', [FeatureController::class, 'update'])->name('update');
         Route::delete('/{feature}', [FeatureController::class, 'destroy'])->name('destroy');

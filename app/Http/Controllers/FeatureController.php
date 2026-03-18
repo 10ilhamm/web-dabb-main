@@ -125,8 +125,8 @@ class FeatureController extends Controller
             return redirect()->route('cms.features.pages.index', $feature);
         }
 
-        // For dropdown types with slideshow, redirect to slideshow index
-        if ($feature->type === 'dropdown' && $feature->page_type === 'slideshow') {
+        // For dropdown types with slideshow, redirect to slideshow index (unless ?from=slideshow is set)
+        if ($feature->type === 'dropdown' && $feature->page_type === 'slideshow' && !request()->has('from')) {
             return redirect()->route('cms.features.slideshow.index', $feature);
         }
 

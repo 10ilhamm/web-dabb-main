@@ -283,9 +283,9 @@ return [
     */
 
     'virtual_rooms' => [
-        'breadcrumb_parent' => 'CMS / Pameran Virtual Real',
+        'breadcrumb_parent' => 'Pameran Virtual Real',
         'breadcrumb_active' => 'Dashboard',
-        'breadcrumb_form_parent' => 'CMS / Pameran Virtual Real / Daftar Ruangan',
+        'breadcrumb_form_parent' => 'Pameran Virtual Real / Daftar Ruangan',
         'breadcrumb_edit' => 'Edit Ruangan',
         'breadcrumb_create' => 'Tambah Ruangan',
 
@@ -345,7 +345,7 @@ return [
     */
 
     'virtual_3d_rooms' => [
-        'breadcrumb_parent' => 'CMS / Ruangan Virtual 3D',
+        'breadcrumb_parent' => 'Ruangan Virtual 3D',
         'breadcrumb_edit' => 'Edit: :name',
         'breadcrumb_create' => 'Tambah Ruangan',
 
@@ -559,7 +559,7 @@ return [
     */
 
     'virtual_book_pages' => [
-        'breadcrumb_parent' => 'CMS / Buku Virtual',
+        'breadcrumb_parent' => 'Buku Virtual',
         'breadcrumb_list' => 'Halaman Buku',
         'breadcrumb_create' => 'Tambah Halaman',
         'breadcrumb_edit' => 'Edit Halaman',

@@ -2,8 +2,6 @@
 
 @section('breadcrumb_items')
     <span class="text-gray-400">CMS</span>
-    <span class="text-gray-300">/</span>
-    <span class="text-gray-400">{{ __('dashboard.sidebar.cms_footer') }}</span>
 @endsection
 @section('breadcrumb_active', __('dashboard.sidebar.cms_footer'))
 
@@ -88,7 +86,7 @@
                         <label class="block text-sm font-medium text-gray-700 mb-2">Teks Pengelola (Kecil)</label>
                         <textarea name="footer_managed_by_sub" rows="2" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="Depot Arsip&#10;Berkelanjutan">{{ old('footer_managed_by_sub', $settings['footer_managed_by_sub'] ?? '') }}</textarea>
                     </div>
-                    
+
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Link Facebook</label>
                         <input type="url" name="footer_facebook" value="{{ old('footer_facebook', $settings['footer_facebook'] ?? '') }}" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="https://facebook.com/...">
@@ -107,7 +105,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="flex justify-end pt-5 mt-8 border-t border-gray-100">
                 <button type="submit" class="bg-gray-800 hover:bg-gray-900 text-white text-sm font-semibold px-6 py-2.5 rounded-lg transition-colors shadow-sm flex items-center gap-2">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -2,8 +2,6 @@
 
 @section('breadcrumb_items')
     <span class="text-gray-400">CMS</span>
-    <span class="text-gray-300">/</span>
-    <span class="text-gray-400">Manajemen Fitur</span>
 @endsection
 @section('breadcrumb_active', __('cms.features.title'))
 
@@ -66,7 +64,7 @@
                         <td class="px-6 py-4">
                             <div class="flex items-center justify-center gap-2">
                                 <!-- Detail Button -->
-                                <a href="{{ route('cms.features.show', $feature) }}"
+                                <a href="{{ url('/cms/features/' . $feature->id . '/') }}"
                                     class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-600 hover:bg-gray-700 text-white text-xs font-semibold rounded-md transition-colors">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>

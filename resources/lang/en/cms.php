@@ -280,9 +280,9 @@ return [
     */
 
     'virtual_rooms' => [
-        'breadcrumb_parent' => 'CMS / Virtual Exhibition Real',
+        'breadcrumb_parent' => 'Virtual Exhibition Real',
         'breadcrumb_active' => 'Dashboard',
-        'breadcrumb_form_parent' => 'CMS / Virtual Exhibition Real / Room List',
+        'breadcrumb_form_parent' => 'Virtual Exhibition Real / Room List',
         'breadcrumb_edit' => 'Edit Room',
         'breadcrumb_create' => 'Add Room',
 
@@ -342,7 +342,7 @@ return [
     */
 
     'virtual_3d_rooms' => [
-        'breadcrumb_parent' => 'CMS / Virtual 3D Rooms',
+        'breadcrumb_parent' => 'Virtual 3D Rooms',
         'breadcrumb_edit' => 'Edit: :name',
         'breadcrumb_create' => 'Add Room',
 
@@ -556,7 +556,7 @@ return [
     */
 
     'virtual_book_pages' => [
-        'breadcrumb_parent' => 'CMS / Virtual Books',
+        'breadcrumb_parent' => 'Virtual Books',
         'breadcrumb_list' => 'Book Pages',
         'breadcrumb_create' => 'Add Page',
         'breadcrumb_edit' => 'Edit Page',

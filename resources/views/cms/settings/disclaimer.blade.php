@@ -2,8 +2,6 @@
 
 @section('breadcrumb_items')
     <span class="text-gray-400">CMS</span>
-    <span class="text-gray-300">/</span>
-    <span class="text-gray-400">{{ __('dashboard.disclaimer.title') }}</span>
 @endsection
 @section('breadcrumb_active', __('dashboard.disclaimer.title'))
 
@@ -24,17 +22,17 @@
 
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">{{ __('dashboard.disclaimer.content_label') }}</label>
-                
+
                 <div class="overflow-x-auto w-full border border-gray-100 rounded-lg">
                     <div id="div_editor1" style="min-width: 100%;">
                         {!! old('disclaimer_content', $settings['disclaimer_content'] ?? '<p style="margin-bottom: 0.5rem;"><strong>Disclaimer:</strong> Seluruh informasi, dokumen, dan arsip digital yang tersedia di situs web Depot Arsip Berkelanjutan Bandung (DABB) disajikan berdasarkan data saat informasi itu dibuat semata-mata untuk tujuan pelestarian sejarah, edukasi, dan informasi umum.</p><p style="margin-bottom: 1rem;">Dengan mengakses dan menggunakan situs web ini, Anda menyetujui ketentuan berikut:</p><p style="margin-bottom: 1rem;"><strong>Akurasi dan Konteks Historis:</strong> DABB berupaya semaksimal mungkin untuk menjaga keaslian visual dan tekstual dari setiap arsip yang didigitalkan. Namun, kami tidak memberikan jaminan mutlak atas kelengkapan, keakuratan, atau relevansi informasi di dalam dokumen tersebut dengan kondisi masa kini. Arsip historis mungkin memuat pandangan, bahasa, atau norma pada masanya yang tidak selalu mencerminkan nilai dan pandangan DABB saat ini.</p><p style="margin-bottom: 1rem;"><strong>Hak Cipta dan Penggunaan Publik:</strong> Sebagian besar materi yang ditampilkan mungkin dilindungi oleh hak cipta dari masing-masing pembuat, organisasi asal, atau pemilik sah sebelumnya. Pengunjung diperbolehkan menggunakan arsip untuk keperluan studi dan penelitian pribadi. Penggunaan, reproduksi, atau distribusi ulang untuk tujuan komersial tanpa izin tertulis yang sah sangat dilarang.</p><p style="margin-bottom: 0;"><strong>Batasan Tanggung Jawab:</strong> Segala tindakan atau keputusan yang diambil berdasarkan informasi dari arsip di situs web ini sepenuhnya merupakan risiko dan tanggung jawab pengguna. DABB dan seluruh pihak pengelola tidak bertanggung jawab atas segala bentuk kerugian, baik langsung maupun tidak langsung, yang timbul dari penggunaan atau ketidakmampuan dalam mengakses repositori ini.</p>') !!}
                     </div>
                 </div>
-                
+
                 <input type="hidden" name="disclaimer_content" id="disclaimer_content" />
                 <p class="mt-2 text-sm text-gray-500">{{ __('dashboard.disclaimer.content_help') }}</p>
             </div>
-            
+
             <div class="flex justify-end pt-5 mt-8 border-t border-gray-100">
                 <button type="submit" class="bg-gray-800 hover:bg-gray-900 text-white text-sm font-semibold px-6 py-2.5 rounded-lg transition-colors shadow-sm flex items-center gap-2">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -58,10 +56,10 @@
             file_upload_handler: function(file, callback, optionalIndex, optionalFiles) {
                 var formData = new FormData();
                 formData.append('file', file);
-                
+
                 // Manually include the CSRF token
                 formData.append('_token', '{{ csrf_token() }}');
-                
+
                 fetch('{{ route("cms.settings.rte.upload") }}', {
                     method: 'POST',
                     body: formData,
@@ -82,7 +80,7 @@
                 });
             }
         });
-        
+
         document.getElementById('disclaimerForm').addEventListener('submit', function() {
             var html = editor1.getHTMLCode();
             document.getElementById('disclaimer_content').value = html;

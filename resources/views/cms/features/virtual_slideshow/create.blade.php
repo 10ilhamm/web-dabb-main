@@ -3,13 +3,24 @@
 @section('breadcrumb_items')
     <span class="text-gray-400">CMS</span>
     <span class="text-gray-300">/</span>
-    <a href="{{ route('cms.features.index') }}" class="text-gray-400 hover:text-gray-600 transition-colors">Manajemen Fitur</a>
+    <a href="{{ route('cms.features.index') }}" class="text-gray-400 hover:text-gray-600 transition-colors">{{ __('cms.features.title') }}</a>
+    @if ($feature->parent)
+        @php
+            $grandparent = $feature->parent->parent;
+        @endphp
+
+        @if ($grandparent && $grandparent->id !== $feature->parent->id)
+            <span class="text-gray-300">/</span>
+            <a href="{{ url('/cms/features/' . $grandparent->id . '/') }}"
+                class="text-gray-400 hover:text-gray-600 transition-colors">{{ $grandparent->name }}</a>
+        @endif
+
+        <span class="text-gray-300">/</span>
+        <a href="{{ url('/cms/features/' . $feature->parent->id . '/') }}"
+            class="text-gray-400 hover:text-gray-600 transition-colors">{{ $feature->parent->name }}</a>
+    @endif
     <span class="text-gray-300">/</span>
     <a href="{{ route('cms.features.show', $feature) }}" class="text-gray-400 hover:text-gray-600 transition-colors">{{ $feature->name }}</a>
-    <span class="text-gray-300">/</span>
-    <a href="{{ route('cms.features.slideshow.index', $feature) }}" class="text-gray-400 hover:text-gray-600 transition-colors">{{ $feature->name }} — Slideshow</a>
-    <span class="text-gray-300">/</span>
-    <span class="text-gray-400">Tambah Halaman</span>
 @endsection
 @section('breadcrumb_active', 'Tambah Halaman')
 

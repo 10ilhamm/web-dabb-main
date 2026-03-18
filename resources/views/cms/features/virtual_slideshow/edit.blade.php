@@ -3,137 +3,176 @@
 @section('breadcrumb_items')
     <span class="text-gray-400">CMS</span>
     <span class="text-gray-300">/</span>
-    <a href="{{ route('cms.features.index') }}" class="text-gray-400 hover:text-gray-600 transition-colors">Manajemen Fitur</a>
+    <a href="{{ route('cms.features.index') }}"
+        class="text-gray-400 hover:text-gray-600 transition-colors">{{ __('cms.features.title') }}</a>
+    @if ($feature->parent)
+        @php
+            $grandparent = $feature->parent->parent;
+        @endphp
+
+        @if ($grandparent && $grandparent->id !== $feature->parent->id)
+            <span class="text-gray-300">/</span>
+            <a href="{{ url('/cms/features/' . $grandparent->id . '/') }}"
+                class="text-gray-400 hover:text-gray-600 transition-colors">{{ $grandparent->name }}</a>
+        @endif
+
+        <span class="text-gray-300">/</span>
+        <a href="{{ url('/cms/features/' . $feature->parent->id . '/') }}"
+            class="text-gray-400 hover:text-gray-600 transition-colors">{{ $feature->parent->name }}</a>
+    @endif
     <span class="text-gray-300">/</span>
-    <a href="{{ route('cms.features.show', $feature) }}" class="text-gray-400 hover:text-gray-600 transition-colors">{{ $feature->name }}</a>
-    <span class="text-gray-300">/</span>
-    <a href="{{ route('cms.features.slideshow.index', $feature) }}" class="text-gray-400 hover:text-gray-600 transition-colors">{{ $feature->name }} — Slideshow</a>
-    <span class="text-gray-300">/</span>
-    <span class="text-gray-400">Edit Halaman</span>
+    <a href="{{ route('cms.features.show', $feature) }}"
+        class="text-gray-400 hover:text-gray-600 transition-colors">{{ $feature->name }}</a>
 @endsection
-@section('breadcrumb_active', 'Edit Halaman')
+@section('breadcrumb_active', $page->title . ' - Edit Halaman')
 
 @section('content')
-<div class="space-y-6">
+    <div class="space-y-6">
 
-    {{-- Header --}}
-    <div class="flex items-center gap-3">
-        <a href="{{ route('cms.features.slideshow.index', $feature) }}"
-            class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-white transition-colors shadow-sm" style="background-color: #818284;">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-            </svg>
-        </a>
-        <div>
-            <h1 class="text-2xl font-bold text-gray-800">Edit Halaman Exhibition</h1>
-            <p class="text-sm text-gray-500 mt-0.5">{{ $feature->name }}</p>
+        {{-- Header --}}
+        <div class="flex items-center gap-3">
+            <a href="{{ route('cms.features.slideshow.index', $feature) }}"
+                class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-white transition-colors shadow-sm"
+                style="background-color: #818284;">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                </svg>
+            </a>
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800">Edit Halaman Exhibition</h1>
+                <p class="text-sm text-gray-500 mt-0.5">{{ $feature->name }}</p>
+            </div>
         </div>
-    </div>
 
-    <form action="{{ route('cms.features.slideshow.pages.update', [$feature, $page]) }}" method="POST" class="space-y-6" id="pageForm" enctype="multipart/form-data">
-        @csrf
-        @method('PUT')
+        <form action="{{ route('cms.features.slideshow.pages.update', [$feature, $page]) }}" method="POST"
+            class="space-y-6" id="pageForm" enctype="multipart/form-data">
+            @csrf
+            @method('PUT')
 
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-4">
-            <h2 class="text-base font-semibold text-gray-800">Informasi Halaman</h2>
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-4">
+                <h2 class="text-base font-semibold text-gray-800">Informasi Halaman</h2>
 
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Judul Halaman <span class="text-red-500">*</span></label>
-                <input type="text" name="title" value="{{ old('title', $page->title) }}" class="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Judul halaman exhibition..." required>
-            </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Judul Halaman <span
+                            class="text-red-500">*</span></label>
+                    <input type="text" name="title" value="{{ old('title', $page->title) }}"
+                        class="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Judul halaman exhibition..." required>
+                </div>
 
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Deskripsi</label>
-                <textarea name="description" rows="3" class="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Deskripsi singkat...">{{ old('description', $page->description) }}</textarea>
-            </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Deskripsi</label>
+                    <textarea name="description" rows="3"
+                        class="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Deskripsi singkat...">{{ old('description', $page->description) }}</textarea>
+                </div>
 
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Urutan <span class="text-red-500">*</span></label>
-                <input type="number" name="order" min="0" value="{{ old('order', $page->order) }}" class="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
-                <p class="text-xs text-gray-500 mt-1">Urutan tampilan di halaman publik</p>
-            </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Urutan <span
+                            class="text-red-500">*</span></label>
+                    <input type="number" name="order" min="0" value="{{ old('order', $page->order) }}"
+                        class="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        required>
+                    <p class="text-xs text-gray-500 mt-1">Urutan tampilan di halaman publik</p>
+                </div>
 
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Thumbnail</label>
-                <input type="hidden" name="remove_thumbnail" id="removeThumbnail" value="0">
-                <div class="flex items-start gap-4">
-                    <div class="flex-1">
-                        <div class="relative">
-                            <input type="file" name="thumbnail" id="thumbnail" accept="image/*" class="hidden" onchange="previewThumbnail(this)">
-                            <label for="thumbnail" class="flex items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-[#174E93] transition-colors">
-                                <div class="text-center">
-                                    <svg class="w-8 h-8 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                    </svg>
-                                    <p class="mt-1 text-xs text-gray-500">Klik untuk upload gambar</p>
-                                </div>
-                            </label>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Thumbnail</label>
+                    <input type="hidden" name="remove_thumbnail" id="removeThumbnail" value="0">
+                    <div class="flex items-start gap-4">
+                        <div class="flex-1">
+                            <div class="relative">
+                                <input type="file" name="thumbnail" id="thumbnail" accept="image/*" class="hidden"
+                                    onchange="previewThumbnail(this)">
+                                <label for="thumbnail"
+                                    class="flex items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-[#174E93] transition-colors">
+                                    <div class="text-center">
+                                        <svg class="w-8 h-8 mx-auto text-gray-400" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                        </svg>
+                                        <p class="mt-1 text-xs text-gray-500">Klik untuk upload gambar</p>
+                                    </div>
+                                </label>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">Opsional. Jika tidak diisi, thumbnail tetap seperti
+                                sebelumnya.</p>
                         </div>
-                        <p class="text-xs text-gray-500 mt-1">Opsional. Jika tidak diisi, thumbnail tetap seperti sebelumnya.</p>
+                        @if ($page->thumbnail_path)
+                            <div id="thumbnailPreview"
+                                class="relative w-24 h-24 rounded-lg overflow-hidden border border-gray-200">
+                                <img src="{{ asset('storage/' . $page->thumbnail_path) }}" alt="Thumbnail saat ini"
+                                    class="w-full h-full object-cover">
+                                <button type="button"
+                                    onclick="document.getElementById('removeThumbnail').value='1'; document.getElementById('thumbnailPreview').style.display='none';"
+                                    class="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+                        @else
+                            <div id="thumbnailPreview"
+                                class="hidden relative w-24 h-24 rounded-lg overflow-hidden border border-gray-200">
+                                <img src="" alt="Preview" class="w-full h-full object-cover">
+                                <button type="button"
+                                    onclick="document.getElementById('thumbnail').value=''; document.getElementById('thumbnailPreview').classList.add('hidden');"
+                                    class="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+                        @endif
                     </div>
-                    @if($page->thumbnail_path)
-                    <div id="thumbnailPreview" class="relative w-24 h-24 rounded-lg overflow-hidden border border-gray-200">
-                        <img src="{{ asset('storage/' . $page->thumbnail_path) }}" alt="Thumbnail saat ini" class="w-full h-full object-cover">
-                        <button type="button" onclick="document.getElementById('removeThumbnail').value='1'; document.getElementById('thumbnailPreview').style.display='none';" class="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors">
-                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                            </svg>
-                        </button>
-                    </div>
-                    @else
-                    <div id="thumbnailPreview" class="hidden relative w-24 h-24 rounded-lg overflow-hidden border border-gray-200">
-                        <img src="" alt="Preview" class="w-full h-full object-cover">
-                        <button type="button" onclick="document.getElementById('thumbnail').value=''; document.getElementById('thumbnailPreview').classList.add('hidden');" class="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors">
-                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                            </svg>
-                        </button>
-                    </div>
-                    @endif
                 </div>
             </div>
-        </div>
 
-        <script>
-        function previewThumbnail(input) {
-            const preview = document.getElementById("thumbnailPreview");
-            const previewImg = preview.querySelector("img");
+            <script>
+                function previewThumbnail(input) {
+                    const preview = document.getElementById("thumbnailPreview");
+                    const previewImg = preview.querySelector("img");
 
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    previewImg.src = e.target.result;
-                    preview.classList.remove("hidden");
-                    preview.style.display = 'relative';
-                    // Add remove button if not exists
-                    if (!preview.querySelector('button')) {
-                        const btn = document.createElement('button');
-                        btn.type = 'button';
-                        btn.className = 'absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors';
-                        btn.innerHTML = '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>';
-                        btn.onclick = function() {
-                            document.getElementById('thumbnail').value = '';
-                            preview.classList.add('hidden');
+                    if (input.files && input.files[0]) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            previewImg.src = e.target.result;
+                            preview.classList.remove("hidden");
+                            preview.style.display = 'relative';
+                            // Add remove button if not exists
+                            if (!preview.querySelector('button')) {
+                                const btn = document.createElement('button');
+                                btn.type = 'button';
+                                btn.className =
+                                    'absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors';
+                                btn.innerHTML =
+                                    '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>';
+                                btn.onclick = function() {
+                                    document.getElementById('thumbnail').value = '';
+                                    preview.classList.add('hidden');
+                                };
+                                preview.appendChild(btn);
+                            }
+                            document.getElementById('removeThumbnail').value = '0';
                         };
-                        preview.appendChild(btn);
+                        reader.readAsDataURL(input.files[0]);
                     }
-                    document.getElementById('removeThumbnail').value = '0';
-                };
-                reader.readAsDataURL(input.files[0]);
-            }
-        }
-        </script>
+                }
+            </script>
 
-        <div class="flex items-center justify-end gap-3">
-            <a href="{{ route('cms.features.slideshow.index', $feature) }}"
-                class="px-5 py-2.5 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
-                Batal
-            </a>
-            <button type="submit"
-                class="px-6 py-2.5 text-sm font-semibold text-white bg-[#174E93] hover:bg-blue-800 rounded-lg transition-colors shadow-sm">
-                Perbarui Halaman
-            </button>
-        </div>
-    </form>
-</div>
+            <div class="flex items-center justify-end gap-3">
+                <a href="{{ route('cms.features.slideshow.index', $feature) }}"
+                    class="px-5 py-2.5 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
+                    Batal
+                </a>
+                <button type="submit"
+                    class="px-6 py-2.5 text-sm font-semibold text-white bg-[#174E93] hover:bg-blue-800 rounded-lg transition-colors shadow-sm">
+                    Perbarui Halaman
+                </button>
+            </div>
+        </form>
+    </div>
 @endsection

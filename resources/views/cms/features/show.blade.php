@@ -3,10 +3,12 @@
 @section('breadcrumb_items')
     <span class="text-gray-400">CMS</span>
     <span class="text-gray-300">/</span>
-    <a href="{{ route('cms.features.index') }}" class="text-gray-400 hover:text-gray-600 transition-colors">Manajemen Fitur</a>
+    <a href="{{ route('cms.features.index') }}" class="text-gray-400 hover:text-gray-600 transition-colors">{{ __('cms.features.title') }}</a>
+    @if($feature->parent)
     <span class="text-gray-300">/</span>
-    <span class="text-gray-400">{{ $feature->name }}</span>
-@endsection
+    <a href="{{ url('/cms/features/' . $feature->parent->id . '/') }}" class="text-gray-400 hover:text-gray-600 transition-colors">{{ $feature->parent->name }}</a>
+    @endif
+@endsection  
 @section('breadcrumb_active', $feature->name)
 
 @section('content')
