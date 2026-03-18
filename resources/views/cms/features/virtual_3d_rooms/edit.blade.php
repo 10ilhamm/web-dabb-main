@@ -5,8 +5,17 @@
 <link rel="stylesheet" href="{{ asset('css/cms/virtual_3d_rooms_form.css') }}">
 @endpush
 
-@section('breadcrumb_parent', __('cms.virtual_3d_rooms.breadcrumb_parent'))
-@section('breadcrumb_parent_url', route('cms.features.virtual_3d_rooms.index', $feature))
+@section('breadcrumb_items')
+    <span class="text-gray-400">CMS</span>
+    <span class="text-gray-300">/</span>
+    <a href="{{ route('cms.features.index') }}" class="text-gray-400 hover:text-gray-600 transition-colors">Manajemen Fitur</a>
+    <span class="text-gray-300">/</span>
+    <a href="{{ route('cms.features.show', $feature) }}" class="text-gray-400 hover:text-gray-600 transition-colors">{{ $feature->name }}</a>
+    <span class="text-gray-300">/</span>
+    <a href="{{ route('cms.features.virtual_3d_rooms.index', $feature) }}" class="text-gray-400 hover:text-gray-600 transition-colors">{{ __('cms.virtual_3d_rooms.breadcrumb_parent') }}</a>
+    <span class="text-gray-300">/</span>
+    <span class="text-gray-400">{{ __('cms.virtual_3d_rooms.breadcrumb_edit', ['name' => $room->name]) }}</span>
+@endsection
 @section('breadcrumb_active', __('cms.virtual_3d_rooms.breadcrumb_edit', ['name' => $room->name]))
 
 @section('content')

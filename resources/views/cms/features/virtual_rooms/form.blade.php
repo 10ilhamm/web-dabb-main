@@ -10,8 +10,17 @@
     $actionUrl = $isEdit ? route('cms.features.virtual_rooms.update', [$feature, $room]) : route('cms.features.virtual_rooms.store', $feature);
 @endphp
 
-@section('breadcrumb_parent', __('cms.virtual_rooms.breadcrumb_form_parent'))
-@section('breadcrumb_parent_url', route('cms.features.virtual_rooms.index', $feature))
+@section('breadcrumb_items')
+    <span class="text-gray-400">CMS</span>
+    <span class="text-gray-300">/</span>
+    <a href="{{ route('cms.features.index') }}" class="text-gray-400 hover:text-gray-600 transition-colors">Manajemen Fitur</a>
+    <span class="text-gray-300">/</span>
+    <a href="{{ route('cms.features.show', $feature) }}" class="text-gray-400 hover:text-gray-600 transition-colors">{{ $feature->name }}</a>
+    <span class="text-gray-300">/</span>
+    <a href="{{ route('cms.features.virtual_rooms.index', $feature) }}" class="text-gray-400 hover:text-gray-600 transition-colors">{{ __('cms.virtual_rooms.breadcrumb_form_parent') }}</a>
+    <span class="text-gray-300">/</span>
+    <span class="text-gray-400">{{ $isEdit ? __('cms.virtual_rooms.breadcrumb_edit') : __('cms.virtual_rooms.breadcrumb_create') }}</span>
+@endsection
 @section('breadcrumb_active', $isEdit ? __('cms.virtual_rooms.breadcrumb_edit') : __('cms.virtual_rooms.breadcrumb_create'))
 
 @section('content')

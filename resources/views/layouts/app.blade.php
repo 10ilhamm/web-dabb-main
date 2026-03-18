@@ -206,18 +206,22 @@
                             @yield('header')
                         @else
                             <div class="text-[13px] text-gray-500 font-medium flex items-center gap-1">
-                                @hasSection('breadcrumb_parent')
-                                    @hasSection('breadcrumb_parent_url')
-                                        <a href="@yield('breadcrumb_parent_url')" class="text-gray-400 hover:text-gray-600 transition-colors">
-                                            @yield('breadcrumb_parent')
-                                        </a>
-                                    @else
-                                        <span class="text-gray-400">@yield('breadcrumb_parent')</span>
-                                    @endif
+                                @hasSection('breadcrumb_items')
+                                    @yield('breadcrumb_items')
                                 @else
-                                    <a href="{{ route('dashboard') }}" class="text-gray-400 hover:text-gray-600 transition-colors">
-                                        {{ __('dashboard.header.breadcrumb_home') }}
-                                    </a>
+                                    @hasSection('breadcrumb_parent')
+                                        @hasSection('breadcrumb_parent_url')
+                                            <a href="@yield('breadcrumb_parent_url')" class="text-gray-400 hover:text-gray-600 transition-colors">
+                                                @yield('breadcrumb_parent')
+                                            </a>
+                                        @else
+                                            <span class="text-gray-400">@yield('breadcrumb_parent')</span>
+                                        @endif
+                                    @else
+                                        <a href="{{ route('dashboard') }}" class="text-gray-400 hover:text-gray-600 transition-colors">
+                                            {{ __('dashboard.header.breadcrumb_home') }}
+                                        </a>
+                                    @endif
                                 @endif
                                 <span class="text-gray-300">/</span>
                                 <span class="text-[#0ea5e9]">@yield('breadcrumb_active', __('dashboard.header.breadcrumb_home'))</span>

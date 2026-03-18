@@ -1,7 +1,16 @@
 @extends('layouts.app')
 
-@section('breadcrumb_parent', __('cms.virtual_book_pages.breadcrumb_parent'))
-@section('breadcrumb_parent_url', route('cms.features.virtual_books.index', $feature))
+@section('breadcrumb_items')
+    <span class="text-gray-400">CMS</span>
+    <span class="text-gray-300">/</span>
+    <a href="{{ route('cms.features.index') }}" class="text-gray-400 hover:text-gray-600 transition-colors">Manajemen Fitur</a>
+    <span class="text-gray-300">/</span>
+    <a href="{{ route('cms.features.show', $feature) }}" class="text-gray-400 hover:text-gray-600 transition-colors">{{ $feature->name }}</a>
+    <span class="text-gray-300">/</span>
+    <a href="{{ route('cms.features.virtual_books.index', $feature) }}" class="text-gray-400 hover:text-gray-600 transition-colors">{{ __('cms.virtual_books.breadcrumb_list') }}</a>
+    <span class="text-gray-300">/</span>
+    <span class="text-gray-400">{{ __('cms.virtual_books.breadcrumb_create') }}</span>
+@endsection
 @section('breadcrumb_active', __('cms.virtual_books.breadcrumb_create'))
 
 @push('styles')

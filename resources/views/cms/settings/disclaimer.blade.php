@@ -1,6 +1,10 @@
 @extends('layouts.app')
 
-@section('breadcrumb_parent', 'CMS')
+@section('breadcrumb_items')
+    <span class="text-gray-400">CMS</span>
+    <span class="text-gray-300">/</span>
+    <span class="text-gray-400">{{ __('dashboard.disclaimer.title') }}</span>
+@endsection
 @section('breadcrumb_active', __('dashboard.disclaimer.title'))
 
 @push('styles')
