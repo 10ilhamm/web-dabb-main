@@ -1449,11 +1449,17 @@
                             '<button type="button" class="remove-img" onclick="removePreviewVideo(' + video.index + ')">✕</button>';
                         previewArea.appendChild(uploadWrap);
 
-                        // Add caption input
+                        // Add caption input - preserve existing caption
                         var row = document.createElement('div');
                         row.className = 'info-popup-row';
+                        var existingCaption = uploadedVideoCaptions[video.index] || '';
                         row.innerHTML = '<label class="form-label" style="margin-bottom:4px;">Video Upload ' + displayPosition + '</label>' +
-                            '<input type="text" name="info_popup_carousel_videos[' + videoIndex + ']" class="form-input" placeholder="Keterangan video ' + displayPosition + ' (opsional)...">';
+                            '<input type="text" name="info_popup_carousel_videos[' + videoIndex + ']" class="form-input" placeholder="Keterangan video ' + displayPosition + ' (opsional)..." value="' + existingCaption + '">';
+                        // Save caption when user types
+                        var captionInput = row.querySelector('input');
+                        captionInput.addEventListener('input', function() {
+                            uploadedVideoCaptions[video.index] = this.value;
+                        });
                         popupRows.appendChild(row);
                     }
                 });
@@ -1474,6 +1480,7 @@
             var selectedNewCarouselVideoFiles = [];
             var carouselVideoInsertIndex = null; // Track insertion point for uploaded videos
             var originalUrlCountAtInsert = null; // Track original URL count when first upload happened
+            var uploadedVideoCaptions = {}; // Store captions for uploaded videos by index
 
             window.previewCarouselVideos = function(input) {
                 var files = Array.from(input.files);
@@ -1500,6 +1507,19 @@
 
             window.removePreviewVideo = function(idx) {
                 selectedNewCarouselVideoFiles.splice(idx, 1);
+                // Clear the caption for this index
+                delete uploadedVideoCaptions[idx];
+                // Re-index captions after splice
+                var newCaptions = {};
+                Object.keys(uploadedVideoCaptions).forEach(function(key) {
+                    var oldKey = parseInt(key);
+                    if (oldKey > idx) {
+                        newCaptions[oldKey - 1] = uploadedVideoCaptions[key];
+                    } else {
+                        newCaptions[oldKey] = uploadedVideoCaptions[key];
+                    }
+                });
+                uploadedVideoCaptions = newCaptions;
                 // Reset insertion index if no more uploads
                 if (selectedNewCarouselVideoFiles.length === 0) {
                     carouselVideoInsertIndex = null;
