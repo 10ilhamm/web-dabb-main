@@ -44,16 +44,6 @@
             </div>
         </div>
 
-        @if (session('success'))
-            <div
-                class="bg-green-50 border border-green-200 text-green-700 px-5 py-3 rounded-xl text-sm flex items-center gap-2">
-                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                </svg>
-                {{ session('success') }}
-            </div>
-        @endif
-
         {{-- Slides List --}}
         <div class="bg-white rounded-xl shadow-sm border border-gray-100">
             <div class="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
@@ -118,6 +108,25 @@
                                 @elseif($slide->images && count($slide->images) > 0)
                                     <img src="{{ asset('storage/' . $slide->images[0]) }}"
                                         class="w-full h-full object-cover" alt="">
+                                @elseif($slide->image_urls && count($slide->image_urls) > 0)
+                                    @php
+                                        $firstUrl = $slide->image_urls[0];
+                                        $thumbSrc = $firstUrl;
+                                        if (strpos($firstUrl, 'drive.google.com') !== false) {
+                                            if (preg_match('/\/file\/d\/([a-zA-Z0-9_-]+)/', $firstUrl, $m)) {
+                                                // Use lh3.googleusercontent.com format which supports CORS
+                                                $thumbSrc = 'https://lh3.googleusercontent.com/d/' . $m[1];
+                                            }
+                                        }
+                                    @endphp
+                                    <img src="{{ $thumbSrc }}"
+                                        class="w-full h-full object-cover" alt=""
+                                        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                    <div class="w-full h-full bg-gray-200 flex items-center justify-center" style="display:none;">
+                                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                        </svg>
+                                    </div>
                                 @else
                                     <div class="w-full h-full bg-gray-200 flex items-center justify-center">
                                         <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor"
@@ -166,14 +175,18 @@
                                         {{ Str::limit(strip_tags($slide->description), 80) }}</p>
                                 @endif
                                 <div class="flex items-center gap-3 mt-1 text-xs text-gray-400">
-                                    @if ($slide->images && count($slide->images) > 0)
-                                        <span>📷 {{ count($slide->images) }} gambar</span>
+                                    @php
+                                        $totalImages = (isset($slide->images) ? count($slide->images) : 0) + (isset($slide->image_urls) ? count($slide->image_urls) : 0);
+                                        $totalInfoPopup = isset($slide->info_popup) ? count(array_filter($slide->info_popup, function($v, $k) { return !is_array($v); }, ARRAY_FILTER_USE_BOTH)) : 0;
+                                    @endphp
+                                    @if ($totalImages > 0)
+                                        <span>📷 {{ $totalImages }} gambar</span>
                                     @endif
                                     @if ($slide->video_url)
                                         <span>🎬 Video</span>
                                     @endif
-                                    @if ($slide->info_popup && count($slide->info_popup) > 0)
-                                        <span>💬 {{ count($slide->info_popup) }} info popup</span>
+                                    @if ($totalInfoPopup > 0)
+                                        <span>💬 {{ $totalInfoPopup }} info popup</span>
                                     @endif
                                 </div>
                             </div>

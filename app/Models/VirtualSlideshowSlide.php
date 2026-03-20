@@ -17,7 +17,10 @@ class VirtualSlideshowSlide extends Model
         'description',
         'description_en',
         'images',
+        'image_urls',
         'video_url',
+        'video_file',
+        'carousel_video_urls',
         'layout',
         'bg_color',
         'info_popup',
@@ -26,10 +29,28 @@ class VirtualSlideshowSlide extends Model
 
     protected $casts = [
         'images'     => 'array',
+        'image_urls' => 'array',
+        'carousel_video_urls' => 'array',
         'info_popup' => 'array',
     ];
 
     public function getImagesAttribute($value)
+    {
+        if (is_array($value)) return $value;
+        if (is_null($value) || $value === '' || $value === 'null') return [];
+        $decoded = json_decode($value, true);
+        return json_last_error() === JSON_ERROR_NONE ? $decoded : [];
+    }
+
+    public function getImageUrlsAttribute($value)
+    {
+        if (is_array($value)) return $value;
+        if (is_null($value) || $value === '' || $value === 'null') return [];
+        $decoded = json_decode($value, true);
+        return json_last_error() === JSON_ERROR_NONE ? $decoded : [];
+    }
+
+    public function getCarouselVideoUrlsAttribute($value)
     {
         if (is_array($value)) return $value;
         if (is_null($value) || $value === '' || $value === 'null') return [];

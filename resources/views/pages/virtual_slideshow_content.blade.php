@@ -49,6 +49,28 @@
         }
         return $url; // direct MP4 or other
     }
+
+    function vssProcessImageUrl($url) {
+        if (empty($url)) return null;
+        
+        // Check if it's a Google Drive URL
+        if (strpos($url, 'drive.google.com') !== false) {
+            // Try to extract file ID from various Google Drive URL formats
+            $patterns = [
+                '/\/file\/d\/([a-zA-Z0-9_-]+)/',
+                '/id=([a-zA-Z0-9_-]+)/',
+                '/\/open\?id=([a-zA-Z0-9_-]+)/'
+            ];
+            foreach ($patterns as $pattern) {
+                if (preg_match($pattern, $url, $matches)) {
+                    // Use lh3.googleusercontent.com format which supports CORS
+                    return 'https://lh3.googleusercontent.com/d/' . $matches[1];
+                }
+            }
+        }
+        
+        return $url;
+    }
 @endphp
 
 {{-- Scroll Progress Bar --}}
@@ -78,11 +100,23 @@
 <section class="vsshow-hero" style="{{ $heroSlide->bg_color && $heroSlide->bg_color !== '#ffffff' ? 'background: linear-gradient(135deg, '.e($heroSlide->bg_color).' 0%, #174E93 60%, #2563EB 100%);' : '' }}">
     <div id="vss-particles" class="vsshow-hero-particles"></div>
 
-    @if($heroSlide->images && count($heroSlide->images) > 0)
+    @php
+        $heroImages = $heroSlide->images ?? [];
+        $heroImageUrls = $heroSlide->image_urls ?? [];
+        $heroAllImages = array_merge($heroImages, $heroImageUrls);
+        $heroUploadedCount = count($heroImages);
+    @endphp
+    @if(count($heroAllImages) > 0)
     <div style="position:absolute;inset:0;z-index:0;">
-        <img src="{{ asset('storage/'.$heroSlide->images[0]) }}"
+        @php
+            $heroImg = $heroAllImages[0];
+            $isHeroUploaded = $heroUploadedCount > 0;
+            $heroImgSrc = $isHeroUploaded ? asset('storage/'.$heroImg) : vssProcessImageUrl($heroImg);
+        @endphp
+        <img src="{{ $heroImgSrc }}"
             alt="{{ $heroSlide->title }}"
-            style="width:100%;height:100%;object-fit:cover;opacity:0.25;">
+            style="width:100%;height:100%;object-fit:cover;opacity:0.25;"
+            onerror="this.style.display='none';">
     </div>
     @endif
 
@@ -143,12 +177,14 @@
     $subtitle = $locale === 'en' && $slide->subtitle_en ? $slide->subtitle_en : $slide->subtitle;
     $desc = $locale === 'en' && $slide->description_en ? $slide->description_en : $slide->description;
     $images = $slide->images ?? [];
+    $imageUrls = $slide->image_urls ?? [];
+    $allImages = array_merge($images, $imageUrls);
     $popup = $slide->info_popup ?? [];
     $bgStyle = ($slide->bg_color && $slide->bg_color !== '#ffffff') ? "background-color: {$slide->bg_color};" : '';
     $animDir = $slideIndex % 2 === 0 ? 'vsshow-anim-left' : 'vsshow-anim-right';
     $delay = $slideIndex * 80;
     $embedUrl = vssYouTubeEmbed($slide->video_url);
-    $isYoutube = $slide->video_url && str_contains($slide->video_url, 'youtube') || str_contains((string)$slide->video_url, 'youtu.be');
+    $isYoutube = $slide->video_url && strpos($slide->video_url, 'youtube') !== false || strpos($slide->video_url, 'youtu.be') !== false;
 @endphp
 
 <section class="vsshow-section" style="{{ $bgStyle }}">
@@ -182,33 +218,44 @@
             </div>
             @endif
 
-            @if(count($images) > 0)
+            @if(count($allImages) > 0)
             <div class="vsshow-carousel">
                 <div class="vsshow-carousel-track">
-                    @foreach($images as $imgIdx => $imgPath)
+                    @php
+                        $uploadedCount = count($images);
+                    @endphp
+                    @foreach($allImages as $imgIdx => $imgPath)
                     <div class="vsshow-carousel-slide">
-                        <img src="{{ asset('storage/'.$imgPath) }}" alt="{{ $title }} — gambar {{ $imgIdx+1 }}" loading="lazy">
+                        @php
+                            $isUploadedImage = $imgIdx < $uploadedCount;
+                            $imgSrc = $isUploadedImage ? asset('storage/'.$imgPath) : vssProcessImageUrl($imgPath);
+                        @endphp
+                        <img src="{{ $imgSrc }}" alt="{{ $title }} — gambar {{ $imgIdx+1 }}" loading="lazy" style="width:100%;height:100%;object-fit:contain;">
                         @if(!empty($popup[$imgIdx]) || !empty($popup[(string)$imgIdx]))
                         <button class="vsshow-info-btn"
                             data-popup="{{ $popup[$imgIdx] ?? $popup[(string)$imgIdx] ?? '' }}"
-                            data-img-src="{{ asset('storage/'.$imgPath) }}"
+                            data-img-src="{{ $imgSrc }}"
                             title="Info">?</button>
                         @endif
                     </div>
                     @endforeach
                 </div>
 
-                @if(count($images) > 1)
+                @if(count($allImages) > 1)
                 <button class="vsshow-carousel-btn prev" aria-label="Previous">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
                 </button>
                 <button class="vsshow-carousel-btn next" aria-label="Next">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                 </button>
+                <button class="vsshow-carousel-btn pause-play" id="carousel-pause-btn" aria-label="Pause">
+                    <svg class="pause-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <svg class="play-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display:none;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </button>
                 @endif
 
                 <div class="vsshow-carousel-dots">
-                    @foreach($images as $imgIdx => $_)
+                    @foreach($allImages as $imgIdx => $_)
                     <span class="vsshow-dot {{ $imgIdx === 0 ? 'active' : '' }}" data-idx="{{ $imgIdx }}"></span>
                     @endforeach
                 </div>
@@ -233,7 +280,7 @@
             </div>
             @endif
 
-            @if($slide->video_url)
+            @if($slide->video_url || $slide->video_file)
             <div class="vsshow-video-wrap">
                 @if(!empty($popup['video']))
                 <button class="vsshow-info-btn vsshow-video-info-btn"
@@ -241,16 +288,24 @@
                     title="Info Video">?</button>
                 @endif
 
-                @if($isYoutube || str_contains((string)$slide->video_url, 'youtube') || str_contains((string)$slide->video_url, 'youtu.be') || str_contains((string)$slide->video_url, 'embed'))
-                <div class="vsshow-video-iframe-wrap" data-src="{{ $embedUrl }}">
-                    <iframe data-src="{{ $embedUrl }}" allowfullscreen allow="autoplay; encrypted-media"
-                        title="{{ $title ?? 'Video' }}"></iframe>
-                </div>
-                @else
+                @if($slide->video_file)
+                {{-- Video dari upload file --}}
                 <video controls style="width:100%;max-height:480px;display:block;background:#000;">
-                    <source src="{{ $slide->video_url }}" type="video/mp4">
+                    <source src="{{ asset('storage/' . $slide->video_file) }}" type="video/mp4">
                     Browser Anda tidak mendukung video.
                 </video>
+                @elseif($slide->video_url)
+                    @if($isYoutube || str_contains((string)$slide->video_url, 'youtube') || str_contains((string)$slide->video_url, 'youtu.be') || str_contains((string)$slide->video_url, 'embed'))
+                    <div class="vsshow-video-iframe-wrap" data-src="{{ $embedUrl }}">
+                        <iframe data-src="{{ $embedUrl }}" allowfullscreen allow="autoplay; encrypted-media"
+                            title="{{ $title ?? 'Video' }}"></iframe>
+                    </div>
+                    @else
+                    <video controls style="width:100%;max-height:480px;display:block;background:#000;">
+                        <source src="{{ $slide->video_url }}" type="video/mp4">
+                        Browser Anda tidak mendukung video.
+                    </video>
+                    @endif
                 @endif
             </div>
             @endif
@@ -258,6 +313,21 @@
 
         {{-- TEXT + CAROUSEL --}}
         @elseif($slide->slide_type === 'text_carousel')
+        @php
+            // Get carousel videos (from video_file as array or carousel_video_urls)
+            $carouselVideoFiles = [];
+            if ($slide->video_file) {
+                $vf = $slide->video_file;
+                if (is_array($vf)) {
+                    $carouselVideoFiles = $vf;
+                } elseif (is_string($vf) && str_starts_with($vf, '[')) {
+                    $decoded = json_decode($vf, true);
+                    $carouselVideoFiles = is_array($decoded) ? $decoded : [];
+                }
+            }
+            $carouselVideoUrls = $slide->carousel_video_urls ?? [];
+            $hasCarouselVideos = !empty($carouselVideoFiles) || !empty($carouselVideoUrls);
+        @endphp
         <div class="vsshow-split {{ $slide->layout === 'right' ? 'vsshow-split-right' : '' }}">
             {{-- Text --}}
             <div class="vsshow-split-text vsshow-anim {{ $slide->layout === 'right' ? 'vsshow-anim-right' : 'vsshow-anim-left' }}" data-delay="{{ $delay }}">
@@ -274,48 +344,125 @@
                 @endif
             </div>
 
-            {{-- Carousel --}}
+            {{-- Carousel (Images or Videos) --}}
             <div class="vsshow-anim {{ $slide->layout === 'right' ? 'vsshow-anim-left' : 'vsshow-anim-right' }}" data-delay="{{ $delay + 100 }}">
-                @if(count($images) > 0)
+                @if(count($allImages) > 0)
+                {{-- Image Carousel --}}
                 <div class="vsshow-carousel">
                     <div class="vsshow-carousel-track">
-                        @foreach($images as $imgIdx => $imgPath)
+                        @php
+                            $uploadedCount = count($images);
+                        @endphp
+                        @foreach($allImages as $imgIdx => $imgPath)
                         <div class="vsshow-carousel-slide">
-                            <img src="{{ asset('storage/'.$imgPath) }}" alt="{{ $title }} — gambar {{ $imgIdx+1 }}" loading="lazy">
+                            @php
+                                $isUploadedImage = $imgIdx < $uploadedCount;
+                                $imgSrc = $isUploadedImage ? asset('storage/'.$imgPath) : vssProcessImageUrl($imgPath);
+                            @endphp
+                            <img src="{{ $imgSrc }}" 
+                                alt="{{ $title }} — gambar {{ $imgIdx+1 }}" 
+                                loading="lazy" 
+                                style="width:100%;height:100%;object-fit:contain;"
+                            >
                             @if(!empty($popup[$imgIdx]) || !empty($popup[(string)$imgIdx]))
                             <button class="vsshow-info-btn"
                                 data-popup="{{ $popup[$imgIdx] ?? $popup[(string)$imgIdx] ?? '' }}"
-                                data-img-src="{{ asset('storage/'.$imgPath) }}"
+                                data-img-src="{{ $imgSrc }}"
                                 title="Info">?</button>
                             @endif
                         </div>
                         @endforeach
                     </div>
 
-                    @if(count($images) > 1)
+                    @if(count($allImages) > 1)
                     <button class="vsshow-carousel-btn prev" aria-label="Previous">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
                     </button>
                     <button class="vsshow-carousel-btn next" aria-label="Next">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                     </button>
+                    <button class="vsshow-carousel-btn pause-play" aria-label="Pause">
+                        <svg class="pause-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <svg class="play-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display:none;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </button>
                     @endif
 
                     <div class="vsshow-carousel-dots">
-                        @foreach($images as $imgIdx => $_)
+                        @foreach($allImages as $imgIdx => $_)
                         <span class="vsshow-dot {{ $imgIdx === 0 ? 'active' : '' }}" data-idx="{{ $imgIdx }}"></span>
                         @endforeach
                     </div>
                 </div>
-                @elseif($slide->video_url)
-                <div class="vsshow-video-wrap">
-                    @if(!empty($popup['video']))
-                    <button class="vsshow-info-btn vsshow-video-info-btn"
-                        data-popup="{{ $popup['video'] }}" title="Info Video">?</button>
+                @elseif($hasCarouselVideos)
+                {{-- Video Carousel - Render URL videos first, then uploaded videos (matching edit page order) --}}
+                <div class="vsshow-carousel">
+                    <div class="vsshow-carousel-track">
+                        @php
+                            $uploadCount = count($carouselVideoFiles);
+                            $urlCount = count($carouselVideoUrls);
+                        @endphp
+                        @foreach($carouselVideoUrls as $vidIdx => $vidUrl)
+                        <div class="vsshow-carousel-slide">
+                            @php
+                                $vidEmbedUrl = vssYouTubeEmbed($vidUrl);
+                                $isVidYoutube = str_contains($vidUrl, 'youtube') || str_contains($vidUrl, 'youtu.be') || str_contains($vidUrl, 'embed');
+                            @endphp
+                            @if($isVidYoutube)
+                            <div class="vsshow-video-iframe-wrap" data-src="{{ $vidEmbedUrl }}" style="aspect-ratio:16/9;">
+                                <iframe data-src="{{ $vidEmbedUrl }}" allowfullscreen allow="autoplay; encrypted-media"
+                                    title="{{ $title ?? 'Video ' . ($vidIdx + 1) }}" style="width:100%;height:100%;"></iframe>
+                            </div>
+                            @else
+                            <video controls style="width:100%;max-height:300px;display:block;background:#000;">
+                                <source src="{{ $vidUrl }}" type="video/mp4">
+                                Browser Anda tidak mendukung video.
+                            </video>
+                            @endif
+                            @if(!empty($popup['carousel_videos'][$vidIdx]) || !empty($popup['carousel_videos'][(string)$vidIdx]))
+                            <button class="vsshow-info-btn"
+                                data-popup="{{ $popup['carousel_videos'][$vidIdx] ?? $popup['carousel_videos'][(string)$vidIdx] ?? '' }}"
+                                title="Info">?</button>
+                            @endif
+                        </div>
+                        @endforeach
+                        @foreach($carouselVideoFiles as $vidIdx => $vidFile)
+                        <div class="vsshow-carousel-slide">
+                            <video controls style="width:100%;max-height:300px;display:block;background:#000;">
+                                <source src="{{ asset('storage/' . $vidFile) }}" type="video/mp4">
+                                Browser Anda tidak mendukung video.
+                            </video>
+                            @php
+                                $cvPopupIdx = $urlCount + $vidIdx;
+                            @endphp
+                            @if(!empty($popup['carousel_videos'][$cvPopupIdx]) || !empty($popup['carousel_videos'][(string)$cvPopupIdx]))
+                            <button class="vsshow-info-btn"
+                                data-popup="{{ $popup['carousel_videos'][$cvPopupIdx] ?? $popup['carousel_videos'][(string)$cvPopupIdx] ?? '' }}"
+                                title="Info">?</button>
+                            @endif
+                        </div>
+                        @endforeach
+                    </div>
+
+                    @if($urlCount + $uploadCount > 1)
+                    <button class="vsshow-carousel-btn prev" aria-label="Previous">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                    </button>
+                    <button class="vsshow-carousel-btn next" aria-label="Next">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    </button>
+                    <button class="vsshow-carousel-btn pause-play" aria-label="Pause">
+                        <svg class="pause-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <svg class="play-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display:none;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </button>
                     @endif
-                    <div class="vsshow-video-iframe-wrap" data-src="{{ $embedUrl }}">
-                        <iframe data-src="{{ $embedUrl }}" allowfullscreen allow="autoplay; encrypted-media"
-                            title="{{ $title ?? 'Video' }}"></iframe>
+
+                    <div class="vsshow-carousel-dots">
+                        @foreach($carouselVideoUrls as $vidIdx => $_)
+                        <span class="vsshow-dot {{ $vidIdx === 0 ? 'active' : '' }}" data-idx="{{ $vidIdx }}"></span>
+                        @endforeach
+                        @foreach($carouselVideoFiles as $vidIdx => $_)
+                        <span class="vsshow-dot {{ $urlCount > 0 && $vidIdx === 0 ? 'active' : '' }}" data-idx="{{ $urlCount + $vidIdx }}"></span>
+                        @endforeach
                     </div>
                 </div>
                 @endif

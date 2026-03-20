@@ -209,11 +209,47 @@
                     @php
                         $pageSlides = $page->slideshowSlides ?? collect();
                         $firstSlide = $pageSlides->sortBy('order')->first();
+                        
+                        $thumbUrl = null;
+                        if ($page->thumbnail_path) {
+                            $thumbUrl = asset('storage/'.$page->thumbnail_path);
+                        } elseif ($firstSlide) {
+                            // Check uploaded images first
+                            if ($firstSlide->images && count($firstSlide->images) > 0) {
+                                $thumbUrl = asset('storage/'.$firstSlide->images[0]);
+                            }
+                            // Then check URL images
+                            elseif ($firstSlide->image_urls && count($firstSlide->image_urls) > 0) {
+                                $firstUrl = $firstSlide->image_urls[0];
+                                // Convert Google Drive URL if needed
+                                if (strpos($firstUrl, 'drive.google.com') !== false) {
+                                    // Try various patterns
+                                    $patterns = [
+                                        '/\/file\/d\/([a-zA-Z0-9_-]+)/',
+                                        '/id=([a-zA-Z0-9_-]+)/',
+                                        '/\/open\?id=([a-zA-Z0-9_-]+)/'
+                                    ];
+                                    $converted = false;
+                                    foreach ($patterns as $pattern) {
+                                        if (preg_match($pattern, $firstUrl, $m)) {
+                                            // Use lh3.googleusercontent.com format which supports CORS
+                                            $thumbUrl = 'https://lh3.googleusercontent.com/d/' . $m[1];
+                                            $converted = true;
+                                            break;
+                                        }
+                                    }
+                                    if (!$converted) {
+                                        $thumbUrl = $firstUrl;
+                                    }
+                                } else {
+                                    $thumbUrl = $firstUrl;
+                                }
+                            }
+                        }
                     @endphp
-                    @if($page->thumbnail_path)
-                        <img src="{{ asset('storage/'.$page->thumbnail_path) }}" alt="{{ $page->title }}" loading="lazy">
-                    @elseif($firstSlide && $firstSlide->images && count($firstSlide->images) > 0)
-                        <img src="{{ asset('storage/'.$firstSlide->images[0]) }}" alt="{{ $page->title }}" loading="lazy">
+                    @if($thumbUrl)
+                        <img src="{{ $thumbUrl }}" alt="{{ $page->title }}" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <div class="vss-room-thumb-placeholder" style="display:none;">🎞</div>
                     @else
                         <div class="vss-room-thumb-placeholder">🎞</div>
                     @endif

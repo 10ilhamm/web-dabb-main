@@ -12,6 +12,14 @@ export default defineConfig({
             ],
         }),
     ],
+    server: {
+        hmr: {
+            host: 'localhost',
+        },
+        watch: {
+            usePolling: true,
+        },
+    },
     resolve: {
         alias: {
             'page-flip': 'page-flip/dist/js/page-flip.module.js'

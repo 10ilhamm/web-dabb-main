@@ -46,8 +46,10 @@
         const dots   = carousel.querySelectorAll('.vsshow-dot');
         const prevBtn = carousel.querySelector('.vsshow-carousel-btn.prev');
         const nextBtn = carousel.querySelector('.vsshow-carousel-btn.next');
+        const pauseBtn = carousel.querySelector('.vsshow-carousel-btn.pause-play');
         let current = 0;
         let autoTimer = null;
+        let isPlaying = true;
 
         function goTo(idx) {
             current = (idx + slides.length) % slides.length;
@@ -55,8 +57,31 @@
             dots.forEach((d, i) => d.classList.toggle('active', i === current));
         }
 
+        function togglePause() {
+            if (isPlaying) {
+                clearInterval(autoTimer);
+                isPlaying = false;
+                if (pauseBtn) {
+                    const pauseIcon = pauseBtn.querySelector('.pause-icon');
+                    const playIcon = pauseBtn.querySelector('.play-icon');
+                    if (pauseIcon) pauseIcon.style.display = 'none';
+                    if (playIcon) playIcon.style.display = 'block';
+                }
+            } else {
+                startAuto();
+                isPlaying = true;
+                if (pauseBtn) {
+                    const pauseIcon = pauseBtn.querySelector('.pause-icon');
+                    const playIcon = pauseBtn.querySelector('.play-icon');
+                    if (pauseIcon) pauseIcon.style.display = 'block';
+                    if (playIcon) playIcon.style.display = 'none';
+                }
+            }
+        }
+
         if (prevBtn) prevBtn.addEventListener('click', () => { goTo(current - 1); resetAuto(); });
         if (nextBtn) nextBtn.addEventListener('click', () => { goTo(current + 1); resetAuto(); });
+        if (pauseBtn) pauseBtn.addEventListener('click', togglePause);
 
         dots.forEach((dot, i) => dot.addEventListener('click', () => { goTo(i); resetAuto(); }));
 
@@ -73,22 +98,30 @@
         carousel.addEventListener('keydown', e => {
             if (e.key === 'ArrowLeft')  { goTo(current - 1); resetAuto(); }
             if (e.key === 'ArrowRight') { goTo(current + 1); resetAuto(); }
+            if (e.key === ' ') { e.preventDefault(); togglePause(); }
         });
 
-        // Auto-play (5 sec) only if more than 1 slide
+        // Auto-play (4 sec) only if more than 1 slide
         function startAuto() {
             if (slides.length <= 1) return;
-            autoTimer = setInterval(() => goTo(current + 1), 5000);
+            clearInterval(autoTimer);
+            autoTimer = setInterval(() => goTo(current + 1), 4000);
         }
 
         function resetAuto() {
             clearInterval(autoTimer);
-            startAuto();
+            if (isPlaying) {
+                startAuto();
+            }
         }
 
         // Pause on hover
-        carousel.addEventListener('mouseenter', () => clearInterval(autoTimer));
-        carousel.addEventListener('mouseleave', startAuto);
+        carousel.addEventListener('mouseenter', () => {
+            if (isPlaying) clearInterval(autoTimer);
+        });
+        carousel.addEventListener('mouseleave', () => {
+            if (isPlaying) startAuto();
+        });
 
         goTo(0);
         startAuto();

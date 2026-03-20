@@ -257,12 +257,19 @@
 .vsshow-carousel-slide {
     min-width: 100%;
     position: relative;
+    background: #f8fafc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 420px;
 }
 
 .vsshow-carousel-slide img {
-    width: 100%;
-    height: 420px;
-    object-fit: cover;
+    max-width: 100%;
+    max-height: 420px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
     display: block;
 }
 
@@ -300,6 +307,22 @@
 
 .vsshow-carousel-btn.prev { left: 1rem; }
 .vsshow-carousel-btn.next { right: 1rem; }
+.vsshow-carousel-btn.pause-play {
+    top: auto;
+    bottom: 3.5rem;
+    right: 1rem;
+    left: auto;
+    transform: none;
+    width: 36px;
+    height: 36px;
+}
+.vsshow-carousel-btn.pause-play:hover {
+    transform: scale(1.08);
+}
+.vsshow-carousel-btn.pause-play svg {
+    width: 16px;
+    height: 16px;
+}
 
 .vsshow-carousel-btn svg {
     width: 18px;
@@ -503,6 +526,7 @@
 /* ---- Mobile ---- */
 @media (max-width: 640px) {
     .vsshow-section { padding: 3.5rem 0; }
-    .vsshow-carousel-slide img { height: 240px; }
+    .vsshow-carousel-slide { min-height: 240px; }
+    .vsshow-carousel-slide img { max-height: 240px; }
     .vsshow-popup-card { padding: 1.5rem; }
 }
