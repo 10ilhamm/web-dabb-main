@@ -136,27 +136,27 @@
             justify-content: center;
             cursor: pointer;
         }
-        
+
         #imagePreviewArea {
             display: none;
         }
-        
+
         #newImagePreviewArea {
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
         }
-        
+
         #carouselVideoPreviewArea {
             display: none;
         }
-        
+
         #urlImagePreviewArea {
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
         }
-        
+
         #carouselVideoUrlPreviewArea {
             display: flex;
             flex-wrap: wrap;
@@ -354,7 +354,7 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
                                     </svg>
                                 </a>
-                                <input type="text" name="image_urls[]" class="form-input flex-1" 
+                                <input type="text" name="image_urls[]" class="form-input flex-1"
                                     placeholder="https://example.com/image.jpg atau link Google Drive" data-index="0" oninput="updateUrlLink(this)">
                                 <button type="button" onclick="removeImageUrlEntry(this)" class="px-2 py-2 text-red-500 hover:bg-red-50 rounded-lg flex-shrink-0" title="Hapus">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -399,7 +399,7 @@
                     <div id="carousel-video-url-section">
                         <div id="carousel-video-url-list" class="space-y-2 mb-3">
                             <div class="carousel-video-url-entry flex gap-2 items-start" data-index="0">
-                                <input type="text" name="carousel_video_urls[]" class="form-input flex-1" 
+                                <input type="text" name="carousel_video_urls[]" class="form-input flex-1"
                                     placeholder="https://youtube.com/watch?v=... atau link Google Drive" data-index="0" data-caption="" oninput="updateCarouselUrlCaption(this)">
                                 <button type="button" onclick="removeCarouselVideoUrlEntry(this)" class="px-2 py-2 text-red-500 hover:bg-red-50 rounded-lg flex-shrink-0" title="Hapus">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -462,7 +462,7 @@
 
                 <div id="video-url-section">
                     <div class="flex gap-2 items-start">
-                        <input type="text" name="video_url" class="form-input flex-1" 
+                        <input type="text" name="video_url" class="form-input flex-1"
                             placeholder="https://youtube.com/watch?v=... atau link Google Drive" oninput="previewVideoUrl(this)">
                         <div class="url-preview-placeholder w-24 h-16 rounded-lg border border-gray-200 bg-gray-50 flex items-center justify-center overflow-hidden flex-shrink-0">
                             <span class="text-xs text-gray-400">Preview</span>
@@ -564,12 +564,12 @@
                 });
                 var hiddenLayout = document.getElementById('layout_center_hidden');
                 if (hiddenLayout) hiddenLayout.disabled = cfg.showLayout;
-                
+
                 // Show/hide image/video sections based on type
                 var imageSections = document.getElementById('imageSections');
                 var videoSections = document.getElementById('videoSections');
                 var carouselToggle = document.getElementById('carouselMediaToggle');
-                
+
                 if (type === 'text_carousel') {
                     // Show toggle and default to images
                     if (carouselToggle) carouselToggle.classList.remove('hidden');
@@ -591,13 +591,13 @@
                 var isImages = type === 'images';
                 var imageSections = document.getElementById('imageSections');
                 var videoSections = document.getElementById('videoSections');
-                
+
                 // Update radio button checked state
                 var radioImages = document.querySelector('input[name="carousel_media_type"][value="images"]');
                 var radioVideos = document.querySelector('input[name="carousel_media_type"][value="videos"]');
                 if (radioImages) radioImages.checked = isImages;
                 if (radioVideos) radioVideos.checked = !isImages;
-                
+
                 if (isImages) {
                     imageSections.classList.remove('hidden');
                     videoSections.classList.add('hidden');
@@ -635,11 +635,11 @@
                 var list = document.getElementById('image-url-list');
                 var entries = list.querySelectorAll('.image-url-entry');
                 var newIndex = entries.length;
-                
+
                 var entry = document.createElement('div');
                 entry.className = 'image-url-entry flex gap-2 items-start';
                 entry.setAttribute('data-index', newIndex);
-                entry.innerHTML = 
+                entry.innerHTML =
                     '<a href="#" target="_blank" class="url-link-btn px-2 py-2 text-blue-600 hover:bg-blue-50 rounded-lg flex-shrink-0 opacity-30 cursor-not-allowed" title="Buka link" onclick="return false;">' +
                     '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
                     '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg></a>' +
@@ -649,7 +649,7 @@
                     '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
                     '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>';
                 list.appendChild(entry);
-                
+
                 // Also add the corresponding caption field
                 updateUrlImagePreviews();
             };
@@ -658,7 +658,7 @@
                 var entry = input.closest('.image-url-entry');
                 var linkBtn = entry.querySelector('.url-link-btn');
                 var url = input.value.trim();
-                
+
                 if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
                     linkBtn.href = url;
                     linkBtn.classList.remove('opacity-30', 'cursor-not-allowed');
@@ -668,7 +668,7 @@
                     linkBtn.classList.add('opacity-30', 'cursor-not-allowed');
                     linkBtn.onclick = function() { return false; };
                 }
-                
+
                 updateUrlImagePreviews();
             };
 
@@ -695,11 +695,11 @@
                 var popupArea = document.getElementById('infoPopupImageArea');
                 var hint = document.getElementById('noImagesHint');
                 var uploadPreviewArea = document.getElementById('imagePreviewArea');
-                
+
                 // Get all URL inputs
                 var urlInputs = document.querySelectorAll('#image-url-list input[name="image_urls[]"]');
                 var urlImages = [];
-                
+
                 // Helper function to convert Google Drive URL to direct image URL
                 function convertGoogleDriveUrl(url) {
                     // Format: https://drive.google.com/file/d/FILE_ID/view
@@ -722,12 +722,12 @@
                     }
                     return url;
                 }
-                
+
                 urlInputs.forEach(function(input, idx) {
                     var url = input.value.trim();
                     var entry = input.closest('.image-url-entry');
                     var linkBtn = entry ? entry.querySelector('.url-link-btn') : null;
-                    
+
                     if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
                         // Update link button
                         if (linkBtn) {
@@ -747,33 +747,33 @@
                         }
                     }
                 });
-                
+
                 // Get uploaded images count
                 var uploadedCount = selectedImageFiles.length;
                 var totalImages = urlImages.length + uploadedCount;
-                
+
                 // Clear preview areas
                 previewArea.innerHTML = '';
-                
+
                 if (totalImages === 0) {
                     if (hint) hint.style.display = '';
                     if (popupArea) popupArea.style.display = 'none';
                     popupRows.innerHTML = '<p class="text-xs text-gray-400 italic" id="noImagesHint">Upload atau masukkan URL gambar dulu untuk mengisi keterangan popup.</p>';
                     return;
                 }
-                
+
                 if (hint) hint.style.display = 'none';
                 if (popupArea) popupArea.style.display = 'block';
                 popupRows.innerHTML = '';
-                
+
                 // Render URL image previews
                 urlImages.forEach(function(img, idx) {
                     var wrap = document.createElement('div');
                     wrap.className = 'img-preview-wrap';
-                    
+
                     var imgIndex = idx; // Index for info_popup
                     var isGoogleDrive = img.originalUrl.includes('drive.google.com');
-                    
+
                     if (isGoogleDrive) {
                         // For Google Drive, show a placeholder with link
                         wrap.innerHTML = '<div class="flex flex-col items-center justify-center" style="height:60px;width:60px;background:#f3f4f6;border-radius:8px;border:1px solid #e5e7eb;">' +
@@ -787,7 +787,7 @@
                             '<button type="button" class="remove-img" onclick="removeUrlImage(' + idx + ')">✕</button>';
                     }
                     previewArea.appendChild(wrap);
-                    
+
                     // Add caption input - index matches the URL position in the list
                     var row = document.createElement('div');
                     row.className = 'info-popup-row';
@@ -795,7 +795,7 @@
                         '<input type="text" name="info_popup_images[' + imgIndex + ']" class="form-input" placeholder="Keterangan gambar ' + (idx + 1) + ' (opsional)...">';
                     popupRows.appendChild(row);
                 });
-                
+
                 // Update uploaded image caption indices to come after URL images
                 selectedImageFiles.forEach(function(file, idx) {
                     var reader = new FileReader();
@@ -810,7 +810,7 @@
                         };
                     })(idx, reader);
                     reader.readAsDataURL(file);
-                    
+
                     // Add caption input with correct index
                     var row = document.createElement('div');
                     row.className = 'info-popup-row';
@@ -831,7 +831,7 @@
             window.previewVideoUrl = function(input) {
                 var preview = input.closest('#video-url-section').querySelector('.url-preview-placeholder');
                 var url = input.value.trim();
-                
+
                 if (url && url.includes('youtube.com/watch')) {
                     var videoId = url.split('v=')[1];
                     if (videoId) {
@@ -856,7 +856,7 @@
                 var player = document.getElementById('video-preview-player');
                 var fileName = document.getElementById('video-file-name');
                 var file = input.files[0];
-                
+
                 if (file) {
                     var reader = new FileReader();
                     reader.onload = function(e) {
@@ -872,7 +872,7 @@
 
             window.previewImages = function(input) {
                 var files = Array.from(input.files);
-                
+
                 if (files.length === 0) return;
 
                 files.forEach(function(file) {
@@ -905,11 +905,11 @@
                 var entries = list.querySelectorAll('.carousel-video-url-entry');
                 var newIndex = entries.length;
                 var currentTime = Date.now();
-                
+
                 var entry = document.createElement('div');
                 entry.className = 'carousel-video-url-entry flex gap-2 items-start';
                 entry.setAttribute('data-index', newIndex);
-                entry.innerHTML = 
+                entry.innerHTML =
                     '<input type="text" name="carousel_video_urls[' + newIndex + ']" class="form-input flex-1" ' +
                     'placeholder="https://youtube.com/watch?v=... atau link Google Drive" data-index="' + newIndex + '" data-caption="" oninput="updateCarouselUrlCaption(this)">' +
                     '<button type="button" onclick="removeCarouselVideoUrlEntry(this)" class="px-2 py-2 text-red-500 hover:bg-red-50 rounded-lg flex-shrink-0" title="Hapus">' +
@@ -991,7 +991,7 @@
 
             window.previewCarouselVideos = function(input) {
                 var files = Array.from(input.files);
-                
+
                 if (files.length === 0) return;
 
                 files.forEach(function(file) {
@@ -1019,7 +1019,7 @@
 
                 // Sync URL entries from DOM to unifiedVideoOrder
                 var urlEntries = document.querySelectorAll('.carousel-video-url-entry');
-                
+
                 // Update existing URL entries in unifiedVideoOrder
                 urlEntries.forEach(function(entry) {
                     var input = entry.querySelector('input[name^="carousel_video_urls"]');
