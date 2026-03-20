@@ -1441,11 +1441,31 @@
 
                         previewArea.appendChild(wrap);
 
-                        // Add caption input
+                        // Add caption input with event listener to save
                         var row = document.createElement('div');
                         row.className = 'info-popup-row';
-                        row.innerHTML = '<label class="form-label" style="margin-bottom:4px;">Video URL ' + displayPosition + '</label>' +
-                            '<input type="text" name="info_popup_carousel_videos[' + renderIndex + ']" class="form-input" placeholder="Keterangan video ' + displayPosition + ' (opsional)..." value="' + (video.caption || '') + '">';
+                        var captionInput = document.createElement('input');
+                        captionInput.type = 'text';
+                        captionInput.name = 'info_popup_carousel_videos[' + renderIndex + ']';
+                        captionInput.className = 'form-input';
+                        captionInput.placeholder = 'Keterangan video ' + displayPosition + ' (opsional)...';
+                        captionInput.value = video.caption || '';
+                        captionInput.addEventListener('input', function() {
+                            video.caption = this.value;
+                            // Also update data-caption on URL input
+                            if (video.type === 'url') {
+                                var urlInputs = document.querySelectorAll('#carousel-video-url-list input[name="carousel_video_urls[]"]');
+                                if (urlInputs[video.domIndex]) {
+                                    urlInputs[video.domIndex].setAttribute('data-caption', this.value);
+                                }
+                            }
+                        });
+                        var label = document.createElement('label');
+                        label.className = 'form-label';
+                        label.style.marginBottom = '4px';
+                        label.textContent = 'Video URL ' + displayPosition;
+                        row.appendChild(label);
+                        row.appendChild(captionInput);
                         popupRows.appendChild(row);
                     } else {
                         // Upload video
@@ -1456,11 +1476,24 @@
                             '<button type="button" class="remove-img" onclick="removePreviewVideo(' + video.uploadId + ')">✕</button>';
                         previewArea.appendChild(uploadWrap);
 
-                        // Add caption input
+                        // Add caption input with event listener to save
                         var row = document.createElement('div');
                         row.className = 'info-popup-row';
-                        row.innerHTML = '<label class="form-label" style="margin-bottom:4px;">Video Upload ' + displayPosition + '</label>' +
-                            '<input type="text" name="info_popup_carousel_videos[' + renderIndex + ']" class="form-input" placeholder="Keterangan video ' + displayPosition + ' (opsional)..." value="' + (video.caption || '') + '">';
+                        var captionInput = document.createElement('input');
+                        captionInput.type = 'text';
+                        captionInput.name = 'info_popup_carousel_videos[' + renderIndex + ']';
+                        captionInput.className = 'form-input';
+                        captionInput.placeholder = 'Keterangan video ' + displayPosition + ' (opsional)...';
+                        captionInput.value = video.caption || '';
+                        captionInput.addEventListener('input', function() {
+                            video.caption = this.value;
+                        });
+                        var label = document.createElement('label');
+                        label.className = 'form-label';
+                        label.style.marginBottom = '4px';
+                        label.textContent = 'Video Upload ' + displayPosition;
+                        row.appendChild(label);
+                        row.appendChild(captionInput);
                         popupRows.appendChild(row);
                     }
                 });
