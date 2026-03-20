@@ -1356,65 +1356,106 @@
                 if (hint) hint.style.display = 'none';
                 popupRows.innerHTML = '';
 
-                // Render URL video previews
-                urlVideos.forEach(function(video, idx) {
-                    var wrap = document.createElement('div');
-                    wrap.className = 'img-preview-wrap';
+                // Build all videos array with calculated videoIndex for sorting
+                var allVideos = [];
 
-                    var videoIndex = idx;
-                    var youtubeId = getYouTubeId(video.url);
-
-                    if (youtubeId) {
-                        wrap.innerHTML = '<img src="https://img.youtube.com/vi/' + youtubeId + '/1.jpg" style="height:60px;width:80px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb;" class="rounded-lg">' +
-                            '<button type="button" class="remove-img" onclick="removeUrlVideo(' + videoIndex + ')">✕</button>';
-                    } else if (video.url.endsWith('.mp4') || video.url.endsWith('.webm') || video.url.endsWith('.ogg')) {
-                        wrap.innerHTML = '<video src="' + video.url + '" style="height:60px;width:80px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb;"></video>' +
-                            '<button type="button" class="remove-img" onclick="removeUrlVideo(' + videoIndex + ')">✕</button>';
-                    } else {
-                        wrap.innerHTML = '<div class="w-20 h-16 rounded-lg border border-gray-200 bg-gray-100 flex items-center justify-center"><svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg></div>' +
-                            '<button type="button" class="remove-img" onclick="removeUrlVideo(' + videoIndex + ')">✕</button>';
-                    }
-
-                    previewArea.appendChild(wrap);
-
-                    // Add caption input
-                    var row = document.createElement('div');
-                    row.className = 'info-popup-row';
-                    var captionValue = video.caption || '';
-                    row.innerHTML = '<label class="form-label" style="margin-bottom:4px;">Video URL ' + (idx + 1) + '</label>' +
-                        '<input type="text" name="info_popup_carousel_videos[' + videoIndex + ']" class="form-input" placeholder="Keterangan video ' + (idx + 1) + ' (opsional)..." value="' + captionValue + '">';
-                    // Save caption to URL input's data attribute when user types
-                    var captionInput = row.querySelector('input');
-                    captionInput.addEventListener('input', function() {
-                        var urlInputs = document.querySelectorAll('#carousel-video-url-list input[name="carousel_video_urls[]"]');
-                        if (urlInputs[videoIndex]) {
-                            urlInputs[videoIndex].setAttribute('data-caption', this.value);
+                // Add URL videos
+                var hasUploads = uploadedCount > 0;
+                urlVideos.forEach(function(video) {
+                    var videoIndex;
+                    if (hasUploads && originalUrlCountAtInsert !== null) {
+                        if (video.index < originalUrlCountAtInsert) {
+                            videoIndex = video.index;
+                        } else {
+                            var totalBeforeNewURL = originalUrlCountAtInsert + uploadedCount;
+                            videoIndex = totalBeforeNewURL + (video.index - originalUrlCountAtInsert);
                         }
+                    } else {
+                        videoIndex = video.index;
+                    }
+                    allVideos.push({
+                        type: 'url',
+                        url: video.url,
+                        index: video.index,
+                        videoIndex: videoIndex,
+                        caption: video.caption
                     });
-                    popupRows.appendChild(row);
                 });
 
-                // Update uploaded video caption indices to come after URL videos
-                selectedNewCarouselVideoFiles.forEach(function(file, idx) {
-                    var reader = new FileReader();
-                    var videoIndex = urlVideos.length + idx;
-                    (function(index, fileReader) {
-                        fileReader.onload = function(e) {
-                            var wrap = document.createElement('div');
-                            wrap.className = 'img-preview-wrap';
-                            wrap.innerHTML = '<video src="' + e.target.result + '" style="height:60px;width:80px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb;"></video>' +
-                                '<button type="button" class="remove-img" onclick="removePreviewVideo(' + index + ')">✕</button>';
-                            previewArea.appendChild(wrap);
-                        };
-                    })(idx, reader);
-                    reader.readAsDataURL(file);
+                // Add uploaded videos
+                if (uploadedCount > 0) {
+                    var insertIdx = carouselVideoInsertIndex !== null ? carouselVideoInsertIndex : urlVideos.length;
+                    selectedNewCarouselVideoFiles.forEach(function(file, idx) {
+                        var videoIndex = insertIdx + idx;
+                        allVideos.push({
+                            type: 'upload',
+                            file: file,
+                            index: idx,
+                            videoIndex: videoIndex,
+                            caption: ''
+                        });
+                    });
+                }
 
-                    // Add caption input with correct index
-                    var row = document.createElement('div');
-                    row.className = 'info-popup-row';
-                    row.innerHTML = '<label class="form-label" style="margin-bottom:4px;">Video Upload ' + (idx + 1) + '</label>' +
-                        '<input type="text" name="info_popup_carousel_videos[' + videoIndex + ']" class="form-input" placeholder="Keterangan video ' + (idx + 1) + ' (opsional)...">';
-                    popupRows.appendChild(row);
+                // Sort by videoIndex to render in correct order
+                allVideos.sort(function(a, b) {
+                    return a.videoIndex - b.videoIndex;
+                });
+
+                // Render all videos in sorted order (sorted by videoIndex)
+                allVideos.forEach(function(video, renderIndex) {
+                    var wrap = document.createElement('div');
+                    wrap.className = 'img-preview-wrap';
+                    var videoIndex = video.videoIndex;
+                    var displayPosition = videoIndex + 1;
+
+                    if (video.type === 'url') {
+                        // URL video
+                        var youtubeId = getYouTubeId(video.url);
+
+                        if (youtubeId) {
+                            wrap.innerHTML = '<img src="https://img.youtube.com/vi/' + youtubeId + '/1.jpg" style="height:60px;width:80px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb;" class="rounded-lg">' +
+                                '<button type="button" class="remove-img" onclick="removeUrlVideo(' + video.index + ')">✕</button>';
+                        } else if (video.url.endsWith('.mp4') || video.url.endsWith('.webm') || video.url.endsWith('.ogg')) {
+                            wrap.innerHTML = '<video src="' + video.url + '" style="height:60px;width:80px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb;"></video>' +
+                                '<button type="button" class="remove-img" onclick="removeUrlVideo(' + video.index + ')">✕</button>';
+                        } else {
+                            wrap.innerHTML = '<div class="w-20 h-16 rounded-lg border border-gray-200 bg-gray-100 flex items-center justify-center"><svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg></div>' +
+                                '<button type="button" class="remove-img" onclick="removeUrlVideo(' + video.index + ')">✕</button>';
+                        }
+
+                        previewArea.appendChild(wrap);
+
+                        // Add caption input
+                        var row = document.createElement('div');
+                        row.className = 'info-popup-row';
+                        var captionValue = video.caption || '';
+                        row.innerHTML = '<label class="form-label" style="margin-bottom:4px;">Video URL ' + displayPosition + '</label>' +
+                            '<input type="text" name="info_popup_carousel_videos[' + videoIndex + ']" class="form-input" placeholder="Keterangan video ' + displayPosition + ' (opsional)..." value="' + captionValue + '">';
+                        var captionInput = row.querySelector('input');
+                        captionInput.addEventListener('input', function() {
+                            var urlInputs = document.querySelectorAll('#carousel-video-url-list input[name="carousel_video_urls[]"]');
+                            if (urlInputs[video.index]) {
+                                urlInputs[video.index].setAttribute('data-caption', this.value);
+                            }
+                        });
+                        popupRows.appendChild(row);
+                    } else {
+                        // Upload video - use URL.createObjectURL for sync rendering
+                        var videoUrl = URL.createObjectURL(video.file);
+                        var uploadWrap = document.createElement('div');
+                        uploadWrap.className = 'img-preview-wrap';
+                        uploadWrap.innerHTML = '<video src="' + videoUrl + '" style="height:60px;width:80px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb;"></video>' +
+                            '<button type="button" class="remove-img" onclick="removePreviewVideo(' + video.index + ')">✕</button>';
+                        previewArea.appendChild(uploadWrap);
+
+                        // Add caption input
+                        var row = document.createElement('div');
+                        row.className = 'info-popup-row';
+                        row.innerHTML = '<label class="form-label" style="margin-bottom:4px;">Video Upload ' + displayPosition + '</label>' +
+                            '<input type="text" name="info_popup_carousel_videos[' + videoIndex + ']" class="form-input" placeholder="Keterangan video ' + displayPosition + ' (opsional)...">';
+                        popupRows.appendChild(row);
+                    }
                 });
             }
 
@@ -1431,11 +1472,20 @@
             };
 
             var selectedNewCarouselVideoFiles = [];
+            var carouselVideoInsertIndex = null; // Track insertion point for uploaded videos
+            var originalUrlCountAtInsert = null; // Track original URL count when first upload happened
 
             window.previewCarouselVideos = function(input) {
                 var files = Array.from(input.files);
 
                 if (files.length === 0) return;
+
+                // Set insertion index based on current URL count (first upload only)
+                if (carouselVideoInsertIndex === null) {
+                    var urlInputs = document.querySelectorAll('#carousel-video-url-list input[name="carousel_video_urls[]"]');
+                    carouselVideoInsertIndex = urlInputs.length;
+                    originalUrlCountAtInsert = urlInputs.length;
+                }
 
                 files.forEach(function(file) {
                     selectedNewCarouselVideoFiles.push(file);
@@ -1450,6 +1500,11 @@
 
             window.removePreviewVideo = function(idx) {
                 selectedNewCarouselVideoFiles.splice(idx, 1);
+                // Reset insertion index if no more uploads
+                if (selectedNewCarouselVideoFiles.length === 0) {
+                    carouselVideoInsertIndex = null;
+                    originalUrlCountAtInsert = null;
+                }
                 renderNewCarouselVideoPreviews();
             };
 
