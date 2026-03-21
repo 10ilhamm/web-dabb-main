@@ -1312,14 +1312,11 @@
 
             window.updateCarouselUrlCaption = function(input) {
                 var domIndex = parseInt(input.getAttribute('data-index'));
-                var captionValue = input.value;
-                // Track caption in separate object keyed by domIndex
-                urlCaptionTracker[domIndex] = captionValue;
-                // Find and update the entry in allVideoEntries
+                // Update URL data only — do NOT set caption from input value
                 allVideoEntries.forEach(function(entry) {
                     if (entry.type === 'url' && entry.domIndex === domIndex) {
                         entry.data = input.value;
-                        entry.caption = captionValue;
+                        // Caption is managed separately via urlCaptionTracker, not from URL input
                     }
                 });
                 updateCarouselVideoPreviews();
