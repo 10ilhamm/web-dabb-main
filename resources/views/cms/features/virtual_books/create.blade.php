@@ -15,7 +15,7 @@
             <a href="{{ url('/cms/features/' . $grandparent->id . '/') }}"
                 class="text-gray-400 hover:text-gray-600 transition-colors">{{ $grandparent->name }}</a>
         @endif
-
+ 
         <span class="text-gray-300">/</span>
         <a href="{{ url('/cms/features/' . $feature->parent->id . '/') }}"
             class="text-gray-400 hover:text-gray-600 transition-colors">{{ $feature->parent->name }}</a>

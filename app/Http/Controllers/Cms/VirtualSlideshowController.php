@@ -253,21 +253,13 @@ class VirtualSlideshowController extends Controller
                 }
             }
             
-            // Process captions and assign to storage indices
+            // Process captions and assign to storage - preserve the key format (url_X, upload_X, newUpload_X)
             foreach ($validated['info_popup_carousel_videos'] as $key => $caption) {
                 if (empty($caption)) continue;
-                
-                if (isset($captionToStorage[$key])) {
-                    $storage = $captionToStorage[$key];
-                    if ($storage['type'] === 'url') {
-                        // URL caption at storage index
-                        $infoPopup['carousel_videos'][(string)$storage['storageIdx']] = $caption;
-                    } elseif ($storage['type'] === 'upload') {
-                        // Upload caption at storage index (offset by number of URLs)
-                        $actualStorageIdx = $urlStorageIdx + $storage['storageIdx'];
-                        $infoPopup['carousel_videos'][(string)$actualStorageIdx] = $caption;
-                    }
-                }
+
+                // Store caption with the same key format as the form sends
+                // This ensures JavaScript can find it when loading
+                $infoPopup['carousel_videos'][$key] = $caption;
             }
         }
 
@@ -632,6 +624,9 @@ class VirtualSlideshowController extends Controller
             $infoPopup['video'] = $validated['info_popup_video'];
         }
         if ($useCarouselVideo && !empty($validated['info_popup_carousel_videos'])) {
+            // Store the unified order for proper reconstruction on load
+            $infoPopup['carousel_video_order'] = $unifiedOrder;
+
             // Map captions to storage indices based on unifiedOrder
             $infoPopup['carousel_videos'] = [];
             
@@ -658,21 +653,13 @@ class VirtualSlideshowController extends Controller
                 }
             }
             
-            // Process captions and assign to storage indices
+            // Process captions and assign to storage - preserve the key format (url_X, upload_X, newUpload_X)
             foreach ($validated['info_popup_carousel_videos'] as $key => $caption) {
                 if (empty($caption)) continue;
-                
-                if (isset($captionToStorage[$key])) {
-                    $storage = $captionToStorage[$key];
-                    if ($storage['type'] === 'url') {
-                        // URL caption at storage index
-                        $infoPopup['carousel_videos'][(string)$storage['storageIdx']] = $caption;
-                    } elseif ($storage['type'] === 'upload') {
-                        // Upload caption at storage index (offset by number of URLs)
-                        $actualStorageIdx = $urlStorageIdx + $storage['storageIdx'];
-                        $infoPopup['carousel_videos'][(string)$actualStorageIdx] = $caption;
-                    }
-                }
+
+                // Store caption with the same key format as the form sends
+                // This ensures JavaScript can find it when loading
+                $infoPopup['carousel_videos'][$key] = $caption;
             }
         }
 

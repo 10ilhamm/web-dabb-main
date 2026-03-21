@@ -394,56 +394,123 @@
                     </div>
                 </div>
                 @elseif($hasCarouselVideos)
-                {{-- Video Carousel - Render URL videos first, then uploaded videos (matching edit page order) --}}
+                {{-- Video Carousel - Use carousel_video_order for consistent ordering and correct caption keys --}}
                 <div class="vsshow-carousel">
                     <div class="vsshow-carousel-track">
                         @php
-                            $uploadCount = count($carouselVideoFiles);
-                            $urlCount = count($carouselVideoUrls);
+                            $carouselVideoOrder = $popup['carousel_video_order'] ?? null;
+                            $carouselVideoCaptions = $popup['carousel_videos'] ?? [];
+                            $carouselRenderIdx = 0;
                         @endphp
-                        @foreach($carouselVideoUrls as $vidIdx => $vidUrl)
-                        <div class="vsshow-carousel-slide">
-                            @php
-                                $vidEmbedUrl = vssYouTubeEmbed($vidUrl);
-                                $isVidYoutube = str_contains($vidUrl, 'youtube') || str_contains($vidUrl, 'youtu.be') || str_contains($vidUrl, 'embed');
-                            @endphp
-                            @if($isVidYoutube)
-                            <div class="vsshow-video-iframe-wrap" data-src="{{ $vidEmbedUrl }}" style="aspect-ratio:16/9;">
-                                <iframe data-src="{{ $vidEmbedUrl }}" allowfullscreen allow="autoplay; encrypted-media"
-                                    title="{{ $title ?? 'Video ' . ($vidIdx + 1) }}" style="width:100%;height:100%;"></iframe>
+                        @if($carouselVideoOrder && is_array($carouselVideoOrder))
+                            {{-- Use carousel_video_order: URLs and uploads are mixed per the saved order --}}
+                            @foreach($carouselVideoOrder as $orderItem)
+                                @php
+                                    $itemType = $orderItem['type'] ?? null;
+                                    $itemCaption = '';
+                                @endphp
+                                @if($itemType === 'url')
+                                    @php
+                                        $urlIdx = $orderItem['urlIndex'] ?? 0;
+                                        $vidUrl = $carouselVideoUrls[$urlIdx] ?? null;
+                                        $itemCaption = $carouselVideoCaptions['url_' . $urlIdx] ?? '';
+                                    @endphp
+                                    @if($vidUrl)
+                                        <div class="vsshow-carousel-slide">
+                                            @php
+                                                $vidEmbedUrl = vssYouTubeEmbed($vidUrl);
+                                                $isVidYoutube = str_contains($vidUrl, 'youtube') || str_contains($vidUrl, 'youtu.be') || str_contains($vidUrl, 'embed');
+                                            @endphp
+                                            @if($isVidYoutube)
+                                            <div class="vsshow-video-iframe-wrap" data-src="{{ $vidEmbedUrl }}" style="aspect-ratio:16/9;">
+                                                <iframe data-src="{{ $vidEmbedUrl }}" allowfullscreen allow="autoplay; encrypted-media"
+                                                    title="{{ $title ?? 'Video ' . ($carouselRenderIdx + 1) }}" style="width:100%;height:100%;"></iframe>
+                                            </div>
+                                            @else
+                                            <video controls style="width:100%;max-height:300px;display:block;background:#000;">
+                                                <source src="{{ $vidUrl }}" type="video/mp4">
+                                                Browser Anda tidak mendukung video.
+                                            </video>
+                                            @endif
+                                            @if(!empty($itemCaption))
+                                            <button class="vsshow-info-btn"
+                                                data-popup="{{ $itemCaption }}"
+                                                title="Info">?</button>
+                                            @endif
+                                        </div>
+                                        @php $carouselRenderIdx++; @endphp
+                                    @endif
+                                @elseif($itemType === 'upload' || $itemType === 'newUpload')
+                                    @php
+                                        $uploadIndex = $orderItem['uploadIndex'] ?? $orderItem['newUploadIndex'] ?? 0;
+                                        $vidFile = $carouselVideoFiles[$uploadIndex] ?? null;
+                                        $itemCaption = $carouselVideoCaptions['upload_' . $uploadIndex] ?? ($carouselVideoCaptions['newUpload_' . $uploadIndex] ?? '');
+                                    @endphp
+                                    @if($vidFile)
+                                        <div class="vsshow-carousel-slide">
+                                            <video controls style="width:100%;max-height:300px;display:block;background:#000;">
+                                                <source src="{{ asset('storage/' . $vidFile) }}" type="video/mp4">
+                                                Browser Anda tidak mendukung video.
+                                            </video>
+                                            @if(!empty($itemCaption))
+                                            <button class="vsshow-info-btn"
+                                                data-popup="{{ $itemCaption }}"
+                                                title="Info">?</button>
+                                            @endif
+                                        </div>
+                                        @php $carouselRenderIdx++; @endphp
+                                    @endif
+                                @endif
+                            @endforeach
+                        @else
+                            {{-- Fallback: render URLs first, then uploads (legacy behavior) --}}
+                            @foreach($carouselVideoUrls as $vidIdx => $vidUrl)
+                            <div class="vsshow-carousel-slide">
+                                @php
+                                    $vidEmbedUrl = vssYouTubeEmbed($vidUrl);
+                                    $isVidYoutube = str_contains($vidUrl, 'youtube') || str_contains($vidUrl, 'youtu.be') || str_contains($vidUrl, 'embed');
+                                @endphp
+                                @if($isVidYoutube)
+                                <div class="vsshow-video-iframe-wrap" data-src="{{ $vidEmbedUrl }}" style="aspect-ratio:16/9;">
+                                    <iframe data-src="{{ $vidEmbedUrl }}" allowfullscreen allow="autoplay; encrypted-media"
+                                        title="{{ $title ?? 'Video ' . ($vidIdx + 1) }}" style="width:100%;height:100%;"></iframe>
+                                </div>
+                                @else
+                                <video controls style="width:100%;max-height:300px;display:block;background:#000;">
+                                    <source src="{{ $vidUrl }}" type="video/mp4">
+                                    Browser Anda tidak mendukung video.
+                                </video>
+                                @endif
+                                @if(!empty($carouselVideoCaptions['url_' . $vidIdx]))
+                                <button class="vsshow-info-btn"
+                                    data-popup="{{ $carouselVideoCaptions['url_' . $vidIdx] }}"
+                                    title="Info">?</button>
+                                @endif
                             </div>
-                            @else
-                            <video controls style="width:100%;max-height:300px;display:block;background:#000;">
-                                <source src="{{ $vidUrl }}" type="video/mp4">
-                                Browser Anda tidak mendukung video.
-                            </video>
-                            @endif
-                            @if(!empty($popup['carousel_videos'][$vidIdx]) || !empty($popup['carousel_videos'][(string)$vidIdx]))
-                            <button class="vsshow-info-btn"
-                                data-popup="{{ $popup['carousel_videos'][$vidIdx] ?? $popup['carousel_videos'][(string)$vidIdx] ?? '' }}"
-                                title="Info">?</button>
-                            @endif
-                        </div>
-                        @endforeach
-                        @foreach($carouselVideoFiles as $vidIdx => $vidFile)
-                        <div class="vsshow-carousel-slide">
-                            <video controls style="width:100%;max-height:300px;display:block;background:#000;">
-                                <source src="{{ asset('storage/' . $vidFile) }}" type="video/mp4">
-                                Browser Anda tidak mendukung video.
-                            </video>
-                            @php
-                                $cvPopupIdx = $urlCount + $vidIdx;
-                            @endphp
-                            @if(!empty($popup['carousel_videos'][$cvPopupIdx]) || !empty($popup['carousel_videos'][(string)$cvPopupIdx]))
-                            <button class="vsshow-info-btn"
-                                data-popup="{{ $popup['carousel_videos'][$cvPopupIdx] ?? $popup['carousel_videos'][(string)$cvPopupIdx] ?? '' }}"
-                                title="Info">?</button>
-                            @endif
-                        </div>
-                        @endforeach
+                            @endforeach
+                            @foreach($carouselVideoFiles as $vidIdx => $vidFile)
+                            <div class="vsshow-carousel-slide">
+                                <video controls style="width:100%;max-height:300px;display:block;background:#000;">
+                                    <source src="{{ asset('storage/' . $vidFile) }}" type="video/mp4">
+                                    Browser Anda tidak mendukung video.
+                                </video>
+                                @if(!empty($carouselVideoCaptions['upload_' . $vidIdx]))
+                                <button class="vsshow-info-btn"
+                                    data-popup="{{ $carouselVideoCaptions['upload_' . $vidIdx] }}"
+                                    title="Info">?</button>
+                                @endif
+                            </div>
+                            @endforeach
+                        @endif
                     </div>
 
-                    @if($urlCount + $uploadCount > 1)
+                    @php
+                        $totalCarouselVideos = $carouselVideoOrder && is_array($carouselVideoOrder)
+                            ? $carouselRenderIdx
+                            : (count($carouselVideoUrls) + count($carouselVideoFiles));
+                    @endphp
+
+                    @if($totalCarouselVideos > 1)
                     <button class="vsshow-carousel-btn prev" aria-label="Previous">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
                     </button>
@@ -457,12 +524,9 @@
                     @endif
 
                     <div class="vsshow-carousel-dots">
-                        @foreach($carouselVideoUrls as $vidIdx => $_)
-                        <span class="vsshow-dot {{ $vidIdx === 0 ? 'active' : '' }}" data-idx="{{ $vidIdx }}"></span>
-                        @endforeach
-                        @foreach($carouselVideoFiles as $vidIdx => $_)
-                        <span class="vsshow-dot {{ $urlCount > 0 && $vidIdx === 0 ? 'active' : '' }}" data-idx="{{ $urlCount + $vidIdx }}"></span>
-                        @endforeach
+                        @for($di = 0; $di < $totalCarouselVideos; $di++)
+                        <span class="vsshow-dot {{ $di === 0 ? 'active' : '' }}" data-idx="{{ $di }}"></span>
+                        @endfor
                     </div>
                 </div>
                 @endif
