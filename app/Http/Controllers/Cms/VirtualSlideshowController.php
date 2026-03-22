@@ -93,7 +93,7 @@ class VirtualSlideshowController extends Controller
             'image_urls'  => 'nullable|array',
             'image_urls.*'=> 'nullable|string',
             'carousel_videos' => 'nullable|array',
-            'carousel_videos.*' => 'file|mimes:mp4,webm,ogg',
+            'carousel_videos.*' => 'file',
             'carousel_video_urls' => 'nullable|array',
             'carousel_video_urls.*' => 'nullable|string',
             'video_url'   => 'nullable|string|max:500',
@@ -163,21 +163,19 @@ class VirtualSlideshowController extends Controller
         if ($useCarouselVideo) {
             if (!empty($unifiedOrder)) {
                 // Process based on unified order
-                $newUploadCount = 0;
                 foreach ($unifiedOrder as $item) {
                     $type = $item['type'] ?? null;
-                    
+
                     if ($type === 'url') {
                         $url = trim($item['urlValue'] ?? '');
                         if (!empty($url) && (str_starts_with($url, 'http://') || str_starts_with($url, 'https://'))) {
                             $orderedUrls[] = $url;
                         }
                     } elseif ($type === 'newUpload') {
-                        $idx = $item['newUploadIndex'] ?? null;
-                        if ($idx !== null && isset($carouselVideoPaths[$newUploadCount])) {
-                            $orderedUploads[] = $carouselVideoPaths[$newUploadCount];
+                        // Use array_shift to take new uploads in the order they appear in unifiedOrder
+                        if (!empty($carouselVideoPaths)) {
+                            $orderedUploads[] = array_shift($carouselVideoPaths);
                         }
-                        $newUploadCount++;
                     }
                 }
             } else {
@@ -189,6 +187,30 @@ class VirtualSlideshowController extends Controller
                 }
                 $orderedUploads = $carouselVideoPaths;
             }
+        }
+
+        // Save original order for caption mapping (before normalization)
+        $originalUnifiedOrder = $unifiedOrder;
+
+        // Normalize unifiedOrder for store: convert newUpload entries to upload entries
+        if ($useCarouselVideo && !empty($unifiedOrder)) {
+            $normalizedOrder = [];
+            $newIdx = 0;
+            foreach ($unifiedOrder as $item) {
+                $type = $item['type'] ?? null;
+                if ($type === 'newUpload') {
+                    $uploadPath = $orderedUploads[$newIdx] ?? null;
+                    $normalizedOrder[] = [
+                        'type' => 'upload',
+                        'uploadPath' => $uploadPath,
+                        'uploadIndex' => count(array_filter($normalizedOrder, fn($i) => $i['type'] === 'upload')),
+                    ];
+                    $newIdx++;
+                } else {
+                    $normalizedOrder[] = $item;
+                }
+            }
+            $unifiedOrder = $normalizedOrder;
         }
 
         // Upload video file (only for video type)
@@ -230,36 +252,44 @@ class VirtualSlideshowController extends Controller
         if ($useVideo && !empty($validated['info_popup_video'])) {
             $infoPopup['video'] = $validated['info_popup_video'];
         }
-        if ($useCarouselVideo && !empty($validated['info_popup_carousel_videos'])) {
-            // Map captions to storage indices based on unifiedOrder
-            $infoPopup['carousel_videos'] = [];
-            
-            // Build mapping from caption key to storage info
-            $captionToStorage = [];
-            $urlStorageIdx = 0;
-            $uploadStorageIdx = 0;
-            
-            foreach ($unifiedOrder as $item) {
-                $type = $item['type'] ?? null;
-                
-                if ($type === 'url') {
-                    $urlIdx = $item['urlIndex'] ?? 0;
-                    $captionToStorage['url_' . $urlIdx] = ['type' => 'url', 'storageIdx' => $urlStorageIdx];
-                    $urlStorageIdx++;
-                } elseif ($type === 'newUpload') {
-                    $newUploadIdx = $item['newUploadIndex'] ?? 0;
-                    $captionToStorage['newUpload_' . $newUploadIdx] = ['type' => 'upload', 'storageIdx' => $uploadStorageIdx];
-                    $uploadStorageIdx++;
-                }
-            }
-            
-            // Process captions and assign to storage - preserve the key format (url_X, upload_X, newUpload_X)
-            foreach ($validated['info_popup_carousel_videos'] as $key => $caption) {
-                if (empty($caption)) continue;
+        if ($useCarouselVideo) {
+            // Store normalized order for reconstruction on load
+            $infoPopup['carousel_video_order'] = $unifiedOrder;
 
-                // Store caption with the same key format as the form sends
-                // This ensures JavaScript can find it when loading
-                $infoPopup['carousel_videos'][$key] = $caption;
+            if (!empty($validated['info_popup_carousel_videos'])) {
+                $infoPopup['carousel_videos'] = [];
+
+                // Build mapping using ORIGINAL order (before normalization)
+                // because form sends keys like newUpload_X
+                $captionToStorage = [];
+                $urlStorageIdx = 0;
+                $uploadStorageIdx = 0;
+
+                foreach ($originalUnifiedOrder as $item) {
+                    $type = $item['type'] ?? null;
+
+                    if ($type === 'url') {
+                        $urlIdx = $item['urlIndex'] ?? 0;
+                        $captionToStorage['url_' . $urlIdx] = ['type' => 'url', 'storageIdx' => $urlStorageIdx];
+                        $urlStorageIdx++;
+                    } elseif ($type === 'newUpload') {
+                        $newUploadIdx = $item['newUploadIndex'] ?? 0;
+                        $captionToStorage['newUpload_' . $newUploadIdx] = ['type' => 'upload', 'storageIdx' => $uploadStorageIdx];
+                        $uploadStorageIdx++;
+                    }
+                }
+
+                // Process captions: remap newUpload_X keys to sequential upload_X keys
+                foreach ($validated['info_popup_carousel_videos'] as $key => $caption) {
+                    if (empty($caption)) continue;
+
+                    if (str_starts_with($key, 'newUpload_')) {
+                        $storageKey = 'upload_' . ($captionToStorage[$key]['storageIdx'] ?? 0);
+                        $infoPopup['carousel_videos'][$storageKey] = $caption;
+                    } else {
+                        $infoPopup['carousel_videos'][$key] = $caption;
+                    }
+                }
             }
         }
 
@@ -363,7 +393,7 @@ class VirtualSlideshowController extends Controller
             'image_urls'  => 'nullable|array',
             'image_urls.*'=> 'nullable|string',
             'carousel_videos' => 'nullable|array',
-            'carousel_videos.*' => 'file|mimes:mp4,webm,ogg',
+            'carousel_videos.*' => 'file',
             'carousel_video_urls' => 'nullable|array',
             'carousel_video_urls.*' => 'nullable|string',
             'existing_carousel_videos' => 'nullable',
@@ -450,7 +480,7 @@ class VirtualSlideshowController extends Controller
                 $carouselVideoPaths[] = $video->store('features/slideshow/videos', 'public');
             }
         }
-        
+
         // Handle video file upload/delete for carousel videos
         $videoFilePath = $slide->video_file;
         $carouselVideoUrls = [];
@@ -493,11 +523,11 @@ class VirtualSlideshowController extends Controller
             // Build ordered URLs and uploads based on unified order
             $orderedUrls = [];
             $orderedUploads = [];
-            
+
             if (!empty($unifiedOrder)) {
                 foreach ($unifiedOrder as $item) {
                     $type = $item['type'] ?? null;
-                    
+
                     if ($type === 'url') {
                         $url = trim($item['urlValue'] ?? '');
                         if (!empty($url) && (str_starts_with($url, 'http://') || str_starts_with($url, 'https://'))) {
@@ -509,11 +539,10 @@ class VirtualSlideshowController extends Controller
                             $orderedUploads[] = $uploadPath;
                         }
                     } elseif ($type === 'newUpload') {
-                        // Get new upload from carouselVideoPaths based on order
-                        static $newUploadIdx = 0;
-                        if (isset($carouselVideoPaths[$newUploadIdx])) {
-                            $orderedUploads[] = $carouselVideoPaths[$newUploadIdx];
-                            $newUploadIdx++;
+                        // Use array_shift to take new uploads in the order they appear in unifiedOrder
+                        // This ensures the new upload is placed at the correct position in orderedUploads
+                        if (!empty($carouselVideoPaths)) {
+                            $orderedUploads[] = array_shift($carouselVideoPaths);
                         }
                     }
                 }
@@ -527,10 +556,45 @@ class VirtualSlideshowController extends Controller
                 // Fallback: use all carouselVideoPaths
                 $orderedUploads = $carouselVideoPaths;
             }
-            
+
             // Set carouselVideoUrls from ordered URLs
             $carouselVideoUrls = $orderedUrls;
-            
+
+            // Save original order for caption mapping (before normalization)
+            $originalUnifiedOrder = $unifiedOrder;
+
+            // Normalize unifiedOrder: convert all newUpload entries to upload entries with resolved paths
+            $normalizedOrder = [];
+            $newUploadIdx = 0;
+            foreach ($unifiedOrder as $item) {
+                $type = $item['type'] ?? null;
+                if ($type === 'newUpload') {
+                    // Find the path that was stored for this new upload (orderedUploads contains both existing and new in order)
+                    // We need to find the new upload path by counting newUploads seen so far
+                    $uploadPath = null;
+                    $newCount = 0;
+                    foreach ($orderedUploads as $path) {
+                        // Check if this path is from keptVideos (existing) or new
+                        if (!in_array($path, $keptVideos)) {
+                            if ($newCount === $newUploadIdx) {
+                                $uploadPath = $path;
+                                break;
+                            }
+                            $newCount++;
+                        }
+                    }
+                    $normalizedOrder[] = [
+                        'type' => 'upload',
+                        'uploadPath' => $uploadPath,
+                        'uploadIndex' => count(array_filter($normalizedOrder, fn($i) => $i['type'] === 'upload')),
+                    ];
+                    $newUploadIdx++;
+                } else {
+                    $normalizedOrder[] = $item;
+                }
+            }
+            $unifiedOrder = $normalizedOrder;
+
             // Store uploads in video_file - ordered uploads (existing + new)
             $videoFilePath = !empty($orderedUploads) ? json_encode(array_values($orderedUploads)) : null;
         } elseif (!$useVideo) {
@@ -623,43 +687,48 @@ class VirtualSlideshowController extends Controller
         if ($useVideo && $hasVideo && !empty($validated['info_popup_video'])) {
             $infoPopup['video'] = $validated['info_popup_video'];
         }
-        if ($useCarouselVideo && !empty($validated['info_popup_carousel_videos'])) {
-            // Store the unified order for proper reconstruction on load
+        if ($useCarouselVideo) {
+            // Always store the normalized order for proper reconstruction on load
             $infoPopup['carousel_video_order'] = $unifiedOrder;
 
-            // Map captions to storage indices based on unifiedOrder
-            $infoPopup['carousel_videos'] = [];
-            
-            // Build mapping from caption key to storage info
-            $captionToStorage = [];
-            $urlStorageIdx = 0;
-            $uploadStorageIdx = 0;
-            
-            foreach ($unifiedOrder as $item) {
-                $type = $item['type'] ?? null;
-                
-                if ($type === 'url') {
-                    $urlIdx = $item['urlIndex'] ?? 0;
-                    $captionToStorage['url_' . $urlIdx] = ['type' => 'url', 'storageIdx' => $urlStorageIdx];
-                    $urlStorageIdx++;
-                } elseif ($type === 'upload') {
-                    $uploadIdx = $item['uploadIndex'] ?? 0;
-                    $captionToStorage['upload_' . $uploadIdx] = ['type' => 'upload', 'storageIdx' => $uploadStorageIdx];
-                    $uploadStorageIdx++;
-                } elseif ($type === 'newUpload') {
-                    $newUploadIdx = $item['newUploadIndex'] ?? 0;
-                    $captionToStorage['newUpload_' . $newUploadIdx] = ['type' => 'upload', 'storageIdx' => $uploadStorageIdx];
-                    $uploadStorageIdx++;
-                }
-            }
-            
-            // Process captions and assign to storage - preserve the key format (url_X, upload_X, newUpload_X)
-            foreach ($validated['info_popup_carousel_videos'] as $key => $caption) {
-                if (empty($caption)) continue;
+            if (!empty($validated['info_popup_carousel_videos'])) {
+                $infoPopup['carousel_videos'] = [];
 
-                // Store caption with the same key format as the form sends
-                // This ensures JavaScript can find it when loading
-                $infoPopup['carousel_videos'][$key] = $caption;
+                // Build mapping from caption key to storage info using ORIGINAL order (before normalization)
+                // because form sends keys like newUpload_X which don't exist in normalized order
+                $captionToStorage = [];
+                $urlStorageIdx = 0;
+                $uploadStorageIdx = 0;
+
+                foreach ($originalUnifiedOrder as $item) {
+                    $type = $item['type'] ?? null;
+
+                    if ($type === 'url') {
+                        $urlIdx = $item['urlIndex'] ?? 0;
+                        $captionToStorage['url_' . $urlIdx] = ['type' => 'url', 'storageIdx' => $urlStorageIdx];
+                        $urlStorageIdx++;
+                    } elseif ($type === 'upload') {
+                        $uploadIdx = $item['uploadIndex'] ?? 0;
+                        $captionToStorage['upload_' . $uploadIdx] = ['type' => 'upload', 'storageIdx' => $uploadStorageIdx];
+                        $uploadStorageIdx++;
+                    } elseif ($type === 'newUpload') {
+                        $newUploadIdx = $item['newUploadIndex'] ?? 0;
+                        $captionToStorage['newUpload_' . $newUploadIdx] = ['type' => 'upload', 'storageIdx' => $uploadStorageIdx];
+                        $uploadStorageIdx++;
+                    }
+                }
+
+                // Process captions: remap newUpload_X keys to sequential upload_X keys
+                foreach ($validated['info_popup_carousel_videos'] as $key => $caption) {
+                    if (empty($caption)) continue;
+
+                    if (str_starts_with($key, 'newUpload_')) {
+                        $storageKey = 'upload_' . ($captionToStorage[$key]['storageIdx'] ?? 0);
+                        $infoPopup['carousel_videos'][$storageKey] = $caption;
+                    } else {
+                        $infoPopup['carousel_videos'][$key] = $caption;
+                    }
+                }
             }
         }
 

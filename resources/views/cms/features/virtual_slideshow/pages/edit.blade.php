@@ -880,15 +880,27 @@
                             return input.value && input.value.trim() !== '';
                         });
 
+                    // Also check for existing uploaded videos
+                    var hasExistingUploadedVideos = (typeof existingCarouselVideos !== 'undefined' && existingCarouselVideos.length > 0);
+
                     if (carouselToggle) carouselToggle.classList.remove('hidden');
 
-                    if (hasExistingVideoUrls) {
-                        // Use videos mode if there are existing video URLs
+                    if (hasExistingVideoUrls || hasExistingUploadedVideos) {
+                        // Use videos mode if there are existing video URLs or uploads
                         imageSections.classList.add('hidden');
                         videoSections.classList.remove('hidden');
                         var vidRadio = carouselToggle ? carouselToggle.querySelector('input[value="videos"]') : null;
                         if (vidRadio) vidRadio.checked = true;
                         toggleCarouselMediaType('videos');
+
+                        // If there are uploaded videos but no URLs, default to upload method
+                        if (hasExistingUploadedVideos && !hasExistingVideoUrls) {
+                            var uploadRadio = document.querySelector('input[name="carousel_video_method"][value="upload"]');
+                            if (uploadRadio) {
+                                uploadRadio.checked = true;
+                                toggleCarouselVideoMethod('upload');
+                            }
+                        }
                     } else {
                         // Default to images
                         if (imageSections) imageSections.classList.remove('hidden');
@@ -1422,7 +1434,8 @@
 
                 // Track sequential indices for caption keys
                 var urlRenderIdx = 0;
-                var uploadRenderIdx = 0;
+                var existingUploadIdx = 0;
+                var newUploadIdx = 0;
 
                 // Render all videos in order (allVideoEntries is already in chronological order)
                 allVideoEntries.forEach(function(video, renderIndex) {
@@ -1444,11 +1457,11 @@
                         captionKey = 'url_' + urlRenderIdx;
                         urlRenderIdx++;
                     } else if (video.uploadPath) {
-                        captionKey = 'upload_' + uploadRenderIdx;
-                        uploadRenderIdx++;
+                        captionKey = 'upload_' + existingUploadIdx;
+                        existingUploadIdx++;
                     } else {
-                        captionKey = 'newUpload_' + uploadRenderIdx;
-                        uploadRenderIdx++;
+                        captionKey = 'newUpload_' + newUploadIdx;
+                        newUploadIdx++;
                     }
 
                     if (video.type === 'url') {
@@ -1526,6 +1539,7 @@
             // Single array to track ALL videos in chronological order
             var allVideoEntries = []; // [{type: 'url'|'upload', data: string|file, caption: string, domIndex: number}]
             var uploadCounter = 0; // Counter for unique upload IDs
+            var selectedCarouselVideoFiles = []; // Separate array to reliably track new video files
 
             // Separate tracker for URL captions keyed by domIndex to survive re-renders
             var urlCaptionTracker = {};
@@ -1554,6 +1568,9 @@
 
                 files.forEach(function(file) {
                     uploadCounter++;
+                    // Add to reliable file tracker first
+                    selectedCarouselVideoFiles.push(file);
+                    // Also add to allVideoEntries
                     allVideoEntries.push({
                         type: 'upload',
                         data: file,
@@ -1561,6 +1578,9 @@
                         caption: ''
                     });
                 });
+
+                // Clear the input so browser doesn't auto-retain old files
+                input.value = '';
 
                 renderNewCarouselVideoPreviews();
             };
@@ -1570,10 +1590,26 @@
             }
 
             window.removePreviewVideo = function(uploadId) {
+                // Find the entry first to get the file reference
+                var removedEntry = null;
+                allVideoEntries.forEach(function(entry) {
+                    if (entry.type === 'upload' && entry.uploadId === uploadId) {
+                        removedEntry = entry;
+                    }
+                });
+
                 // Remove from allVideoEntries by uploadId
                 allVideoEntries = allVideoEntries.filter(function(entry) {
                     return !(entry.type === 'upload' && entry.uploadId === uploadId);
                 });
+
+                // Remove from selectedCarouselVideoFiles if it's a new upload (has File data)
+                if (removedEntry && removedEntry.data instanceof File) {
+                    selectedCarouselVideoFiles = selectedCarouselVideoFiles.filter(function(f) {
+                        return f !== removedEntry.data;
+                    });
+                }
+
                 renderNewCarouselVideoPreviews();
             };
 
@@ -1581,16 +1617,16 @@
 
             // Initialize URL image previews and carousel video previews on load
             setTimeout(function() {
+                // Get captions from info_popup (available in both branches)
+                var captions = {};
+                @if(!empty($slide->info_popup['carousel_videos']))
+                    captions = {!! json_encode($slide->info_popup['carousel_videos']) !!};
+                @endif
+
                 // If carouselVideoOrder exists, use it to rebuild allVideoEntries in correct order
                 if (typeof carouselVideoOrder !== 'undefined' && carouselVideoOrder.length > 0) {
                     // Get all URL inputs and captions from DOM
                     var urlInputs = document.querySelectorAll('#carousel-video-url-list input[name="carousel_video_urls[]"]');
-
-                    // Get captions from info_popup
-                    var captions = {};
-                    @if(!empty($slide->info_popup['carousel_videos']))
-                        captions = {!! json_encode($slide->info_popup['carousel_videos']) !!};
-                    @endif
 
                     // Build entries based on carouselVideoOrder
                     carouselVideoOrder.forEach(function(item, orderIdx) {
@@ -1655,22 +1691,7 @@
                             });
                             if (!exists) {
                                 uploadCounter++;
-                                var caption = '';
-                                @php
-                                    $existingVideoFileCount = 0;
-                                    if (!empty($slide->video_file)) {
-                                        if (is_array($slide->video_file)) {
-                                            $existingVideoFileCount = count($slide->video_file);
-                                        } elseif (is_string($slide->video_file) && str_starts_with($slide->video_file, '[')) {
-                                            $decoded = json_decode($slide->video_file, true);
-                                            $existingVideoFileCount = is_array($decoded) ? count($decoded) : 0;
-                                        }
-                                    }
-                                @endphp
-                                @if(!empty($slide->info_popup['carousel_videos']))
-                                    var allCaptions = {!! json_encode($slide->info_popup['carousel_videos']) !!};
-                                    caption = allCaptions['upload_' + idx] || '';
-                                @endif
+                                var caption = captions['upload_' + idx] || '';
                                 allVideoEntries.push({
                                     type: 'upload',
                                     data: null,
@@ -1785,18 +1806,14 @@
                     console.log('Set imageInput files:', imageInput.files.length);
                 }
 
-                // Set files on the existing carousel video input (only new uploads)
+                // Set files on the existing carousel video input using reliable file array
                 var carouselInput = document.getElementById('carouselVideoInput');
-                var newUploadVideos = allVideoEntries.filter(function(e) {
-                    return e.type === 'upload' && e.data && e.data instanceof File;
-                });
-                if (carouselInput && newUploadVideos.length > 0) {
+                if (carouselInput && selectedCarouselVideoFiles.length > 0) {
                     var videoDataTransfer = new DataTransfer();
-                    newUploadVideos.forEach(function(entry) {
-                        videoDataTransfer.items.add(entry.data);
+                    selectedCarouselVideoFiles.forEach(function(file) {
+                        videoDataTransfer.items.add(file);
                     });
                     carouselInput.files = videoDataTransfer.files;
-                    console.log('Set carouselInput files:', carouselInput.files.length);
                 }
 
                 // Build unified_video_order and existing_carousel_videos for form submission
