@@ -88,15 +88,7 @@
                             {{-- Thumbnail --}}
                             <div
                                 class="w-20 h-14 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0 flex items-center justify-center">
-                                @if ($slide->slide_type === 'video')
-                                    <div
-                                        class="w-full h-full bg-gradient-to-br from-red-400 to-red-600 flex items-center justify-center">
-                                        <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                            <path
-                                                d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zm12.553 1.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z" />
-                                        </svg>
-                                    </div>
-                                @elseif($slide->slide_type === 'hero')
+                                @if ($slide->slide_type === 'hero')
                                     <div
                                         class="w-full h-full bg-gradient-to-br from-[#174E93] to-blue-400 flex items-center justify-center">
                                         <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor"
@@ -114,7 +106,6 @@
                                         $thumbSrc = $firstUrl;
                                         if (strpos($firstUrl, 'drive.google.com') !== false) {
                                             if (preg_match('/\/file\/d\/([a-zA-Z0-9_-]+)/', $firstUrl, $m)) {
-                                                // Use lh3.googleusercontent.com format which supports CORS
                                                 $thumbSrc = 'https://lh3.googleusercontent.com/d/' . $m[1];
                                             }
                                         }
@@ -127,6 +118,38 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                         </svg>
                                     </div>
+                                @elseif($slide->slide_type === 'video' || $slide->slide_type === 'text_carousel')
+                                    @php
+                                        $videoThumbSrc = null;
+                                        // Check carousel video URLs for YouTube thumbnail
+                                        if ($slide->carousel_video_urls && count($slide->carousel_video_urls) > 0) {
+                                            $vUrl = $slide->carousel_video_urls[0];
+                                            if (preg_match('/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]+)/', $vUrl, $ym)) {
+                                                $videoThumbSrc = 'https://img.youtube.com/vi/' . $ym[1] . '/1.jpg';
+                                            }
+                                        }
+                                        // Check single video_url
+                                        if (!$videoThumbSrc && $slide->video_url) {
+                                            if (preg_match('/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]+)/', $slide->video_url, $ym)) {
+                                                $videoThumbSrc = 'https://img.youtube.com/vi/' . $ym[1] . '/1.jpg';
+                                            }
+                                        }
+                                    @endphp
+                                    @if ($videoThumbSrc)
+                                        <img src="{{ $videoThumbSrc }}" class="w-full h-full object-cover" alt=""
+                                            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                        <div class="w-full h-full bg-gradient-to-br from-red-400 to-red-600 flex items-center justify-center" style="display:none;">
+                                            <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zm12.553 1.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z" />
+                                            </svg>
+                                        </div>
+                                    @else
+                                        <div class="w-full h-full bg-gradient-to-br from-red-400 to-red-600 flex items-center justify-center">
+                                            <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zm12.553 1.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z" />
+                                            </svg>
+                                        </div>
+                                    @endif
                                 @else
                                     <div class="w-full h-full bg-gray-200 flex items-center justify-center">
                                         <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor"

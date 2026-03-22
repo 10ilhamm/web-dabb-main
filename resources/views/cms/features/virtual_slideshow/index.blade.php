@@ -122,6 +122,70 @@
                                     @elseif($firstSlide->images && count($firstSlide->images) > 0)
                                         <img src="{{ asset('storage/' . $firstSlide->images[0]) }}"
                                             class="w-full h-full object-cover" alt="">
+                                    @elseif($firstSlide->image_urls && count($firstSlide->image_urls) > 0)
+                                        @php
+                                            $firstUrl = $firstSlide->image_urls[0];
+                                            $thumbSrc = $firstUrl;
+                                            if (strpos($firstUrl, 'drive.google.com') !== false) {
+                                                if (preg_match('/\/file\/d\/([a-zA-Z0-9_-]+)/', $firstUrl, $m)) {
+                                                    $thumbSrc = 'https://lh3.googleusercontent.com/d/' . $m[1];
+                                                }
+                                            }
+                                        @endphp
+                                        <img src="{{ $thumbSrc }}"
+                                            class="w-full h-full object-cover" alt=""
+                                            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                        <div class="w-full h-full bg-gray-200 flex items-center justify-center" style="display:none;">
+                                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                            </svg>
+                                        </div>
+                                    @elseif($firstSlide->slide_type === 'video' || $firstSlide->slide_type === 'text_carousel')
+                                        @php
+                                            $hasVideoContent = false;
+                                            $videoThumbSrc = null;
+                                            // Check carousel video URLs
+                                            if ($firstSlide->carousel_video_urls && count($firstSlide->carousel_video_urls) > 0) {
+                                                $hasVideoContent = true;
+                                                $vUrl = $firstSlide->carousel_video_urls[0];
+                                                if (preg_match('/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]+)/', $vUrl, $ym)) {
+                                                    $videoThumbSrc = 'https://img.youtube.com/vi/' . $ym[1] . '/1.jpg';
+                                                }
+                                            }
+                                            // Check video_url (single video)
+                                            if (!$hasVideoContent && $firstSlide->video_url) {
+                                                $hasVideoContent = true;
+                                                if (preg_match('/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]+)/', $firstSlide->video_url, $ym)) {
+                                                    $videoThumbSrc = 'https://img.youtube.com/vi/' . $ym[1] . '/1.jpg';
+                                                }
+                                            }
+                                            // Check uploaded video files
+                                            if (!$hasVideoContent && $firstSlide->video_file) {
+                                                $hasVideoContent = true;
+                                            }
+                                        @endphp
+                                        @if ($videoThumbSrc)
+                                            <img src="{{ $videoThumbSrc }}" class="w-full h-full object-cover" alt=""
+                                                onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                            <div class="w-full h-full bg-gradient-to-br from-red-400 to-red-600 flex items-center justify-center" style="display:none;">
+                                                <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zm12.553 1.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z" />
+                                                </svg>
+                                            </div>
+                                        @elseif ($hasVideoContent)
+                                            <div class="w-full h-full bg-gradient-to-br from-red-400 to-red-600 flex items-center justify-center">
+                                                <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zm12.553 1.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z" />
+                                                </svg>
+                                            </div>
+                                        @else
+                                            <div class="w-full h-full bg-gray-200 flex items-center justify-center">
+                                                <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                </svg>
+                                            </div>
+                                        @endif
                                     @else
                                         <div class="w-full h-full bg-gray-200 flex items-center justify-center">
                                             <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor"
@@ -152,7 +216,7 @@
                                         {{ Str::limit($page->description, 80) }}</p>
                                 @endif
                                 <div class="flex items-center gap-3 mt-1 text-xs text-gray-400">
-                                    <span>📄 {{ $page->slideshowSlides_count ?? 0 }} slides</span>
+                                    <span>📄 {{ $page->slideshow_slides_count ?? 0 }} slides</span>
                                 </div>
                             </div>
 

@@ -20,7 +20,7 @@ class VirtualSlideshowController extends Controller
     public function index(Feature $feature)
     {
         $feature->load('parent');
-        $pages = $feature->slideshowPages()->withCount('slideshowSlides')->orderBy('order')->get();
+        $pages = $feature->slideshowPages()->withCount('slideshowSlides')->with('slideshowSlides')->orderBy('order')->get();
         return view('cms.features.virtual_slideshow.index', compact('feature', 'pages'));
     }
 
