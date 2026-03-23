@@ -463,7 +463,7 @@
                 <div id="video-url-section">
                     <div class="flex gap-2 items-start">
                         <input type="text" name="video_url" class="form-input flex-1"
-                            placeholder="https://youtube.com/watch?v=... atau link Google Drive" oninput="previewVideoUrl(this)">
+                            placeholder="https://youtube.com/watch?v=..., Google Drive, atau URL video lainnya" oninput="previewVideoUrl(this)">
                         <div class="url-preview-placeholder w-24 h-16 rounded-lg border border-gray-200 bg-gray-50 flex items-center justify-center overflow-hidden flex-shrink-0">
                             <span class="text-xs text-gray-400">Preview</span>
                         </div>
@@ -832,21 +832,32 @@
                 var preview = input.closest('#video-url-section').querySelector('.url-preview-placeholder');
                 var url = input.value.trim();
 
-                if (url && url.includes('youtube.com/watch')) {
-                    var videoId = url.split('v=')[1];
-                    if (videoId) {
-                        var ampersandPos = videoId.indexOf('&');
-                        if (ampersandPos != -1) videoId = videoId.substring(0, ampersandPos);
-                        preview.innerHTML = '<img src="https://img.youtube.com/vi/' + videoId + '/1.jpg" class="w-full h-full object-cover rounded-lg">';
-                    }
-                } else if (url && url.includes('youtu.be/')) {
-                    var videoId = url.split('youtu.be/')[1];
-                    if (videoId) {
-                        preview.innerHTML = '<img src="https://img.youtube.com/vi/' + videoId + '/1.jpg" class="w-full h-full object-cover rounded-lg">';
-                    }
-                } else if (url && (url.endsWith('.mp4') || url.endsWith('.webm') || url.endsWith('.ogg'))) {
+                if (!url) {
+                    preview.innerHTML = '<span class="text-xs text-gray-400">Preview</span>';
+                    return;
+                }
+
+                var youtubeId = getYouTubeId(url);
+                if (youtubeId) {
+                    preview.innerHTML = '<img src="https://img.youtube.com/vi/' + youtubeId + '/1.jpg" class="w-full h-full object-cover rounded-lg">';
+                } else if (url.endsWith('.mp4') || url.endsWith('.webm') || url.endsWith('.ogg')) {
                     preview.innerHTML = '<video src="' + url + '" class="w-full h-full object-cover rounded-lg"></video>';
-                } else if (!url) {
+                } else if (url.includes('drive.google.com')) {
+                    var gdThumb = convertGoogleDriveUrl(url);
+                    if (gdThumb) {
+                        preview.innerHTML = '<img src="' + gdThumb + '" class="w-full h-full object-cover rounded-lg" onerror="this.parentElement.innerHTML=\'<div class=\\\'flex flex-col items-center justify-center w-full h-full\\\'><svg class=\\\'w-5 h-5 text-blue-500\\\' fill=\\\'none\\\' stroke=\\\'currentColor\\\' viewBox=\\\'0 0 24 24\\\'><path stroke-linecap=\\\'round\\\' stroke-linejoin=\\\'round\\\' stroke-width=\\\'2\\\' d=\\\'M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z\\\'/></svg><span class=\\\'text-xs text-blue-500 mt-1\\\'>Google Drive</span></div>\';">';
+                    } else {
+                        preview.innerHTML = '<div class="flex flex-col items-center justify-center w-full h-full">' +
+                            '<svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
+                            '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>' +
+                            '<span class="text-xs text-blue-500 mt-1">Google Drive</span></div>';
+                    }
+                } else if (url.startsWith('http://') || url.startsWith('https://')) {
+                    preview.innerHTML = '<div class="flex flex-col items-center justify-center w-full h-full">' +
+                        '<svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
+                        '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>' +
+                        '<span class="text-xs text-gray-500 mt-1">Video URL</span></div>';
+                } else {
                     preview.innerHTML = '<span class="text-xs text-gray-400">Preview</span>';
                 }
             };
@@ -1012,6 +1023,18 @@
                 return (match && match[2].length === 11) ? match[2] : null;
             }
 
+            function convertGoogleDriveUrl(url) {
+                var match = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+                if (match) {
+                    return 'https://lh3.googleusercontent.com/d/' + match[1];
+                }
+                match = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+                if (match) {
+                    return 'https://lh3.googleusercontent.com/d/' + match[1];
+                }
+                return null;
+            }
+
             function updateCarouselVideoPreviews() {
                 var previewArea = document.getElementById('carouselVideoUrlPreviewArea');
                 var popupRows = document.getElementById('carouselVideoInfoPopupRows');
@@ -1089,6 +1112,16 @@
                         } else if (video.urlValue.endsWith('.mp4') || video.urlValue.endsWith('.webm') || video.urlValue.endsWith('.ogg')) {
                             wrap.innerHTML = '<video src="' + video.urlValue + '" style="height:60px;width:80px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb;"></video>' +
                                 '<button type="button" class="remove-img" onclick="removeUrlVideo(' + video.urlIndex + ')">✕</button>';
+                        } else if (video.urlValue.includes('drive.google.com')) {
+                            var gdThumb = convertGoogleDriveUrl(video.urlValue);
+                            if (gdThumb) {
+                                wrap.innerHTML = '<img src="' + gdThumb + '" style="height:60px;width:80px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb;" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\';">' +
+                                    '<div class="w-20 h-16 rounded-lg border border-gray-200 bg-gray-100 flex items-center justify-center" style="display:none;"><svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg></div>' +
+                                    '<button type="button" class="remove-img" onclick="removeUrlVideo(' + video.urlIndex + ')">✕</button>';
+                            } else {
+                                wrap.innerHTML = '<div class="w-20 h-16 rounded-lg border border-gray-200 bg-gray-100 flex items-center justify-center"><svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg></div>' +
+                                    '<button type="button" class="remove-img" onclick="removeUrlVideo(' + video.urlIndex + ')">✕</button>';
+                            }
                         } else {
                             wrap.innerHTML = '<div class="w-20 h-16 rounded-lg border border-gray-200 bg-gray-100 flex items-center justify-center"><svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg></div>' +
                                 '<button type="button" class="remove-img" onclick="removeUrlVideo(' + video.urlIndex + ')">✕</button>';

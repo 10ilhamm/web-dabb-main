@@ -264,6 +264,13 @@
     min-height: 420px;
 }
 
+.vsshow-carousel-slide .vsshow-video-iframe-wrap {
+    width: 100%;
+    padding-bottom: 56.25%;
+    height: 0;
+    position: relative;
+}
+
 .vsshow-carousel-slide img {
     max-width: 100%;
     max-height: 420px;

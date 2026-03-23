@@ -14,6 +14,9 @@ use App\Http\Controllers\Cms\VirtualSlideshowController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/gdrive-stream/{fileId}', [App\Http\Controllers\GoogleDriveStreamController::class, 'stream'])
+    ->where('fileId', '[a-zA-Z0-9_-]+')
+    ->name('gdrive.stream');
 Route::get('/lang/{locale}', [HomeController::class, 'switchLocale'])->name('locale.switch');
 Route::post('/api/chat', [ChatController::class, 'getBotResponse'])->name('api.chat');
 

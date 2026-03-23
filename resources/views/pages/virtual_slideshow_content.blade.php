@@ -50,6 +50,55 @@
         return $url; // direct MP4 or other
     }
 
+    /**
+     * Detect video URL type: 'youtube', 'google_drive', 'direct_video', or 'generic_url'
+     */
+    function vssVideoUrlType($url) {
+        if (!$url) return null;
+        if (str_contains($url, 'youtube.com') || str_contains($url, 'youtu.be') || str_contains($url, 'youtube.com/embed')) {
+            return 'youtube';
+        }
+        if (str_contains($url, 'drive.google.com')) {
+            return 'google_drive';
+        }
+        $ext = strtolower(pathinfo(parse_url($url, PHP_URL_PATH) ?? '', PATHINFO_EXTENSION));
+        if (in_array($ext, ['mp4', 'webm', 'ogg'])) {
+            return 'direct_video';
+        }
+        return 'generic_url';
+    }
+
+    /**
+     * Get Google Drive embed URL from a share/view link
+     */
+    function vssGoogleDriveEmbed($url) {
+        if (!$url) return null;
+        $patterns = [
+            '/\/file\/d\/([a-zA-Z0-9_-]+)/',
+            '/id=([a-zA-Z0-9_-]+)/',
+        ];
+        foreach ($patterns as $p) {
+            if (preg_match($p, $url, $m)) {
+                return 'https://drive.google.com/file/d/' . $m[1] . '/preview';
+            }
+        }
+        return $url;
+    }
+
+    function vssGoogleDriveStreamUrl($url) {
+        if (!$url) return $url;
+        $patterns = [
+            '/\/file\/d\/([a-zA-Z0-9_-]+)/',
+            '/id=([a-zA-Z0-9_-]+)/',
+        ];
+        foreach ($patterns as $p) {
+            if (preg_match($p, $url, $m)) {
+                return url('/gdrive-stream/' . $m[1]);
+            }
+        }
+        return $url;
+    }
+
     function vssProcessImageUrl($url) {
         if (empty($url)) return null;
         
@@ -295,16 +344,33 @@
                     Browser Anda tidak mendukung video.
                 </video>
                 @elseif($slide->video_url)
-                    @if($isYoutube || str_contains((string)$slide->video_url, 'youtube') || str_contains((string)$slide->video_url, 'youtu.be') || str_contains((string)$slide->video_url, 'embed'))
+                    @php $vidType = vssVideoUrlType($slide->video_url); @endphp
+                    @if($vidType === 'youtube')
                     <div class="vsshow-video-iframe-wrap" data-src="{{ $embedUrl }}">
                         <iframe data-src="{{ $embedUrl }}" allowfullscreen allow="autoplay; encrypted-media"
                             title="{{ $title ?? 'Video' }}"></iframe>
                     </div>
-                    @else
+                    @elseif($vidType === 'google_drive')
+                    <video controls style="width:100%;max-height:480px;display:block;background:#000;"
+                        onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                        <source src="{{ vssGoogleDriveStreamUrl($slide->video_url) }}" type="video/mp4">
+                    </video>
+                    <div style="display:none;flex-direction:column;align-items:center;justify-content:center;min-height:200px;background:#000;color:#fff;border-radius:12px;">
+                        <svg style="width:48px;height:48px;margin-bottom:8px;opacity:0.5;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                        <p style="margin:0;">Video tidak dapat diputar langsung.</p>
+                        <a href="{{ $slide->video_url }}" target="_blank" rel="noopener" style="color:#60a5fa;margin-top:8px;text-decoration:underline;">Buka di Google Drive</a>
+                    </div>
+                    @elseif($vidType === 'direct_video')
                     <video controls style="width:100%;max-height:480px;display:block;background:#000;">
                         <source src="{{ $slide->video_url }}" type="video/mp4">
                         Browser Anda tidak mendukung video.
                     </video>
+                    @else
+                    {{-- Generic URL (Vimeo, Dailymotion, dll) - embed via iframe --}}
+                    <div class="vsshow-video-iframe-wrap" data-src="{{ $slide->video_url }}">
+                        <iframe data-src="{{ $slide->video_url }}" allowfullscreen allow="autoplay; encrypted-media"
+                            title="{{ $title ?? 'Video' }}" style="width:100%;height:100%;border:0;"></iframe>
+                    </div>
                     @endif
                 @endif
             </div>
@@ -419,18 +485,34 @@
                                         <div class="vsshow-carousel-slide">
                                             @php
                                                 $vidEmbedUrl = vssYouTubeEmbed($vidUrl);
-                                                $isVidYoutube = str_contains($vidUrl, 'youtube') || str_contains($vidUrl, 'youtu.be') || str_contains($vidUrl, 'embed');
+                                                $vidUrlType = vssVideoUrlType($vidUrl);
                                             @endphp
-                                            @if($isVidYoutube)
-                                            <div class="vsshow-video-iframe-wrap" data-src="{{ $vidEmbedUrl }}" style="aspect-ratio:16/9;">
-                                                <iframe data-src="{{ $vidEmbedUrl }}" allowfullscreen allow="autoplay; encrypted-media"
-                                                    title="{{ $title ?? 'Video ' . ($carouselRenderIdx + 1) }}" style="width:100%;height:100%;"></iframe>
+                                            @if($vidUrlType === 'youtube')
+                                            <div class="vsshow-video-iframe-wrap">
+                                                <iframe src="{{ $vidEmbedUrl }}" allowfullscreen allow="autoplay; encrypted-media"
+                                                    title="{{ $title ?? 'Video ' . ($carouselRenderIdx + 1) }}" style="border:0;"></iframe>
                                             </div>
-                                            @else
-                                            <video controls style="width:100%;max-height:300px;display:block;background:#000;">
+                                            @elseif($vidUrlType === 'google_drive')
+                                            <video controls style="width:100%;max-height:420px;display:block;background:#000;"
+                                                onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                                                <source src="{{ vssGoogleDriveStreamUrl($vidUrl) }}" type="video/mp4">
+                                            </video>
+                                            <div style="display:none;flex-direction:column;align-items:center;justify-content:center;min-height:200px;background:#000;color:#fff;border-radius:12px;">
+                                                <svg style="width:48px;height:48px;margin-bottom:8px;opacity:0.5;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                                                <p style="margin:0;">Video tidak dapat diputar langsung.</p>
+                                                <a href="{{ $vidUrl }}" target="_blank" rel="noopener" style="color:#60a5fa;margin-top:8px;text-decoration:underline;">Buka di Google Drive</a>
+                                            </div>
+                                            @elseif($vidUrlType === 'direct_video')
+                                            <video controls style="width:100%;max-height:420px;display:block;background:#000;">
                                                 <source src="{{ $vidUrl }}" type="video/mp4">
                                                 Browser Anda tidak mendukung video.
                                             </video>
+                                            @else
+                                            {{-- Generic URL - embed via iframe --}}
+                                            <div class="vsshow-video-iframe-wrap">
+                                                <iframe src="{{ $vidUrl }}" allowfullscreen allow="autoplay; encrypted-media"
+                                                    title="{{ $title ?? 'Video ' . ($carouselRenderIdx + 1) }}" style="border:0;"></iframe>
+                                            </div>
                                             @endif
                                             @if(!empty($itemCaption))
                                             <button class="vsshow-info-btn"
@@ -468,18 +550,33 @@
                             <div class="vsshow-carousel-slide">
                                 @php
                                     $vidEmbedUrl = vssYouTubeEmbed($vidUrl);
-                                    $isVidYoutube = str_contains($vidUrl, 'youtube') || str_contains($vidUrl, 'youtu.be') || str_contains($vidUrl, 'embed');
+                                    $vidUrlType = vssVideoUrlType($vidUrl);
                                 @endphp
-                                @if($isVidYoutube)
-                                <div class="vsshow-video-iframe-wrap" data-src="{{ $vidEmbedUrl }}" style="aspect-ratio:16/9;">
-                                    <iframe data-src="{{ $vidEmbedUrl }}" allowfullscreen allow="autoplay; encrypted-media"
-                                        title="{{ $title ?? 'Video ' . ($vidIdx + 1) }}" style="width:100%;height:100%;"></iframe>
+                                @if($vidUrlType === 'youtube')
+                                <div class="vsshow-video-iframe-wrap">
+                                    <iframe src="{{ $vidEmbedUrl }}" allowfullscreen allow="autoplay; encrypted-media"
+                                        title="{{ $title ?? 'Video ' . ($vidIdx + 1) }}" style="border:0;"></iframe>
                                 </div>
-                                @else
-                                <video controls style="width:100%;max-height:300px;display:block;background:#000;">
+                                @elseif($vidUrlType === 'google_drive')
+                                <video controls style="width:100%;max-height:420px;display:block;background:#000;"
+                                    onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                                    <source src="{{ vssGoogleDriveStreamUrl($vidUrl) }}" type="video/mp4">
+                                </video>
+                                <div style="display:none;flex-direction:column;align-items:center;justify-content:center;min-height:200px;background:#000;color:#fff;border-radius:12px;">
+                                    <svg style="width:48px;height:48px;margin-bottom:8px;opacity:0.5;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                                    <p style="margin:0;">Video tidak dapat diputar langsung.</p>
+                                    <a href="{{ $vidUrl }}" target="_blank" rel="noopener" style="color:#60a5fa;margin-top:8px;text-decoration:underline;">Buka di Google Drive</a>
+                                </div>
+                                @elseif($vidUrlType === 'direct_video')
+                                <video controls style="width:100%;max-height:420px;display:block;background:#000;">
                                     <source src="{{ $vidUrl }}" type="video/mp4">
                                     Browser Anda tidak mendukung video.
                                 </video>
+                                @else
+                                <div class="vsshow-video-iframe-wrap">
+                                    <iframe src="{{ $vidUrl }}" allowfullscreen allow="autoplay; encrypted-media"
+                                        title="{{ $title ?? 'Video ' . ($vidIdx + 1) }}" style="border:0;"></iframe>
+                                </div>
                                 @endif
                                 @if(!empty($carouselVideoCaptions['url_' . $vidIdx]))
                                 <button class="vsshow-info-btn"

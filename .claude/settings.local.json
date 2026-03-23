@@ -3,7 +3,11 @@
     "allow": [
       "Bash(php artisan:*)",
       "Bash(npm run:*)",
-      "Bash(php:*)"
+      "Bash(php:*)",
+      "WebSearch",
+      "WebFetch(domain:gist.github.com)",
+      "WebFetch(domain:github.com)",
+      "Bash(xargs grep:*)"
     ]
   }
 }
