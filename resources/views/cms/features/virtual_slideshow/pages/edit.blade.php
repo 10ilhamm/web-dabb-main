@@ -400,7 +400,7 @@
                                     </a>
                                     <input type="text" name="image_urls[{{ $idx }}]" class="form-input flex-1"
                                         placeholder="https://example.com/image.jpg atau link Google Drive"
-                                        value="{{ $imgUrl }}" data-index="{{ $idx }}">
+                                        value="{{ $imgUrl }}" data-index="{{ $idx }}" oninput="updateUrlLink(this)">
                                     <button type="button" onclick="removeImageUrlEntry(this)" class="px-2 py-2 text-red-500 hover:bg-red-50 rounded-lg flex-shrink-0" title="Hapus">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
@@ -953,17 +953,22 @@
                 var urlSection = document.getElementById('image-url-section');
                 var uploadCaptionArea = document.getElementById('infoPopupUploadImageArea');
                 var urlCaptionArea = document.getElementById('infoPopupUrlImageArea');
+                var uploadPreviewArea = document.getElementById('newImagePreviewArea');
+                var urlPreviewArea = document.getElementById('newUrlPreviewArea');
                 if (method === 'url') {
                     uploadSection.classList.add('hidden');
                     urlSection.classList.remove('hidden');
-                    if (uploadCaptionArea) uploadCaptionArea.classList.add('hidden');
-                    if (urlCaptionArea) urlCaptionArea.classList.remove('hidden');
+                    if (uploadCaptionArea) { uploadCaptionArea.classList.add('hidden'); uploadCaptionArea.style.display = 'none'; }
+                    if (urlCaptionArea) { urlCaptionArea.classList.remove('hidden'); urlCaptionArea.style.display = 'block'; }
+                    if (uploadPreviewArea) { uploadPreviewArea.classList.add('hidden'); uploadPreviewArea.style.display = 'none'; }
                     updateUrlImagePreviews();
                 } else {
                     uploadSection.classList.remove('hidden');
                     urlSection.classList.add('hidden');
-                    if (uploadCaptionArea) uploadCaptionArea.classList.remove('hidden');
-                    if (urlCaptionArea) urlCaptionArea.classList.add('hidden');
+                    if (uploadCaptionArea) { uploadCaptionArea.classList.remove('hidden'); uploadCaptionArea.style.display = 'block'; }
+                    if (urlCaptionArea) { urlCaptionArea.classList.add('hidden'); urlCaptionArea.style.display = 'none'; }
+                    if (uploadPreviewArea) { uploadPreviewArea.classList.remove('hidden'); uploadPreviewArea.style.display = 'flex'; }
+                    if (urlPreviewArea) { urlPreviewArea.classList.add('hidden'); urlPreviewArea.style.display = 'none'; }
                 }
             };
 
@@ -1088,7 +1093,11 @@
                     linkBtn.classList.add('opacity-30', 'cursor-not-allowed');
                     linkBtn.onclick = function() { return false; };
                 }
+                updateUrlImagePreviews();
             };
+
+            // Caption tracker for new uploaded images to persist values across re-renders
+            var newUploadImageCaptionTracker = {};
 
             // Unified preview function for URL images and uploads
             function updateUrlImagePreviews() {
@@ -1098,6 +1107,14 @@
                 var urlCaptionRows = document.getElementById('infoPopupUrlRows');
                 var uploadCaptionArea = document.getElementById('infoPopupUploadImageArea');
                 var uploadCaptionRows = document.getElementById('infoPopupUploadRows');
+
+                // Save current new upload caption values before clearing
+                uploadCaptionRows.querySelectorAll('input[name^="info_popup_new_images"]').forEach(function(input) {
+                    var match = input.name.match(/info_popup_new_images\[(\d+)\]/);
+                    if (match) {
+                        newUploadImageCaptionTracker[parseInt(match[1])] = input.value;
+                    }
+                });
 
                 // Get all URL inputs
                 var urlInputs = document.querySelectorAll('#image-url-list input[name^="image_urls"]');
@@ -1142,22 +1159,30 @@
                 // Show/hide URL preview area based on URL images
                 if (urlImages.some(function(img) { return img.hasUrl; })) {
                     urlPreviewArea.classList.remove('hidden');
+                    urlPreviewArea.style.display = 'flex';
                 } else {
                     urlPreviewArea.classList.add('hidden');
+                    urlPreviewArea.style.display = 'none';
                 }
 
                 // Show/hide upload preview area based on uploaded files
                 if (selectedNewImageFiles.length > 0) {
                     uploadPreviewArea.classList.remove('hidden');
+                    uploadPreviewArea.style.display = 'flex';
                 } else {
                     uploadPreviewArea.classList.add('hidden');
+                    uploadPreviewArea.style.display = 'none';
                 }
 
-                // Show/hide URL caption section
-                if (urlImages.length === 0) {
+                // Show/hide URL caption section (only when URL method is active)
+                var isUrlMethod = document.querySelector('input[name="image_method"][value="url"]');
+                var isUrlMethodChecked = isUrlMethod && isUrlMethod.checked;
+                if (urlImages.length === 0 || !isUrlMethodChecked) {
                     urlCaptionArea.classList.add('hidden');
+                    urlCaptionArea.style.display = 'none';
                 } else {
                     urlCaptionArea.classList.remove('hidden');
+                    urlCaptionArea.style.display = 'block';
                 }
 
                 // Render URL image previews
@@ -1206,7 +1231,7 @@
                 // Render caption fields for URL images
                 urlCaptionRows.innerHTML = '';
                 urlImages.forEach(function(img, idx) {
-                    var captionIndex = existingUploadedCount + idx;
+                    var captionIndex = existingUploadedCount + selectedNewImageFiles.length + idx;
                     var captionValue = img.caption || '';
                     var row = document.createElement('div');
                     row.className = 'info-popup-row';
@@ -1235,11 +1260,25 @@
                 // Render caption fields for new uploaded images
                 uploadCaptionRows.innerHTML = '';
                 selectedNewImageFiles.forEach(function(file, idx) {
-                    var captionIndex = idx; // New uploads use sequential indices starting from 0
+                    var captionIndex = idx;
+                    var savedCaption = newUploadImageCaptionTracker[captionIndex] || '';
                     var row = document.createElement('div');
                     row.className = 'info-popup-row';
-                    row.innerHTML = '<label class="form-label" style="margin-bottom:4px;">Gambar Upload ' + (idx + 1) + '</label>' +
-                        '<input type="text" name="info_popup_new_images[' + captionIndex + ']" class="form-input" placeholder="Keterangan gambar upload ' + (idx + 1) + '...">';
+                    var labelEl = document.createElement('label');
+                    labelEl.className = 'form-label';
+                    labelEl.style.marginBottom = '4px';
+                    labelEl.textContent = 'Gambar Upload ' + (idx + 1);
+                    var captionInput = document.createElement('input');
+                    captionInput.type = 'text';
+                    captionInput.name = 'info_popup_new_images[' + captionIndex + ']';
+                    captionInput.className = 'form-input';
+                    captionInput.placeholder = 'Keterangan gambar upload ' + (idx + 1) + '...';
+                    captionInput.value = savedCaption;
+                    captionInput.addEventListener('input', (function(captIdx) {
+                        return function() { newUploadImageCaptionTracker[captIdx] = this.value; };
+                    })(captionIndex));
+                    row.appendChild(labelEl);
+                    row.appendChild(captionInput);
                     uploadCaptionRows.appendChild(row);
                 });
             }
@@ -1287,6 +1326,19 @@
             }
 
             window.removePreviewImage = function(idx) {
+                // Remove caption and shift remaining indices down
+                delete newUploadImageCaptionTracker[idx];
+                var newTracker = {};
+                Object.keys(newUploadImageCaptionTracker).forEach(function(key) {
+                    var k = parseInt(key);
+                    if (k > idx) {
+                        newTracker[k - 1] = newUploadImageCaptionTracker[k];
+                    } else {
+                        newTracker[k] = newUploadImageCaptionTracker[k];
+                    }
+                });
+                newUploadImageCaptionTracker = newTracker;
+
                 selectedNewImageFiles.splice(idx, 1);
                 renderNewImagePreviews();
             };

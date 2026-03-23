@@ -672,59 +672,82 @@
                 updateUrlImagePreviews();
             };
 
+            // Caption trackers to persist values across re-renders
+            var urlImageCaptionTracker = {};   // keyed by url index
+            var uploadImageCaptionTracker = {}; // keyed by upload index
+
             window.removeImageUrlEntry = function(btn) {
+                var entry = btn.closest('.image-url-entry');
                 var entries = document.querySelectorAll('.image-url-entry');
+                // Find this entry's index among valid URL entries before removing
+                var entryIdx = Array.prototype.indexOf.call(entries, entry);
+
                 if (entries.length > 1) {
-                    btn.closest('.image-url-entry').remove();
+                    entry.remove();
+                    // Shift url caption tracker indices down
+                    delete urlImageCaptionTracker[entryIdx];
+                    var newTracker = {};
+                    Object.keys(urlImageCaptionTracker).forEach(function(key) {
+                        var k = parseInt(key);
+                        if (k > entryIdx) {
+                            newTracker[k - 1] = urlImageCaptionTracker[k];
+                        } else {
+                            newTracker[k] = urlImageCaptionTracker[k];
+                        }
+                    });
+                    urlImageCaptionTracker = newTracker;
                 } else {
                     // Last entry — clear the value instead of removing
-                    var input = btn.closest('.image-url-entry').querySelector('input[name="image_urls[]"]');
+                    var input = entry.querySelector('input[name="image_urls[]"]');
                     if (input) input.value = '';
+                    delete urlImageCaptionTracker[0];
                 }
                 updateUrlImagePreviews();
             };
-
-            // Array to track URL images
-            var urlImageEntries = [];
 
             window.previewImageUrl = function(input) {
                 var url = input.value.trim();
                 updateUrlImagePreviews();
             };
 
+            // Helper function to convert Google Drive URL to direct image URL
+            function convertGoogleDriveUrl(url) {
+                var match = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+                if (match) {
+                    return 'https://lh3.googleusercontent.com/d/' + match[1];
+                }
+                match = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+                if (match) {
+                    return 'https://lh3.googleusercontent.com/d/' + match[1];
+                }
+                return url;
+            }
+
             function updateUrlImagePreviews() {
                 var previewArea = document.getElementById('urlImagePreviewArea');
                 var popupRows = document.getElementById('infoPopupRows');
                 var popupArea = document.getElementById('infoPopupImageArea');
                 var hint = document.getElementById('noImagesHint');
-                var uploadPreviewArea = document.getElementById('imagePreviewArea');
+
+                // Save current caption values before clearing
+                popupRows.querySelectorAll('input[name^="info_popup_images"]').forEach(function(input) {
+                    var match = input.name.match(/info_popup_images\[(\d+)\]/);
+                    if (match) {
+                        var key = parseInt(match[1]);
+                        // Determine if this is a URL caption or upload caption based on current layout
+                        var label = input.closest('.info-popup-row').querySelector('.form-label');
+                        if (label && label.textContent.indexOf('URL') !== -1) {
+                            urlImageCaptionTracker[key] = input.value;
+                        } else if (label && label.textContent.indexOf('Upload') !== -1) {
+                            // Upload captions use their own index (key minus url count)
+                            uploadImageCaptionTracker[key] = input.value;
+                        }
+                    }
+                });
 
                 // Get all URL inputs
                 var urlInputs = document.querySelectorAll('#image-url-list input[name="image_urls[]"]');
                 var urlImages = [];
-
-                // Helper function to convert Google Drive URL to direct image URL
-                function convertGoogleDriveUrl(url) {
-                    // Format: https://drive.google.com/file/d/FILE_ID/view
-                    var match = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
-                    if (match) {
-                        return 'https://lh3.googleusercontent.com/d/' + match[1];
-                    }
-                    // Format: https://drive.google.com/open?id=FILE_ID
-                    match = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-                    if (match) {
-                        return 'https://lh3.googleusercontent.com/d/' + match[1];
-                    }
-                    // Format: https://drive.google.com/uc?export=view&id=FILE_ID (convert to new format)
-                    match = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-                    if (url.includes('drive.google.com/uc?')) {
-                        match = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-                        if (match) {
-                            return 'https://lh3.googleusercontent.com/d/' + match[1];
-                        }
-                    }
-                    return url;
-                }
 
                 urlInputs.forEach(function(input, idx) {
                     var url = input.value.trim();
@@ -732,17 +755,14 @@
                     var linkBtn = entry ? entry.querySelector('.url-link-btn') : null;
 
                     if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
-                        // Update link button
                         if (linkBtn) {
                             linkBtn.href = url;
                             linkBtn.classList.remove('opacity-30', 'cursor-not-allowed');
                             linkBtn.onclick = null;
                         }
-                        // Convert Google Drive URL if needed
                         var displayUrl = convertGoogleDriveUrl(url);
                         urlImages.push({ url: displayUrl, originalUrl: url });
                     } else {
-                        // Reset link button
                         if (linkBtn) {
                             linkBtn.href = '#';
                             linkBtn.classList.add('opacity-30', 'cursor-not-allowed');
@@ -751,58 +771,32 @@
                     }
                 });
 
-                // Get uploaded images count
                 var uploadedCount = selectedImageFiles.length;
                 var totalImages = urlImages.length + uploadedCount;
 
-                // Clear preview areas
+                // Clear preview area
                 previewArea.innerHTML = '';
 
                 if (totalImages === 0) {
+                    previewArea.style.display = 'none';
                     if (hint) hint.style.display = '';
                     if (popupArea) popupArea.style.display = 'none';
                     popupRows.innerHTML = '<p class="text-xs text-gray-400 italic" id="noImagesHint">Upload atau masukkan URL gambar dulu untuk mengisi keterangan popup.</p>';
                     return;
                 }
 
+                // Show preview area if there are URL images
+                previewArea.style.display = urlImages.length > 0 ? 'flex' : 'none';
+
                 if (hint) hint.style.display = 'none';
                 if (popupArea) popupArea.style.display = 'block';
                 popupRows.innerHTML = '';
 
-                // Render URL image previews
-                urlImages.forEach(function(img, idx) {
-                    var wrap = document.createElement('div');
-                    wrap.className = 'img-preview-wrap';
-
-                    var imgIndex = idx; // Index for info_popup
-                    var isGoogleDrive = img.originalUrl.includes('drive.google.com');
-
-                    if (isGoogleDrive) {
-                        // For Google Drive, show a placeholder with link
-                        wrap.innerHTML = '<div class="flex flex-col items-center justify-center" style="height:60px;width:60px;background:#f3f4f6;border-radius:8px;border:1px solid #e5e7eb;">' +
-                            '<svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>' +
-                            '<a href="' + img.originalUrl + '" target="_blank" class="text-xs text-blue-500 hover:text-blue-700 mt-1">Lihat</a></div>' +
-                            '<button type="button" class="remove-img" onclick="removeUrlImage(' + idx + ')">✕</button>';
-                    } else {
-                        // For regular URLs, try to load the image
-                        wrap.innerHTML = '<img src="' + img.url + '" alt="" style="height:60px;width:60px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb;" onerror="this.style.display=\'none\'; this.nextElementSibling.style.display=\'flex\';">' +
-                            '<div class="flex items-center justify-center" style="height:60px;width:60px;background:#f3f4f6;border-radius:8px;border:1px solid #e5e7eb;display:none;"><span class="text-xs text-gray-400">Error</span></div>' +
-                            '<button type="button" class="remove-img" onclick="removeUrlImage(' + idx + ')">✕</button>';
-                    }
-                    previewArea.appendChild(wrap);
-
-                    // Add caption input - index matches the URL position in the list
-                    var row = document.createElement('div');
-                    row.className = 'info-popup-row';
-                    row.innerHTML = '<label class="form-label" style="margin-bottom:4px;">Gambar URL ' + (idx + 1) + '</label>' +
-                        '<input type="text" name="info_popup_images[' + imgIndex + ']" class="form-input" placeholder="Keterangan gambar ' + (idx + 1) + ' (opsional)...">';
-                    popupRows.appendChild(row);
-                });
-
-                // Update uploaded image caption indices to come after URL images
+                // Render uploaded image previews first (uploads come first in DB: array_merge(images, image_urls))
+                var uploadedCount = selectedImageFiles.length;
                 selectedImageFiles.forEach(function(file, idx) {
                     var reader = new FileReader();
-                    var imgIndex = urlImages.length + idx;
+                    var imgIndex = idx; // uploads at indices 0..N-1
                     (function(index, fileReader) {
                         fileReader.onload = function(e) {
                             var wrap = document.createElement('div');
@@ -814,13 +808,74 @@
                     })(idx, reader);
                     reader.readAsDataURL(file);
 
-                    // Add caption input with correct index
+                    // Add caption input with saved value
+                    var savedCaption = uploadImageCaptionTracker[idx] || '';
                     var row = document.createElement('div');
                     row.className = 'info-popup-row';
-                    row.innerHTML = '<label class="form-label" style="margin-bottom:4px;">Gambar Upload ' + (idx + 1) + '</label>' +
-                        '<input type="text" name="info_popup_images[' + imgIndex + ']" class="form-input" placeholder="Keterangan gambar ' + (idx + 1) + ' (opsional)...">';
+                    var label = document.createElement('label');
+                    label.className = 'form-label';
+                    label.style.marginBottom = '4px';
+                    label.textContent = 'Gambar Upload ' + (idx + 1);
+                    var captionInput = document.createElement('input');
+                    captionInput.type = 'text';
+                    captionInput.name = 'info_popup_images[' + imgIndex + ']';
+                    captionInput.className = 'form-input';
+                    captionInput.placeholder = 'Keterangan gambar ' + (idx + 1) + ' (opsional)...';
+                    captionInput.value = savedCaption;
+                    captionInput.addEventListener('input', (function(uploadIdx) {
+                        return function() { uploadImageCaptionTracker[uploadIdx] = this.value; };
+                    })(idx));
+                    row.appendChild(label);
+                    row.appendChild(captionInput);
                     popupRows.appendChild(row);
                 });
+
+                // Render URL image previews (URLs come after uploads in DB)
+                urlImages.forEach(function(img, idx) {
+                    var wrap = document.createElement('div');
+                    wrap.className = 'img-preview-wrap';
+
+                    var imgIndex = uploadedCount + idx; // URLs at indices N..N+M-1
+                    var isGoogleDrive = img.originalUrl.includes('drive.google.com');
+
+                    if (isGoogleDrive) {
+                        wrap.innerHTML = '<div class="flex flex-col items-center justify-center" style="height:60px;width:60px;background:#f3f4f6;border-radius:8px;border:1px solid #e5e7eb;">' +
+                            '<svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>' +
+                            '<a href="' + img.originalUrl + '" target="_blank" class="text-xs text-blue-500 hover:text-blue-700 mt-1">Lihat</a></div>' +
+                            '<button type="button" class="remove-img" onclick="removeUrlImage(' + idx + ')">✕</button>';
+                    } else {
+                        wrap.innerHTML = '<img src="' + img.url + '" alt="" style="height:60px;width:60px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb;" onerror="this.style.display=\'none\'; this.nextElementSibling.style.display=\'flex\';">' +
+                            '<div class="flex items-center justify-center" style="height:60px;width:60px;background:#f3f4f6;border-radius:8px;border:1px solid #e5e7eb;display:none;"><span class="text-xs text-gray-400">Error</span></div>' +
+                            '<button type="button" class="remove-img" onclick="removeUrlImage(' + idx + ')">✕</button>';
+                    }
+                    previewArea.appendChild(wrap);
+
+                    // Add caption input with saved value
+                    var savedCaption = urlImageCaptionTracker[idx] || '';
+                    var row = document.createElement('div');
+                    row.className = 'info-popup-row';
+                    var label = document.createElement('label');
+                    label.className = 'form-label';
+                    label.style.marginBottom = '4px';
+                    label.textContent = 'Gambar URL ' + (idx + 1);
+                    var captionInput = document.createElement('input');
+                    captionInput.type = 'text';
+                    captionInput.name = 'info_popup_images[' + imgIndex + ']';
+                    captionInput.className = 'form-input';
+                    captionInput.placeholder = 'Keterangan gambar ' + (idx + 1) + ' (opsional)...';
+                    captionInput.value = savedCaption;
+                    captionInput.addEventListener('input', (function(captionIdx) {
+                        return function() { urlImageCaptionTracker[captionIdx] = this.value; };
+                    })(idx));
+                    row.appendChild(label);
+                    row.appendChild(captionInput);
+                    popupRows.appendChild(row);
+                });
+
+                // Show uploaded image previews too
+                if (uploadedCount > 0) {
+                    previewArea.style.display = 'flex';
+                }
             }
 
             window.removeUrlImage = function(idx) {
@@ -828,6 +883,7 @@
                 if (inputs[idx]) {
                     inputs[idx].value = '';
                 }
+                delete urlImageCaptionTracker[idx];
                 updateUrlImagePreviews();
             };
 
@@ -901,6 +957,19 @@
             }
 
             window.removePreviewImage = function(idx) {
+                // Remove caption and shift remaining upload captions down
+                delete uploadImageCaptionTracker[idx];
+                var newTracker = {};
+                Object.keys(uploadImageCaptionTracker).forEach(function(key) {
+                    var k = parseInt(key);
+                    if (k > idx) {
+                        newTracker[k - 1] = uploadImageCaptionTracker[k];
+                    } else {
+                        newTracker[k] = uploadImageCaptionTracker[k];
+                    }
+                });
+                uploadImageCaptionTracker = newTracker;
+
                 selectedImageFiles.splice(idx, 1);
                 renderImagePreviews();
             };
