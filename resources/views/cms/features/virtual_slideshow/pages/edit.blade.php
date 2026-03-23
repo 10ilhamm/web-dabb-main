@@ -1043,7 +1043,10 @@
                     entry.remove();
                 } else {
                     var input = entry.querySelector('input[name^="image_urls"]');
-                    if (input) input.value = '';
+                    if (input) {
+                        input.value = '';
+                        input.setAttribute('data-caption', '');
+                    }
                 }
                 updateUrlImagePreviews();
             };
@@ -1253,6 +1256,7 @@
                     var inputs = document.querySelectorAll('#image-url-list input[name^="image_urls"]');
                     if (inputs[0]) {
                         inputs[0].value = '';
+                        inputs[0].setAttribute('data-caption', '');
                     }
                 }
                 updateUrlImagePreviews();
@@ -1369,16 +1373,26 @@
             };
 
             window.removeCarouselVideoUrlEntry = function(btn) {
+                var entry = btn.closest('.carousel-video-url-entry');
+                var domIndex = entry ? parseInt(entry.querySelector('input[name="carousel_video_urls[]"]').getAttribute('data-index')) : -1;
+
                 var entries = document.querySelectorAll('.carousel-video-url-entry');
                 if (entries.length > 1) {
-                    // Caption is already saved in urlCaptionTracker by updateCarouselUrlCaption
-                    btn.closest('.carousel-video-url-entry').remove();
+                    entry.remove();
                 } else {
                     var inputs = document.querySelectorAll('#carousel-video-url-list input[name="carousel_video_urls[]"]');
                     if (inputs[0]) {
                         inputs[0].value = '';
-                        // Caption is preserved in urlCaptionTracker
+                        inputs[0].setAttribute('data-caption', '');
                     }
+                }
+
+                // Clear caption from tracker and allVideoEntries
+                if (domIndex >= 0) {
+                    delete urlCaptionTracker[domIndex];
+                    allVideoEntries = allVideoEntries.filter(function(e) {
+                        return !(e.type === 'url' && e.domIndex === domIndex);
+                    });
                 }
                 updateCarouselVideoPreviews();
             };
@@ -1606,12 +1620,16 @@
                     return !(entry.type === 'url' && entry.domIndex === domIndex);
                 });
 
-                // Also clear the input in DOM but PRESERVE caption in tracker
+                // Clear caption from tracker
+                delete urlCaptionTracker[domIndex];
+
+                // Also clear the input in DOM
                 var entries = document.querySelectorAll('.carousel-video-url-entry');
                 if (entries[domIndex]) {
                     var inputs = entries[domIndex].querySelectorAll('input[name="carousel_video_urls[]"]');
                     if (inputs.length > 0) {
                         inputs[0].value = '';
+                        inputs[0].setAttribute('data-caption', '');
                     }
                 }
                 updateCarouselVideoPreviews();

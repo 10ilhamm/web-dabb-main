@@ -676,9 +676,12 @@
                 var entries = document.querySelectorAll('.image-url-entry');
                 if (entries.length > 1) {
                     btn.closest('.image-url-entry').remove();
-                    // Also remove the corresponding caption field
-                    updateUrlImagePreviews();
+                } else {
+                    // Last entry — clear the value instead of removing
+                    var input = btn.closest('.image-url-entry').querySelector('input[name="image_urls[]"]');
+                    if (input) input.value = '';
                 }
+                updateUrlImagePreviews();
             };
 
             // Array to track URL images
