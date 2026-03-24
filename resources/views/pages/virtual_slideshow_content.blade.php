@@ -309,10 +309,10 @@
                     @endforeach
                 </div>
             </div>
+            @endif
 
             @if($desc)
             <p class="vsshow-section-desc" style="text-align:center;margin-top:2rem;">{!! $desc !!}</p>
-            @endif
             @endif
         </div>
 
