@@ -111,14 +111,34 @@
                                         $firstSlide = $page->slideshowSlides->first();
                                     @endphp
                                     @if ($firstSlide->slide_type === 'hero')
-                                        <div
-                                            class="w-full h-full bg-gradient-to-br from-[#174E93] to-blue-400 flex items-center justify-center">
-                                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor"
-                                                viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M5 3l14 9-14 9V3z" />
-                                            </svg>
-                                        </div>
+                                        @if ($firstSlide->images && count($firstSlide->images) > 0)
+                                            <img src="{{ asset('storage/' . $firstSlide->images[0]) }}"
+                                                class="w-full h-full object-cover" alt="">
+                                        @elseif($firstSlide->image_urls && count($firstSlide->image_urls) > 0)
+                                            @php
+                                                $heroUrl = $firstSlide->image_urls[0];
+                                                $heroThumbSrc = $heroUrl;
+                                                if (strpos($heroUrl, 'drive.google.com') !== false) {
+                                                    if (preg_match('/\/file\/d\/([a-zA-Z0-9_-]+)/', $heroUrl, $m)) {
+                                                        $heroThumbSrc = 'https://lh3.googleusercontent.com/d/' . $m[1];
+                                                    }
+                                                }
+                                            @endphp
+                                            <img src="{{ $heroThumbSrc }}"
+                                                class="w-full h-full object-cover" alt=""
+                                                onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                            <div class="w-full h-full bg-gray-200 flex items-center justify-center" style="display:none;">
+                                                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                </svg>
+                                            </div>
+                                        @else
+                                            <div class="w-full h-full bg-gradient-to-br from-[#174E93] to-blue-400 flex items-center justify-center">
+                                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3l14 9-14 9V3z" />
+                                                </svg>
+                                            </div>
+                                        @endif
                                     @elseif($firstSlide->images && count($firstSlide->images) > 0)
                                         <img src="{{ asset('storage/' . $firstSlide->images[0]) }}"
                                             class="w-full h-full object-cover" alt="">

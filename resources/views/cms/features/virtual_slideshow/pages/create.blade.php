@@ -1319,18 +1319,6 @@
                 return (match && match[2].length === 11) ? match[2] : null;
             }
 
-            function convertGoogleDriveUrl(url) {
-                var match = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
-                if (match) {
-                    return 'https://lh3.googleusercontent.com/d/' + match[1];
-                }
-                match = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-                if (match) {
-                    return 'https://lh3.googleusercontent.com/d/' + match[1];
-                }
-                return null;
-            }
-
             function updateCarouselVideoPreviews() {
                 var previewArea = document.getElementById('carouselVideoUrlPreviewArea');
                 var popupRows = document.getElementById('carouselVideoInfoPopupRows');
