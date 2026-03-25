@@ -99,6 +99,95 @@
             margin-bottom: 8px;
         }
 
+        .caption-widget-mode {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .caption-widget-mode select {
+            padding: 4px 8px;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            background: #fff;
+        }
+
+        .caption-qa-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .caption-qa-pair {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 10px;
+            position: relative;
+        }
+
+        .caption-qa-pair input,
+        .caption-qa-pair textarea {
+            width: 100%;
+            padding: 6px 10px;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            font-size: 0.825rem;
+            outline: none;
+            transition: border-color 0.15s;
+        }
+
+        .caption-qa-pair input:focus,
+        .caption-qa-pair textarea:focus {
+            border-color: #174E93;
+            box-shadow: 0 0 0 2px rgba(23, 78, 147, 0.1);
+        }
+
+        .caption-qa-pair textarea {
+            min-height: 50px;
+            resize: vertical;
+        }
+
+        .caption-qa-remove {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            background: #fee2e2;
+            color: #ef4444;
+            border: none;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .caption-qa-remove:hover {
+            background: #fecaca;
+        }
+
+        .caption-qa-add {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            font-size: 0.8rem;
+            color: #2563eb;
+            border: 1px solid #bfdbfe;
+            border-radius: 6px;
+            background: #eff6ff;
+            cursor: pointer;
+            margin-top: 4px;
+        }
+
+        .caption-qa-add:hover {
+            background: #dbeafe;
+        }
+
         .existing-img-wrap {
             position: relative;
             display: inline-block;
@@ -284,7 +373,7 @@
                 <div class="panel-layout" style="display:none;">
                     <label class="form-label">Layout</label>
                     <div class="flex gap-3">
-                        @foreach (['left' => 'Gambar Kiri, Teks Kanan', 'center' => 'Tengah', 'right' => 'Teks Kiri, Gambar Kanan'] as $val => $lbl)
+                        @foreach (['left' => 'Teks Kiri, Gambar Kanan', 'center' => 'Tengah', 'right' => 'Gambar Kiri, Teks Kanan'] as $val => $lbl)
                             <label class="flex items-center gap-2 cursor-pointer">
                                 <input type="radio" name="layout" value="{{ $val }}"
                                     {{ old('layout', $slide->layout) === $val ? 'checked' : '' }}>
@@ -355,9 +444,7 @@
                                 @foreach ($slide->images as $idx => $imgPath)
                                     <div class="info-popup-row" id="existing-popup-row-{{ $idx }}">
                                         <label class="form-label" style="margin-bottom:4px;">Gambar {{ $idx + 1 }}</label>
-                                        <input type="text" name="info_popup_images[{{ $idx }}]" class="form-input"
-                                            placeholder="Keterangan gambar {{ $idx + 1 }}..."
-                                            value="{{ old("info_popup_images.$idx", $slide->info_popup[$idx] ?? ($slide->info_popup[(string) $idx] ?? '')) }}">
+                                        <div class="existing-caption-widget" data-caption-index="{{ $idx }}" data-caption-data="{{ json_encode($slide->info_popup[$idx] ?? ($slide->info_popup[(string)$idx] ?? '')) }}"></div>
                                     </div>
                                 @endforeach
                             </div>
@@ -681,9 +768,7 @@
 
                 <div id="infoPopupVideoSection">
                     <label class="form-label">Keterangan Info Popup Video</label>
-                    <input type="text" name="info_popup_video" id="infoPopupVideoInput" class="form-input"
-                        value="{{ old('info_popup_video', $slide->info_popup['video'] ?? '') }}"
-                        placeholder="Keterangan video...">
+                    <div id="videoCaptionWidget" data-caption-data="{{ json_encode($slide->info_popup['video'] ?? '') }}"></div>
                 </div>
             </div>
 
@@ -784,6 +869,107 @@
     <script type="text/javascript" src="https://richtexteditor.com/richtexteditor/rte.js"></script>
     <script type="text/javascript" src="https://richtexteditor.com/richtexteditor/plugins/all_plugins.js"></script>
     <script>
+        /**
+         * Reusable Caption Widget: supports Single caption or Multi Q&A mode
+         */
+        function createCaptionWidget(containerEl, namePrefix, captionIndex, existingData, options) {
+            options = options || {};
+            var singlePlaceholder = options.singlePlaceholder || 'Keterangan (opsional)...';
+            var isArray = options.isArray !== false;
+
+            var existingMode = 'single';
+            var existingSingle = '';
+            var existingQa = [];
+            if (existingData && typeof existingData === 'object' && existingData.type === 'multi') {
+                existingMode = 'multi';
+                existingQa = existingData.items || [];
+            } else if (existingData && typeof existingData === 'string') {
+                existingSingle = existingData;
+            }
+
+            var modeNamePrefix = namePrefix.replace('info_popup_', 'info_popup_mode_');
+            var qaNamePrefix = namePrefix.replace('info_popup_', 'info_popup_qa_');
+            var modeName = isArray ? modeNamePrefix + '[' + captionIndex + ']' : modeNamePrefix;
+            var singleName = namePrefix + (isArray ? '[' + captionIndex + ']' : '');
+
+            containerEl.innerHTML = '';
+
+            var modeDiv = document.createElement('div');
+            modeDiv.className = 'caption-widget-mode';
+            var modeSelect = document.createElement('select');
+            modeSelect.name = modeName;
+            modeSelect.innerHTML = '<option value="single"' + (existingMode === 'single' ? ' selected' : '') + '>Caption Tunggal</option>' +
+                                   '<option value="multi"' + (existingMode === 'multi' ? ' selected' : '') + '>Multi Q&A</option>';
+            modeDiv.appendChild(modeSelect);
+            containerEl.appendChild(modeDiv);
+
+            var singleDiv = document.createElement('div');
+            singleDiv.className = 'caption-single-section';
+            singleDiv.style.display = existingMode === 'single' ? 'block' : 'none';
+            var singleInput = document.createElement('input');
+            singleInput.type = 'text';
+            singleInput.name = singleName;
+            singleInput.className = 'form-input';
+            singleInput.placeholder = singlePlaceholder;
+            singleInput.value = existingSingle;
+            singleDiv.appendChild(singleInput);
+            containerEl.appendChild(singleDiv);
+
+            var multiDiv = document.createElement('div');
+            multiDiv.className = 'caption-multi-section';
+            multiDiv.style.display = existingMode === 'multi' ? 'block' : 'none';
+
+            var qaList = document.createElement('div');
+            qaList.className = 'caption-qa-list';
+            multiDiv.appendChild(qaList);
+
+            var qaCounter = { value: 0 };
+
+            function addQaPair(q, a) {
+                var idx = qaCounter.value++;
+                var pair = document.createElement('div');
+                pair.className = 'caption-qa-pair';
+                var qaBaseName = isArray ? qaNamePrefix + '[' + captionIndex + '][' + idx + ']' : qaNamePrefix + '[' + idx + ']';
+                pair.innerHTML =
+                    '<button type="button" class="caption-qa-remove" onclick="this.parentElement.remove()">✕</button>' +
+                    '<label style="font-size:0.75rem;color:#6b7280;margin-bottom:2px;display:block;">Pertanyaan</label>' +
+                    '<input type="text" name="' + qaBaseName + '[question]" placeholder="Pertanyaan..." value="' + (q || '').replace(/"/g, '&quot;') + '">' +
+                    '<label style="font-size:0.75rem;color:#6b7280;margin:6px 0 2px;display:block;">Jawaban</label>' +
+                    '<textarea name="' + qaBaseName + '[answer]" placeholder="Jawaban...">' + (a || '').replace(/</g, '&lt;') + '</textarea>';
+                qaList.appendChild(pair);
+            }
+
+            if (existingQa.length > 0) {
+                existingQa.forEach(function(item) {
+                    addQaPair(item.question || '', item.answer || '');
+                });
+            } else if (existingMode === 'multi') {
+                addQaPair('', '');
+            }
+
+            var addBtn = document.createElement('button');
+            addBtn.type = 'button';
+            addBtn.className = 'caption-qa-add';
+            addBtn.innerHTML = '+ Tambah Q&A';
+            addBtn.addEventListener('click', function() { addQaPair('', ''); });
+            multiDiv.appendChild(addBtn);
+
+            containerEl.appendChild(multiDiv);
+
+            modeSelect.addEventListener('change', function() {
+                if (this.value === 'multi') {
+                    singleDiv.style.display = 'none';
+                    multiDiv.style.display = 'block';
+                    if (qaList.children.length === 0) addQaPair('', '');
+                } else {
+                    singleDiv.style.display = 'block';
+                    multiDiv.style.display = 'none';
+                }
+            });
+
+            return { addQaPair: addQaPair, modeSelect: modeSelect, singleInput: singleInput };
+        }
+
         (function() {
             // Existing info_popup data for URL images (indices start after uploaded images)
             var existingUploadedCount = {{ $slide->images ? count($slide->images) : 0 }};
@@ -1233,27 +1419,30 @@
                 urlImages.forEach(function(img, idx) {
                     var captionIndex = existingUploadedCount + selectedNewImageFiles.length + idx;
                     var captionValue = img.caption || '';
+                    // Try to parse existing caption data for multi mode
+                    var captionData = captionValue;
+                    if (typeof captionValue === 'string' && captionValue.charAt(0) === '{') {
+                        try { captionData = JSON.parse(captionValue); } catch(e) {}
+                    }
                     var row = document.createElement('div');
                     row.className = 'info-popup-row';
-                    var inputEl = document.createElement('input');
-                    inputEl.type = 'text';
-                    inputEl.name = 'info_popup_images[' + captionIndex + ']';
-                    inputEl.className = 'form-input';
-                    inputEl.placeholder = 'Keterangan gambar URL ' + (idx + 1) + '...';
-                    inputEl.value = captionValue;
-                    // Save caption to URL input's data attribute when user types
-                    inputEl.addEventListener('input', function() {
-                        var urlInputs = document.querySelectorAll('#image-url-list input[name^="image_urls"]');
-                        if (urlInputs[idx]) {
-                            urlInputs[idx].setAttribute('data-caption', this.value);
-                        }
-                    });
                     var labelEl = document.createElement('label');
                     labelEl.className = 'form-label';
                     labelEl.style.marginBottom = '4px';
                     labelEl.textContent = 'Gambar URL ' + (idx + 1);
                     row.appendChild(labelEl);
-                    row.appendChild(inputEl);
+                    var widgetContainer = document.createElement('div');
+                    var widget = createCaptionWidget(widgetContainer, 'info_popup_images', captionIndex, captionData, {
+                        singlePlaceholder: 'Keterangan gambar URL ' + (idx + 1) + '...',
+                        isArray: true
+                    });
+                    widget.singleInput.addEventListener('input', function() {
+                        var urlInputs = document.querySelectorAll('#image-url-list input[name^="image_urls"]');
+                        if (urlInputs[idx]) {
+                            urlInputs[idx].setAttribute('data-caption', this.value);
+                        }
+                    });
+                    row.appendChild(widgetContainer);
                     urlCaptionRows.appendChild(row);
                 });
 
@@ -1267,18 +1456,17 @@
                     var labelEl = document.createElement('label');
                     labelEl.className = 'form-label';
                     labelEl.style.marginBottom = '4px';
-                    labelEl.textContent = 'Gambar Upload ' + (idx + 1);
-                    var captionInput = document.createElement('input');
-                    captionInput.type = 'text';
-                    captionInput.name = 'info_popup_new_images[' + captionIndex + ']';
-                    captionInput.className = 'form-input';
-                    captionInput.placeholder = 'Keterangan gambar upload ' + (idx + 1) + '...';
-                    captionInput.value = savedCaption;
-                    captionInput.addEventListener('input', (function(captIdx) {
+                    labelEl.textContent = 'Gambar Upload Baru ' + (idx + 1);
+                    row.appendChild(labelEl);
+                    var widgetContainer = document.createElement('div');
+                    var widget = createCaptionWidget(widgetContainer, 'info_popup_new_images', captionIndex, savedCaption, {
+                        singlePlaceholder: 'Keterangan gambar upload ' + (idx + 1) + '...',
+                        isArray: true
+                    });
+                    widget.singleInput.addEventListener('input', (function(captIdx) {
                         return function() { newUploadImageCaptionTracker[captIdx] = this.value; };
                     })(captionIndex));
-                    row.appendChild(labelEl);
-                    row.appendChild(captionInput);
+                    row.appendChild(widgetContainer);
                     uploadCaptionRows.appendChild(row);
                 });
             }
@@ -1603,28 +1791,31 @@
 
                         previewArea.appendChild(wrap);
 
-                        // Add caption input with event listener to save
+                        // Add caption widget
                         var row = document.createElement('div');
                         row.className = 'info-popup-row';
-                        var captionInput = document.createElement('input');
-                        captionInput.type = 'text';
-                        captionInput.name = 'info_popup_carousel_videos[' + captionKey + ']';
-                        captionInput.className = 'form-input';
-                        captionInput.placeholder = 'Keterangan video ' + displayPosition + ' (opsional)...';
-                        captionInput.value = video.caption || '';
-                        captionInput.addEventListener('input', function() {
-                            video.caption = this.value;
-                            // Update tracker so caption survives re-renders
-                            if (video.type === 'url') {
-                                urlCaptionTracker[video.domIndex] = this.value;
-                            }
-                        });
                         var label = document.createElement('label');
                         label.className = 'form-label';
                         label.style.marginBottom = '4px';
                         label.textContent = 'Video URL ' + displayPosition;
                         row.appendChild(label);
-                        row.appendChild(captionInput);
+                        var widgetContainer = document.createElement('div');
+                        // Parse caption data for multi mode support
+                        var captionData = video.caption || '';
+                        if (typeof captionData === 'string' && captionData.charAt(0) === '{') {
+                            try { captionData = JSON.parse(captionData); } catch(e) {}
+                        }
+                        var widget = createCaptionWidget(widgetContainer, 'info_popup_carousel_videos', captionKey, captionData, {
+                            singlePlaceholder: 'Keterangan video ' + displayPosition + ' (opsional)...',
+                            isArray: true
+                        });
+                        widget.singleInput.addEventListener('input', function() {
+                            video.caption = this.value;
+                            if (video.type === 'url') {
+                                urlCaptionTracker[video.domIndex] = this.value;
+                            }
+                        });
+                        row.appendChild(widgetContainer);
                         popupRows.appendChild(row);
                     } else {
                         // Upload video
@@ -1635,24 +1826,27 @@
                             '<button type="button" class="remove-img" onclick="removePreviewVideo(' + video.uploadId + ')">✕</button>';
                         previewArea.appendChild(uploadWrap);
 
-                        // Add caption input with event listener to save
+                        // Add caption widget
                         var row = document.createElement('div');
                         row.className = 'info-popup-row';
-                        var captionInput = document.createElement('input');
-                        captionInput.type = 'text';
-                        captionInput.name = 'info_popup_carousel_videos[' + captionKey + ']';
-                        captionInput.className = 'form-input';
-                        captionInput.placeholder = 'Keterangan video ' + displayPosition + ' (opsional)...';
-                        captionInput.value = video.caption || '';
-                        captionInput.addEventListener('input', function() {
-                            video.caption = this.value;
-                        });
                         var label = document.createElement('label');
                         label.className = 'form-label';
                         label.style.marginBottom = '4px';
                         label.textContent = 'Video Upload ' + displayPosition;
                         row.appendChild(label);
-                        row.appendChild(captionInput);
+                        var widgetContainer = document.createElement('div');
+                        var captionData = video.caption || '';
+                        if (typeof captionData === 'string' && captionData.charAt(0) === '{') {
+                            try { captionData = JSON.parse(captionData); } catch(e) {}
+                        }
+                        var widget = createCaptionWidget(widgetContainer, 'info_popup_carousel_videos', captionKey, captionData, {
+                            singlePlaceholder: 'Keterangan video ' + displayPosition + ' (opsional)...',
+                            isArray: true
+                        });
+                        widget.singleInput.addEventListener('input', function() {
+                            video.caption = this.value;
+                        });
+                        row.appendChild(widgetContainer);
                         popupRows.appendChild(row);
                     }
                 });
@@ -1904,6 +2098,30 @@
                 initRTE();
             } else {
                 window.addEventListener('load', initRTE);
+            }
+
+            // Initialize existing image caption widgets
+            document.querySelectorAll('.existing-caption-widget').forEach(function(el) {
+                var captionIndex = el.getAttribute('data-caption-index');
+                var rawData = el.getAttribute('data-caption-data');
+                var captionData = '';
+                try { captionData = JSON.parse(rawData); } catch(e) { captionData = rawData || ''; }
+                createCaptionWidget(el, 'info_popup_images', captionIndex, captionData, {
+                    singlePlaceholder: 'Keterangan gambar ' + (parseInt(captionIndex) + 1) + '...',
+                    isArray: true
+                });
+            });
+
+            // Initialize video caption widget
+            var videoCaptionEl = document.getElementById('videoCaptionWidget');
+            if (videoCaptionEl) {
+                var videoRawData = videoCaptionEl.getAttribute('data-caption-data');
+                var videoCaptionData = '';
+                try { videoCaptionData = JSON.parse(videoRawData); } catch(e) { videoCaptionData = videoRawData || ''; }
+                createCaptionWidget(videoCaptionEl, 'info_popup_video', null, videoCaptionData, {
+                    singlePlaceholder: 'Keterangan video...',
+                    isArray: false
+                });
             }
 
             document.getElementById('slideForm').addEventListener('submit', function(e) {

@@ -99,6 +99,13 @@
         return $url;
     }
 
+    function vssPopupData($captionData) {
+        if (is_array($captionData) && ($captionData['type'] ?? '') === 'multi') {
+            return json_encode($captionData);
+        }
+        return e((string)($captionData ?? ''));
+    }
+
     function vssProcessImageUrl($url) {
         if (empty($url)) return null;
         
@@ -282,7 +289,7 @@
                         <img src="{{ $imgSrc }}" alt="{{ $title }} — gambar {{ $imgIdx+1 }}" loading="lazy" style="width:100%;height:100%;object-fit:contain;">
                         @if(!empty($popup[$imgIdx]) || !empty($popup[(string)$imgIdx]))
                         <button class="vsshow-info-btn"
-                            data-popup="{{ $popup[$imgIdx] ?? $popup[(string)$imgIdx] ?? '' }}"
+                            data-popup="{{ vssPopupData($popup[$imgIdx] ?? $popup[(string)$imgIdx] ?? '') }}"
                             data-img-src="{{ $imgSrc }}"
                             title="Info">?</button>
                         @endif
@@ -333,7 +340,7 @@
             <div class="vsshow-video-wrap">
                 @if(!empty($popup['video']))
                 <button class="vsshow-info-btn vsshow-video-info-btn"
-                    data-popup="{{ $popup['video'] }}"
+                    data-popup="{{ vssPopupData($popup['video']) }}"
                     title="Info Video">?</button>
                 @endif
 
@@ -394,7 +401,7 @@
             $carouselVideoUrls = $slide->carousel_video_urls ?? [];
             $hasCarouselVideos = !empty($carouselVideoFiles) || !empty($carouselVideoUrls);
         @endphp
-        <div class="vsshow-split {{ $slide->layout === 'right' ? 'vsshow-split-right' : '' }}">
+        <div class="vsshow-split {{ $slide->layout === 'right' ? 'vsshow-split-right' : '' }}{{ $slide->layout === 'center' ? ' vsshow-split-center' : '' }}">
             {{-- Text --}}
             <div class="vsshow-split-text vsshow-anim {{ $slide->layout === 'right' ? 'vsshow-anim-right' : 'vsshow-anim-left' }}" data-delay="{{ $delay }}">
                 @if($title)
@@ -432,7 +439,7 @@
                             >
                             @if(!empty($popup[$imgIdx]) || !empty($popup[(string)$imgIdx]))
                             <button class="vsshow-info-btn"
-                                data-popup="{{ $popup[$imgIdx] ?? $popup[(string)$imgIdx] ?? '' }}"
+                                data-popup="{{ vssPopupData($popup[$imgIdx] ?? $popup[(string)$imgIdx] ?? '') }}"
                                 data-img-src="{{ $imgSrc }}"
                                 title="Info">?</button>
                             @endif
@@ -516,7 +523,7 @@
                                             @endif
                                             @if(!empty($itemCaption))
                                             <button class="vsshow-info-btn"
-                                                data-popup="{{ $itemCaption }}"
+                                                data-popup="{{ vssPopupData($itemCaption) }}"
                                                 title="Info">?</button>
                                             @endif
                                         </div>
@@ -536,7 +543,7 @@
                                             </video>
                                             @if(!empty($itemCaption))
                                             <button class="vsshow-info-btn"
-                                                data-popup="{{ $itemCaption }}"
+                                                data-popup="{{ vssPopupData($itemCaption) }}"
                                                 title="Info">?</button>
                                             @endif
                                         </div>
@@ -580,7 +587,7 @@
                                 @endif
                                 @if(!empty($carouselVideoCaptions['url_' . $vidIdx]))
                                 <button class="vsshow-info-btn"
-                                    data-popup="{{ $carouselVideoCaptions['url_' . $vidIdx] }}"
+                                    data-popup="{{ vssPopupData($carouselVideoCaptions['url_' . $vidIdx]) }}"
                                     title="Info">?</button>
                                 @endif
                             </div>
@@ -593,7 +600,7 @@
                                 </video>
                                 @if(!empty($carouselVideoCaptions['upload_' . $vidIdx]))
                                 <button class="vsshow-info-btn"
-                                    data-popup="{{ $carouselVideoCaptions['upload_' . $vidIdx] }}"
+                                    data-popup="{{ vssPopupData($carouselVideoCaptions['upload_' . $vidIdx]) }}"
                                     title="Info">?</button>
                                 @endif
                             </div>

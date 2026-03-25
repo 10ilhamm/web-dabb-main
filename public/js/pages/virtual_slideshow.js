@@ -136,10 +136,50 @@
     let popupImgEl    = document.getElementById('vss-popup-img');
     let popupCloseBtn = document.getElementById('vss-popup-close');
 
+    function escapeHtml(str) {
+        var div = document.createElement('div');
+        div.appendChild(document.createTextNode(str));
+        return div.innerHTML;
+    }
+
+    function renderQaAccordion(items) {
+        var html = '<div class="vsshow-qa-list">';
+        items.forEach(function(item, idx) {
+            html += '<div class="vsshow-qa-item">' +
+                '<button type="button" class="vsshow-qa-question" data-qa-idx="' + idx + '">' +
+                    '<span>' + escapeHtml(item.question || '') + '</span>' +
+                    '<svg class="vsshow-qa-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
+                        '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>' +
+                    '</svg>' +
+                '</button>' +
+                '<div class="vsshow-qa-answer">' + escapeHtml(item.answer || '') + '</div>' +
+            '</div>';
+        });
+        html += '</div>';
+        return html;
+    }
+
     function showPopup(text, imgSrc) {
         if (!popupCard || !popupOverlay) return;
 
-        popupBody.textContent = text || '';
+        // Try to parse as JSON for multi Q&A mode
+        var parsed = null;
+        if (text && text.charAt(0) === '{') {
+            try { parsed = JSON.parse(text); } catch(e) { parsed = null; }
+        }
+
+        if (parsed && parsed.type === 'multi' && Array.isArray(parsed.items) && parsed.items.length > 0) {
+            popupBody.innerHTML = renderQaAccordion(parsed.items);
+            // Bind accordion toggle
+            popupBody.querySelectorAll('.vsshow-qa-question').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    var qaItem = btn.closest('.vsshow-qa-item');
+                    qaItem.classList.toggle('open');
+                });
+            });
+        } else {
+            popupBody.textContent = text || '';
+        }
 
         if (imgSrc && popupImgEl) {
             popupImgEl.src = imgSrc;
@@ -161,7 +201,10 @@
         if (!popupCard || !popupOverlay) return;
         popupCard.classList.remove('active');
         popupOverlay.classList.remove('active');
-        setTimeout(() => { popupCard.style.display = 'none'; }, 300);
+        setTimeout(() => {
+            popupCard.style.display = 'none';
+            if (popupBody) popupBody.innerHTML = '';
+        }, 300);
         document.body.style.overflow = '';
     }
 

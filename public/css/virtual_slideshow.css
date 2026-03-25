@@ -227,6 +227,21 @@
     direction: ltr;
 }
 
+/* Center layout: stacked (text above, image below) */
+.vsshow-split.vsshow-split-center {
+    grid-template-columns: 1fr;
+    direction: ltr;
+    text-align: center;
+}
+
+.vsshow-split.vsshow-split-center > * {
+    direction: ltr;
+}
+
+.vsshow-split.vsshow-split-center .vsshow-split-text {
+    order: -1;
+}
+
 @media (max-width: 768px) {
     .vsshow-split {
         grid-template-columns: 1fr;
@@ -528,6 +543,70 @@
 
 .vsshow-split-text .vsshow-divider {
     margin-left: 0;
+}
+
+/* ---- Q&A Accordion (Multi Caption) ---- */
+.vsshow-qa-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.vsshow-qa-item {
+    border-bottom: 1px solid var(--vsshow-border);
+}
+
+.vsshow-qa-item:last-child {
+    border-bottom: none;
+}
+
+.vsshow-qa-question {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    width: 100%;
+    padding: 0.85rem 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--vsshow-text);
+    text-align: left;
+    line-height: 1.4;
+    transition: color 0.2s;
+}
+
+.vsshow-qa-question:hover {
+    color: var(--vsshow-primary);
+}
+
+.vsshow-qa-chevron {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    transition: transform 0.3s ease;
+    color: var(--vsshow-muted);
+}
+
+.vsshow-qa-item.open .vsshow-qa-chevron {
+    transform: rotate(180deg);
+}
+
+.vsshow-qa-answer {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.35s ease, padding 0.35s ease;
+    font-size: 0.93rem;
+    color: var(--vsshow-muted);
+    line-height: 1.75;
+    padding: 0 0;
+}
+
+.vsshow-qa-item.open .vsshow-qa-answer {
+    max-height: 600px;
+    padding: 0 0 0.85rem;
 }
 
 /* ---- Mobile ---- */

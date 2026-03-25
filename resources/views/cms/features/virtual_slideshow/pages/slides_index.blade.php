@@ -200,7 +200,39 @@
                                 <div class="flex items-center gap-3 mt-1 text-xs text-gray-400">
                                     @php
                                         $totalImages = (isset($slide->images) ? count($slide->images) : 0) + (isset($slide->image_urls) ? count($slide->image_urls) : 0);
-                                        $totalInfoPopup = isset($slide->info_popup) ? count(array_filter($slide->info_popup, function($v, $k) { return !is_array($v); }, ARRAY_FILTER_USE_BOTH)) : 0;
+                                        $totalInfoPopup = 0;
+                                        if (isset($slide->info_popup) && is_array($slide->info_popup)) {
+                                            // Explicitly handle carousel structure:
+                                            // - carousel_video_order: ordering metadata only — skip
+                                            // - carousel_videos: actual captions — count each entry
+                                            if (isset($slide->info_popup['carousel_videos']) && is_array($slide->info_popup['carousel_videos'])) {
+                                                foreach ($slide->info_popup['carousel_videos'] as $caption) {
+                                                    if (isset($caption['type']) && $caption['type'] === 'multi'
+                                                        && isset($caption['items']) && is_array($caption['items'])) {
+                                                        $totalInfoPopup += count($caption['items']);
+                                                    } else {
+                                                        $totalInfoPopup += 1;
+                                                    }
+                                                }
+                                            }
+                                            // Fallback: generic top-level iteration for other slide types
+                                            // (e.g. video slides where "0", "1" are direct string captions)
+                                            foreach ($slide->info_popup as $key => $entry) {
+                                                if (in_array($key, ['carousel_video_order', 'carousel_videos'], true)) {
+                                                    continue;
+                                                }
+                                                if (is_string($entry)) {
+                                                    $totalInfoPopup += 1;
+                                                } elseif (is_array($entry)) {
+                                                    if (isset($entry['type']) && $entry['type'] === 'multi'
+                                                        && isset($entry['items']) && is_array($entry['items'])) {
+                                                        $totalInfoPopup += count($entry['items']);
+                                                    } else {
+                                                        $totalInfoPopup += 1;
+                                                    }
+                                                }
+                                            }
+                                        }
                                     @endphp
                                     @if ($totalImages > 0)
                                         <span>📷 {{ $totalImages }} gambar</span>

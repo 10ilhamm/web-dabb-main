@@ -74,6 +74,28 @@ class VirtualSlideshowController extends Controller
     }
 
     /**
+     * Build caption value based on mode (single string or multi Q&A object)
+     */
+    private function buildCaptionValue(string $mode, ?string $singleCaption, ?array $qaItems): mixed
+    {
+        if ($mode === 'multi' && !empty($qaItems)) {
+            $items = [];
+            foreach ($qaItems as $qa) {
+                $q = trim($qa['question'] ?? '');
+                $a = trim($qa['answer'] ?? '');
+                if ($q !== '' || $a !== '') {
+                    $items[] = ['question' => $q, 'answer' => $a];
+                }
+            }
+            if (!empty($items)) {
+                return ['type' => 'multi', 'items' => $items];
+            }
+        }
+        // Fall back to single caption
+        return !empty($singleCaption) ? $singleCaption : null;
+    }
+
+    /**
      * Shared method to store slide data
      */
     private function storeSlideData(Request $request, Feature $feature, ?VirtualSlideshowPage $page, TranslationService $translationService)
@@ -105,6 +127,14 @@ class VirtualSlideshowController extends Controller
             'info_popup_carousel_videos' => 'nullable|array',
             'info_popup_carousel_videos.*' => 'nullable|string',
             'info_popup_video'    => 'nullable|string',
+            'info_popup_mode_images' => 'nullable|array',
+            'info_popup_mode_images.*' => 'nullable|in:single,multi',
+            'info_popup_qa_images' => 'nullable|array',
+            'info_popup_mode_video' => 'nullable|in:single,multi',
+            'info_popup_qa_video' => 'nullable|array',
+            'info_popup_mode_carousel_videos' => 'nullable|array',
+            'info_popup_mode_carousel_videos.*' => 'nullable|in:single,multi',
+            'info_popup_qa_carousel_videos' => 'nullable|array',
             'unified_video_order' => 'nullable',
         ]);
 
@@ -115,8 +145,8 @@ class VirtualSlideshowController extends Controller
         $carouselVideoTypes = ['text_carousel'];
         // text_carousel can use either images or videos (based on carousel_media_type toggle)
         $textCarouselTypes = ['text_carousel'];
-        $usesImagesForCarousel = $slideType === 'text_carousel' && 
-                                  isset($validated['carousel_media_type']) && 
+        $usesImagesForCarousel = $slideType === 'text_carousel' &&
+                                  isset($validated['carousel_media_type']) &&
                                   $validated['carousel_media_type'] === 'images';
 
         $useImages = in_array($slideType, $imageTypes);
@@ -230,27 +260,44 @@ class VirtualSlideshowController extends Controller
 
         // Build info_popup array
         $infoPopup = [];
+        $captionModes = $validated['info_popup_mode_images'] ?? [];
+        $captionQaData = $request->input('info_popup_qa_images', []);
+
         if (($useImages || $useCarouselImages)) {
             // For new slides, use info_popup_images directly (since no existing images)
             if (!empty($validated['info_popup_images'])) {
                 foreach ($validated['info_popup_images'] as $idx => $caption) {
-                    if (!empty($caption)) {
-                        $infoPopup[(string)$idx] = $caption;
+                    $mode = $captionModes[$idx] ?? 'single';
+                    $qaItems = $captionQaData[$idx] ?? [];
+                    $value = $this->buildCaptionValue($mode, $caption, $qaItems);
+                    if ($value !== null) {
+                        $infoPopup[(string)$idx] = $value;
                     }
                 }
             }
             // Also support info_popup_new_images for consistency
             if (!empty($validated['info_popup_new_images'])) {
                 $startIdx = !empty($validated['info_popup_images']) ? count($validated['info_popup_images']) : 0;
+                $newImageModes = $request->input('info_popup_mode_new_images', []);
+                $newImageQaData = $request->input('info_popup_qa_new_images', []);
                 foreach ($validated['info_popup_new_images'] as $idx => $caption) {
-                    if (!empty($caption)) {
-                        $infoPopup[(string)($startIdx + $idx)] = $caption;
+                    $actualIdx = $startIdx + $idx;
+                    $mode = $newImageModes[$idx] ?? ($captionModes[$actualIdx] ?? 'single');
+                    $qaItems = $newImageQaData[$idx] ?? ($captionQaData[$actualIdx] ?? []);
+                    $value = $this->buildCaptionValue($mode, $caption, $qaItems);
+                    if ($value !== null) {
+                        $infoPopup[(string)$actualIdx] = $value;
                     }
                 }
             }
         }
-        if ($useVideo && !empty($validated['info_popup_video'])) {
-            $infoPopup['video'] = $validated['info_popup_video'];
+        if ($useVideo) {
+            $videoMode = $validated['info_popup_mode_video'] ?? 'single';
+            $videoQaItems = $request->input('info_popup_qa_video', []);
+            $videoValue = $this->buildCaptionValue($videoMode, $validated['info_popup_video'] ?? null, $videoQaItems);
+            if ($videoValue !== null) {
+                $infoPopup['video'] = $videoValue;
+            }
         }
         if ($useCarouselVideo) {
             // Store normalized order for reconstruction on load
@@ -280,14 +327,20 @@ class VirtualSlideshowController extends Controller
                 }
 
                 // Process captions: remap newUpload_X keys to sequential upload_X keys
+                $carouselVideoModes = $validated['info_popup_mode_carousel_videos'] ?? [];
+                $carouselVideoQaData = $request->input('info_popup_qa_carousel_videos', []);
+
                 foreach ($validated['info_popup_carousel_videos'] as $key => $caption) {
-                    if (empty($caption)) continue;
+                    $mode = $carouselVideoModes[$key] ?? 'single';
+                    $qaItems = $carouselVideoQaData[$key] ?? [];
+                    $value = $this->buildCaptionValue($mode, $caption, $qaItems);
+                    if ($value === null) continue;
 
                     if (str_starts_with($key, 'newUpload_')) {
                         $storageKey = 'upload_' . ($captionToStorage[$key]['storageIdx'] ?? 0);
-                        $infoPopup['carousel_videos'][$storageKey] = $caption;
+                        $infoPopup['carousel_videos'][$storageKey] = $value;
                     } else {
-                        $infoPopup['carousel_videos'][$key] = $caption;
+                        $infoPopup['carousel_videos'][$key] = $value;
                     }
                 }
             }
@@ -411,6 +464,14 @@ class VirtualSlideshowController extends Controller
             'info_popup_carousel_videos' => 'nullable|array',
             'info_popup_carousel_videos.*' => 'nullable|string',
             'info_popup_video'    => 'nullable|string',
+            'info_popup_mode_images' => 'nullable|array',
+            'info_popup_mode_images.*' => 'nullable|in:single,multi',
+            'info_popup_qa_images' => 'nullable|array',
+            'info_popup_mode_video' => 'nullable|in:single,multi',
+            'info_popup_qa_video' => 'nullable|array',
+            'info_popup_mode_carousel_videos' => 'nullable|array',
+            'info_popup_mode_carousel_videos.*' => 'nullable|in:single,multi',
+            'info_popup_qa_carousel_videos' => 'nullable|array',
         ]);
 
         // Determine which data to keep based on slide type
@@ -419,8 +480,8 @@ class VirtualSlideshowController extends Controller
         $videoTypes = ['video'];
         $carouselVideoTypes = ['text_carousel'];
         // text_carousel can use either images or videos (based on carousel_media_type toggle)
-        $usesImagesForCarousel = $slideType === 'text_carousel' && 
-                                  isset($validated['carousel_media_type']) && 
+        $usesImagesForCarousel = $slideType === 'text_carousel' &&
+                                  isset($validated['carousel_media_type']) &&
                                   $validated['carousel_media_type'] === 'images';
 
         $useImages = in_array($slideType, $imageTypes);
@@ -655,37 +716,50 @@ class VirtualSlideshowController extends Controller
 
         // Build info_popup - only include info if there's corresponding content
         $infoPopup = [];
+        $captionModes = $validated['info_popup_mode_images'] ?? [];
+        $captionQaData = $request->input('info_popup_qa_images', []);
+
         if (($useImages || $useCarouselImages)) {
             // Count existing images (before new uploads)
             $existingImageCount = count($existingImages);
             $uploadedCount = count($imagePaths); // This includes both existing and new
             $urlCount = count($imageUrls);
-            
+
             // Process info_popup_images - this contains captions for existing images only
             if (!empty($validated['info_popup_images'])) {
                 foreach ($validated['info_popup_images'] as $idx => $caption) {
-                    if (!empty($caption)) {
-                        $infoPopup[(string)$idx] = $caption;
+                    $mode = $captionModes[$idx] ?? 'single';
+                    $qaItems = $captionQaData[$idx] ?? [];
+                    $value = $this->buildCaptionValue($mode, $caption, $qaItems);
+                    if ($value !== null) {
+                        $infoPopup[(string)$idx] = $value;
                     }
                 }
             }
-            
+
             // Process info_popup_new_images[] for new uploads
-            // New image captions should be at indices: existingImageCount to (existingImageCount + newUploadCount - 1)
-            // But we receive them as sequential indices [0, 1, 2...]
             if (!empty($validated['info_popup_new_images'])) {
+                $newImageModes = $request->input('info_popup_mode_new_images', []);
+                $newImageQaData = $request->input('info_popup_qa_new_images', []);
                 foreach ($validated['info_popup_new_images'] as $idx => $caption) {
-                    // Map sequential index to actual image index
                     $actualIndex = $existingImageCount + $idx;
-                    if (!empty($caption)) {
-                        $infoPopup[(string)$actualIndex] = $caption;
+                    $mode = $newImageModes[$idx] ?? ($captionModes[$actualIndex] ?? 'single');
+                    $qaItems = $newImageQaData[$idx] ?? ($captionQaData[$actualIndex] ?? []);
+                    $value = $this->buildCaptionValue($mode, $caption, $qaItems);
+                    if ($value !== null) {
+                        $infoPopup[(string)$actualIndex] = $value;
                     }
                 }
             }
         }
         $hasVideo = !empty($primaryVideoUrl) || !empty($videoFilePath);
-        if ($useVideo && $hasVideo && !empty($validated['info_popup_video'])) {
-            $infoPopup['video'] = $validated['info_popup_video'];
+        if ($useVideo && $hasVideo) {
+            $videoMode = $validated['info_popup_mode_video'] ?? 'single';
+            $videoQaItems = $request->input('info_popup_qa_video', []);
+            $videoValue = $this->buildCaptionValue($videoMode, $validated['info_popup_video'] ?? null, $videoQaItems);
+            if ($videoValue !== null) {
+                $infoPopup['video'] = $videoValue;
+            }
         }
         if ($useCarouselVideo) {
             // Always store the normalized order for proper reconstruction on load
@@ -719,14 +793,20 @@ class VirtualSlideshowController extends Controller
                 }
 
                 // Process captions: remap newUpload_X keys to sequential upload_X keys
+                $carouselVideoModes = $validated['info_popup_mode_carousel_videos'] ?? [];
+                $carouselVideoQaData = $request->input('info_popup_qa_carousel_videos', []);
+
                 foreach ($validated['info_popup_carousel_videos'] as $key => $caption) {
-                    if (empty($caption)) continue;
+                    $mode = $carouselVideoModes[$key] ?? 'single';
+                    $qaItems = $carouselVideoQaData[$key] ?? [];
+                    $value = $this->buildCaptionValue($mode, $caption, $qaItems);
+                    if ($value === null) continue;
 
                     if (str_starts_with($key, 'newUpload_')) {
                         $storageKey = 'upload_' . ($captionToStorage[$key]['storageIdx'] ?? 0);
-                        $infoPopup['carousel_videos'][$storageKey] = $caption;
+                        $infoPopup['carousel_videos'][$storageKey] = $value;
                     } else {
-                        $infoPopup['carousel_videos'][$key] = $caption;
+                        $infoPopup['carousel_videos'][$key] = $value;
                     }
                 }
             }
