@@ -100,6 +100,8 @@
                                                 if (preg_match('/\/file\/d\/([a-zA-Z0-9_-]+)/', $heroUrl, $m)) {
                                                     $heroThumbSrc = 'https://lh3.googleusercontent.com/d/' . $m[1];
                                                 }
+                                            } elseif (preg_match('/commons\.wikimedia\.org\/wiki\/File:(.+)/', $heroUrl, $m)) {
+                                                $heroThumbSrc = 'https://commons.wikimedia.org/wiki/Special:FilePath/' . $m[1];
                                             }
                                         @endphp
                                         <img src="{{ $heroThumbSrc }}"
@@ -128,6 +130,8 @@
                                             if (preg_match('/\/file\/d\/([a-zA-Z0-9_-]+)/', $firstUrl, $m)) {
                                                 $thumbSrc = 'https://lh3.googleusercontent.com/d/' . $m[1];
                                             }
+                                        } elseif (preg_match('/commons\.wikimedia\.org\/wiki\/File:(.+)/', $firstUrl, $m)) {
+                                            $thumbSrc = 'https://commons.wikimedia.org/wiki/Special:FilePath/' . $m[1];
                                         }
                                     @endphp
                                     <img src="{{ $thumbSrc }}"

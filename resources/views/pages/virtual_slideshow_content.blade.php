@@ -108,10 +108,9 @@
 
     function vssProcessImageUrl($url) {
         if (empty($url)) return null;
-        
+
         // Check if it's a Google Drive URL
         if (strpos($url, 'drive.google.com') !== false) {
-            // Try to extract file ID from various Google Drive URL formats
             $patterns = [
                 '/\/file\/d\/([a-zA-Z0-9_-]+)/',
                 '/id=([a-zA-Z0-9_-]+)/',
@@ -119,12 +118,16 @@
             ];
             foreach ($patterns as $pattern) {
                 if (preg_match($pattern, $url, $matches)) {
-                    // Use lh3.googleusercontent.com format which supports CORS
                     return 'https://lh3.googleusercontent.com/d/' . $matches[1];
                 }
             }
         }
-        
+
+        // Wikimedia Commons: /wiki/File:NAME → Special:FilePath/NAME
+        if (preg_match('/commons\.wikimedia\.org\/wiki\/File:(.+)/', $url, $matches)) {
+            return 'https://commons.wikimedia.org/wiki/Special:FilePath/' . $matches[1];
+        }
+
         return $url;
     }
 @endphp

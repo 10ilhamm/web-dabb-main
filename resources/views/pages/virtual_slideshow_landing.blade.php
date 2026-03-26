@@ -241,6 +241,8 @@
                                     if (!$converted) {
                                         $thumbUrl = $firstUrl;
                                     }
+                                } elseif (preg_match('/commons\.wikimedia\.org\/wiki\/File:(.+)/', $firstUrl, $m)) {
+                                    $thumbUrl = 'https://commons.wikimedia.org/wiki/Special:FilePath/' . $m[1];
                                 } else {
                                     $thumbUrl = $firstUrl;
                                 }
