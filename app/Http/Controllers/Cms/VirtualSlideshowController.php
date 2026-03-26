@@ -61,7 +61,12 @@ class VirtualSlideshowController extends Controller
     {
         $page = VirtualSlideshowPage::findOrFail($pageId);
         $feature->load('parent');
-        return view('cms.features.virtual_slideshow.pages.create', compact('feature', 'page'));
+
+        $hasHeroSlide = VirtualSlideshowSlide::where('feature_page_id', $page->id)
+            ->where('slide_type', 'hero')
+            ->exists();
+
+        return view('cms.features.virtual_slideshow.pages.create', compact('feature', 'page', 'hasHeroSlide'));
     }
 
     /**
@@ -127,11 +132,14 @@ class VirtualSlideshowController extends Controller
             'info_popup_carousel_videos' => 'nullable|array',
             'info_popup_carousel_videos.*' => 'nullable|string',
             'info_popup_video'    => 'nullable|string',
+            'info_popup_video_url' => 'nullable|string',
             'info_popup_mode_images' => 'nullable|array',
             'info_popup_mode_images.*' => 'nullable|in:single,multi',
             'info_popup_qa_images' => 'nullable|array',
             'info_popup_mode_video' => 'nullable|in:single,multi',
             'info_popup_qa_video' => 'nullable|array',
+            'info_popup_mode_video_url' => 'nullable|in:single,multi',
+            'info_popup_qa_video_url' => 'nullable|array',
             'info_popup_mode_carousel_videos' => 'nullable|array',
             'info_popup_mode_carousel_videos.*' => 'nullable|in:single,multi',
             'info_popup_qa_carousel_videos' => 'nullable|array',
@@ -140,6 +148,17 @@ class VirtualSlideshowController extends Controller
 
         // Determine which data to store based on slide type
         $slideType = $validated['slide_type'];
+
+        // Server-side backup: prevent duplicate hero slides per page
+        if ($slideType === 'hero' && $page) {
+            $existingHero = VirtualSlideshowSlide::where('feature_page_id', $page->id)
+                ->where('slide_type', 'hero')
+                ->exists();
+            if ($existingHero) {
+                return back()->withErrors(['slide_type' => 'Halaman ini sudah memiliki slide Hero.'])->withInput();
+            }
+        }
+
         $imageTypes = ['hero', 'carousel'];
         $videoTypes = ['video'];
         $carouselVideoTypes = ['text_carousel'];
@@ -298,6 +317,13 @@ class VirtualSlideshowController extends Controller
             if ($videoValue !== null) {
                 $infoPopup['video'] = $videoValue;
             }
+            // Video URL caption
+            $videoUrlMode = $validated['info_popup_mode_video_url'] ?? 'single';
+            $videoUrlQaItems = $request->input('info_popup_qa_video_url', []);
+            $videoUrlValue = $this->buildCaptionValue($videoUrlMode, $validated['info_popup_video_url'] ?? null, $videoUrlQaItems);
+            if ($videoUrlValue !== null) {
+                $infoPopup['video_url'] = $videoUrlValue;
+            }
         }
         if ($useCarouselVideo) {
             // Store normalized order for reconstruction on load
@@ -354,6 +380,21 @@ class VirtualSlideshowController extends Controller
         $storeImageUrls = ($useImages || $useCarouselImages) ? ($imageUrls ?: null) : null;
         $storeCarouselVideos = $useCarouselVideo ? (!empty($orderedUploads) ? $orderedUploads : null) : null;
         $storeCarouselVideoUrls = $useCarouselVideo ? (!empty($orderedUrls) ? $orderedUrls : null) : null;
+
+        // Hero: hanya boleh upload ATAU URL, tidak boleh keduanya
+        if (($useImages || $useCarouselImages) && $slideType === 'hero') {
+            $hasUploadedImages = !empty($imagePaths);
+            $hasUrlImages = !empty($imageUrls);
+
+            if ($hasUploadedImages && $hasUrlImages) {
+                if ($request->expectsJson()) {
+                    return response()->json(['error' => 'Hero hanya boleh memiliki 1 gambar. Pilih antara Upload File atau URL.'], 422);
+                }
+                return redirect()->back()
+                    ->withInput()
+                    ->withErrors(['image_conflict' => 'Hero hanya boleh memiliki 1 gambar. Pilih antara Upload File atau URL, tidak boleh keduanya sekaligus.']);
+            }
+        }
 
         VirtualSlideshowSlide::create([
             'feature_id'      => $feature->id,
@@ -464,11 +505,14 @@ class VirtualSlideshowController extends Controller
             'info_popup_carousel_videos' => 'nullable|array',
             'info_popup_carousel_videos.*' => 'nullable|string',
             'info_popup_video'    => 'nullable|string',
+            'info_popup_video_url' => 'nullable|string',
             'info_popup_mode_images' => 'nullable|array',
             'info_popup_mode_images.*' => 'nullable|in:single,multi',
             'info_popup_qa_images' => 'nullable|array',
             'info_popup_mode_video' => 'nullable|in:single,multi',
             'info_popup_qa_video' => 'nullable|array',
+            'info_popup_mode_video_url' => 'nullable|in:single,multi',
+            'info_popup_qa_video_url' => 'nullable|array',
             'info_popup_mode_carousel_videos' => 'nullable|array',
             'info_popup_mode_carousel_videos.*' => 'nullable|in:single,multi',
             'info_popup_qa_carousel_videos' => 'nullable|array',
@@ -753,12 +797,25 @@ class VirtualSlideshowController extends Controller
             }
         }
         $hasVideo = !empty($primaryVideoUrl) || !empty($videoFilePath);
-        if ($useVideo && $hasVideo) {
-            $videoMode = $validated['info_popup_mode_video'] ?? 'single';
-            $videoQaItems = $request->input('info_popup_qa_video', []);
-            $videoValue = $this->buildCaptionValue($videoMode, $validated['info_popup_video'] ?? null, $videoQaItems);
-            if ($videoValue !== null) {
-                $infoPopup['video'] = $videoValue;
+        if ($useVideo) {
+            // Upload video caption (only when upload method is used or existing file)
+            if ($hasVideo && empty($primaryVideoUrl)) {
+                $videoMode = $validated['info_popup_mode_video'] ?? 'single';
+                $videoQaItems = $request->input('info_popup_qa_video', []);
+                $videoValue = $this->buildCaptionValue($videoMode, $validated['info_popup_video'] ?? null, $videoQaItems);
+                if ($videoValue !== null) {
+                    $infoPopup['video'] = $videoValue;
+                }
+            }
+            // URL video caption (always when URL method is used)
+            $useVideoUrlMethod = $request->input('video_method') === 'url';
+            if ($useVideoUrlMethod && (!empty($primaryVideoUrl) || !empty($validated['video_url']))) {
+                $videoUrlMode = $validated['info_popup_mode_video_url'] ?? 'single';
+                $videoUrlQaItems = $request->input('info_popup_qa_video_url', []);
+                $videoUrlValue = $this->buildCaptionValue($videoUrlMode, $validated['info_popup_video_url'] ?? null, $videoUrlQaItems);
+                if ($videoUrlValue !== null) {
+                    $infoPopup['video_url'] = $videoUrlValue;
+                }
             }
         }
         if ($useCarouselVideo) {
@@ -814,6 +871,21 @@ class VirtualSlideshowController extends Controller
 
         // Determine feature_page_id
         $featurePageId = $page ? $page->id : ($validated['feature_page_id'] ?? null);
+
+        // Hero: hanya boleh upload ATAU URL, tidak boleh keduanya
+        if (($useImages || $useCarouselImages) && $slideType === 'hero') {
+            $hasUploadedImages = !empty($imagePaths);
+            $hasUrlImages = !empty($imageUrls);
+
+            if ($hasUploadedImages && $hasUrlImages) {
+                if ($request->expectsJson()) {
+                    return response()->json(['error' => 'Hero hanya boleh memiliki 1 gambar. Pilih antara Upload File atau URL.'], 422);
+                }
+                return redirect()->back()
+                    ->withInput()
+                    ->withErrors(['image_conflict' => 'Hero hanya boleh memiliki 1 gambar. Pilih antara Upload File atau URL, tidak boleh keduanya sekaligus.']);
+            }
+        }
 
         $slide->update([
             'feature_page_id' => $featurePageId,

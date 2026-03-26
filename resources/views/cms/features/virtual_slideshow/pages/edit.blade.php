@@ -354,18 +354,17 @@
                 <h2 class="text-base font-semibold text-gray-800">2. Konten</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label class="form-label">Judul</label>
+                        <label class="form-label">Judul <span class="text-gray-400 text-xs">(opsional)</span></label>
                         <input type="text" name="title" class="form-input" value="{{ old('title', $slide->title) }}">
                     </div>
                     <div>
-                        <label class="form-label">Sub-judul</label>
+                        <label class="form-label">Sub-judul <span class="text-gray-400 text-xs">(opsional)</span></label>
                         <input type="text" name="subtitle" class="form-input"
                             value="{{ old('subtitle', $slide->subtitle) }}">
                     </div>
                 </div>
                 <div>
-                    <label class="form-label">Deskripsi / Teks Konten <span class="text-gray-400 text-xs">(gunakan toolbar
-                            untuk format)</span></label>
+                    <label class="form-label">Deskripsi / Teks Konten <span class="text-gray-400 text-xs">(opsional - gunakan toolbar untuk format)</span></label>
                     <div id="div_editor1" style="min-width:100%;">{!! old('description', $slide->description) !!}</div>
                     <input type="hidden" name="description" id="hiddenDescription">
                 </div>
@@ -439,6 +438,7 @@
                                     </div>
                                 @endforeach
                             </div>
+                            <div id="existingInfoPopupRowsWrapper" class="{{ $slide->type === 'hero' ? 'hidden' : '' }}">
                             <div id="existingInfoPopupRows" class="space-y-2">
                                 <label class="form-label">Keterangan Info Popup (gambar upload)</label>
                                 @foreach ($slide->images as $idx => $imgPath)
@@ -447,6 +447,7 @@
                                         <div class="existing-caption-widget" data-caption-index="{{ $idx }}" data-caption-data="{{ json_encode($slide->info_popup[$idx] ?? ($slide->info_popup[(string)$idx] ?? '')) }}"></div>
                                     </div>
                                 @endforeach
+                            </div>
                             </div>
                         </div>
                     @endif
@@ -469,8 +470,8 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                             </svg>
-                            <span class="text-sm text-gray-500">Tambah gambar baru (upload)</span>
-                            <input type="file" name="images[]" multiple accept="image/*" class="hidden" id="imageInput"
+                            <span class="text-sm text-gray-500" id="uploadHintText">Tambah gambar baru (upload)</span>
+                            <input type="file" name="images[]" accept="image/*" class="hidden" id="imageInput"
                                 onchange="previewNewImages(this)">
                         </label>
                     </div>
@@ -512,7 +513,7 @@
                             </div>
                             @endif
                         </div>
-                        <button type="button" onclick="addImageUrlEntry()"
+                        <button type="button" onclick="addImageUrlEntry()" id="addImageUrlBtn"
                             class="flex items-center gap-2 px-4 py-2 text-sm text-blue-600 border border-blue-300 rounded-lg hover:bg-blue-50 transition-colors">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
@@ -534,6 +535,10 @@
                         <div id="infoPopupUrlRows" class="space-y-2">
                         </div>
                     </div>
+
+                    <div id="heroImageLimitWarning" class="hidden mt-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-700">
+                        Hanya boleh menyimpan 1 gambar untuk Hero.
+                    </div>
                 </div>
 
                 {{-- Preview area for uploaded images (outside imageSections) --}}
@@ -550,25 +555,32 @@
                     var urlCaption = document.getElementById('infoPopupUrlImageArea');
                     var uploadPreviewArea = document.getElementById('newImagePreviewArea');
                     var urlPreviewArea = document.getElementById('newUrlPreviewArea');
+                    var typeInput = document.getElementById('slide_type_input');
+                    var isHeroType = typeInput && typeInput.value === 'hero';
 
                     if (urlRadio && urlRadio.checked) {
                         // URL method selected
                         uploadSection.classList.add('hidden');
+                        uploadSection.style.display = 'none';
                         urlSection.classList.remove('hidden');
+                        urlSection.style.display = '';
                         uploadCaption.classList.add('hidden');
                         uploadCaption.style.display = 'none';
-                        urlCaption.classList.remove('hidden');
-                        urlCaption.style.display = 'block';
+                        if (isHeroType) { urlCaption.classList.add('hidden'); urlCaption.style.display = 'none'; }
+                        else { urlCaption.classList.remove('hidden'); urlCaption.style.display = 'block'; }
                         uploadPreviewArea.classList.add('hidden');
+                        uploadPreviewArea.style.display = 'none';
                         urlPreviewArea.classList.remove('hidden');
                         urlPreviewArea.style.display = 'flex';
                         updateUrlImagePreviews();
                     } else {
                         // Upload method selected (default)
                         uploadSection.classList.remove('hidden');
+                        uploadSection.style.display = '';
                         urlSection.classList.add('hidden');
-                        uploadCaption.classList.remove('hidden');
-                        uploadCaption.style.display = 'block';
+                        urlSection.style.display = 'none';
+                        if (isHeroType) { uploadCaption.classList.add('hidden'); uploadCaption.style.display = 'none'; }
+                        else { uploadCaption.classList.remove('hidden'); uploadCaption.style.display = 'block'; }
                         urlCaption.classList.add('hidden');
                         urlCaption.style.display = 'none';
                         uploadPreviewArea.classList.remove('hidden');
@@ -576,42 +588,14 @@
                         urlPreviewArea.classList.add('hidden');
                         urlPreviewArea.style.display = 'none';
                     }
+
+                    // Initialize hero caption/limit state based on current type
+                    var typeInput = document.getElementById('slide_type_input');
+                    if (typeInput && typeof window.selectType === 'function') {
+                        window.selectType(typeInput.value);
+                    }
                 })();
 
-                document.querySelectorAll('input[name="image_method"]').forEach(function(radio) {
-                    radio.addEventListener('change', function() {
-                        var uploadSection = document.getElementById('image-upload-section');
-                        var urlSection = document.getElementById('image-url-section');
-                        var uploadCaption = document.getElementById('infoPopupUploadImageArea');
-                        var urlCaption = document.getElementById('infoPopupUrlImageArea');
-                        var uploadPreviewArea = document.getElementById('newImagePreviewArea');
-                        var urlPreviewArea = document.getElementById('newUrlPreviewArea');
-
-                        if (this.value === 'url') {
-                            uploadSection.classList.add('hidden');
-                            urlSection.classList.remove('hidden');
-                            uploadCaption.classList.add('hidden');
-                            uploadCaption.style.display = 'none';
-                            urlCaption.classList.remove('hidden');
-                            urlCaption.style.display = 'block';
-                            uploadPreviewArea.classList.add('hidden');
-                            urlPreviewArea.classList.remove('hidden');
-                            urlPreviewArea.style.display = 'flex';
-                            updateUrlImagePreviews();
-                        } else {
-                            uploadSection.classList.remove('hidden');
-                            urlSection.classList.add('hidden');
-                            uploadCaption.classList.remove('hidden');
-                            uploadCaption.style.display = 'block';
-                            urlCaption.classList.add('hidden');
-                            urlCaption.style.display = 'none';
-                            uploadPreviewArea.classList.remove('hidden');
-                            uploadPreviewArea.style.display = 'flex';
-                            urlPreviewArea.classList.add('hidden');
-                            urlPreviewArea.style.display = 'none';
-                        }
-                    });
-                });
                 </script>
 
                 {{-- Video Sections (for text_carousel) --}}
@@ -727,6 +711,11 @@
                             <span class="text-xs text-gray-400">Preview</span>
                         </div>
                     </div>
+
+                    <div class="mt-4">
+                        <label class="form-label">Keterangan Info Popup Video (URL)</label>
+                        <div id="videoCaptionWidgetUrl" data-caption-data="{{ json_encode($slide->info_popup['video_url'] ?? '') }}"></div>
+                    </div>
                 </div>
 
                 <div id="video-upload-section" class="{{ (!$slide->video_file) ? 'hidden' : '' }}">
@@ -764,11 +753,11 @@
                         <video id="video-preview-player" controls class="w-full max-w-md rounded-lg"></video>
                         <p id="video-file-name" class="text-sm text-gray-500 mt-2"></p>
                     </div>
-                </div>
 
-                <div id="infoPopupVideoSection">
-                    <label class="form-label">Keterangan Info Popup Video</label>
-                    <div id="videoCaptionWidget" data-caption-data="{{ json_encode($slide->info_popup['video'] ?? '') }}"></div>
+                    <div class="mt-4">
+                        <label class="form-label">Keterangan Info Popup Video (Upload)</label>
+                        <div id="videoCaptionWidget" data-caption-data="{{ json_encode($slide->info_popup['video'] ?? '') }}"></div>
+                    </div>
                 </div>
             </div>
 
@@ -1009,7 +998,8 @@
                     showImages: true,
                     showVideo: false,
                     showCarouselVideo: false,
-                    showLayout: false
+                    showLayout: false,
+                    showImageCaption: false
                 },
                 text: {
                     showImages: false,
@@ -1102,6 +1092,35 @@
                     if (videoSections) videoSections.classList.add('hidden');
                 }
 
+                // Hero: enforce 1-gambar limit, sembunyikan URL section saat sudah ada gambar
+                var isHero = (type === 'hero');
+                if (isHero) {
+                    var existingCount = 0;
+                    var existingInputs = document.querySelectorAll('#existingImagesArea input[name^="existing_images["]:not([disabled])');
+                    existingInputs.forEach(function(inp) { existingCount++; });
+                    var hasExistingImage = existingCount > 0;
+
+                    var addUrlBtn = document.getElementById('addImageUrlBtn');
+                    if (addUrlBtn) { addUrlBtn.style.display = 'none'; }
+
+                    var heroLimitWarning = document.getElementById('heroImageLimitWarning');
+                    if (heroLimitWarning) {
+                        heroLimitWarning.style.display = hasExistingImage ? 'block' : 'none';
+                    }
+
+                    // Hide existing image caption widget for hero type
+                    var existingCaptionWrapper = document.getElementById('existingInfoPopupRowsWrapper');
+                    if (existingCaptionWrapper) { existingCaptionWrapper.classList.add('hidden'); existingCaptionWrapper.style.display = 'none'; }
+                } else {
+                    // non-hero: restore "Tambah URL Gambar" button
+                    var addUrlBtn = document.getElementById('addImageUrlBtn');
+                    if (addUrlBtn) { addUrlBtn.style.display = 'inline-flex'; }
+
+                    // Show existing image caption widget for non-hero types
+                    var existingCaptionWrapper = document.getElementById('existingInfoPopupRowsWrapper');
+                    if (existingCaptionWrapper) { existingCaptionWrapper.classList.remove('hidden'); existingCaptionWrapper.style.display = ''; }
+                }
+
                 // Clear video data when switching to non-video type
                 if (!cfg.showVideo) {
                     document.getElementById('deleteExistingVideo').value = '1';
@@ -1111,6 +1130,26 @@
                 } else {
                     document.getElementById('deleteExistingVideo').value = '0';
                     document.getElementById('clearExistingUrl').value = '0';
+                    // Restore visibility of existing video info if it was hidden
+                    var existingVideoInfo = document.getElementById('existingVideoInfo');
+                    if (existingVideoInfo) {
+                        existingVideoInfo.removeAttribute('hidden');
+                        existingVideoInfo.style.display = '';
+                    }
+                    // Restore visibility of video sections and toggle based on current method
+                    var videoUrlSection = document.getElementById('video-url-section');
+                    var videoUploadSection = document.getElementById('video-upload-section');
+                    if (videoUrlSection) { videoUrlSection.classList.remove('hidden'); videoUrlSection.style.display = ''; }
+                    if (videoUploadSection) { videoUploadSection.classList.remove('hidden'); videoUploadSection.style.display = ''; }
+                    // Sync visibility with checked radio
+                    var videoMethodRadio = document.querySelector('input[name="video_method"]:checked');
+                    if (videoMethodRadio) {
+                        if (videoMethodRadio.value === 'url') {
+                            if (videoUploadSection) { videoUploadSection.classList.add('hidden'); videoUploadSection.style.display = 'none'; }
+                        } else {
+                            if (videoUrlSection) { videoUrlSection.classList.add('hidden'); videoUrlSection.style.display = 'none'; }
+                        }
+                    }
                 }
             };
 
@@ -1141,32 +1180,110 @@
                 var urlCaptionArea = document.getElementById('infoPopupUrlImageArea');
                 var uploadPreviewArea = document.getElementById('newImagePreviewArea');
                 var urlPreviewArea = document.getElementById('newUrlPreviewArea');
+                var typeInput = document.getElementById('slide_type_input');
+                var isHeroType = typeInput && typeInput.value === 'hero';
                 if (method === 'url') {
+                    // HERO: jika sudah ada gambar upload, tolak switch ke URL
+                    if (isHeroType) {
+                        var hasNewUpload = typeof selectedNewImageFiles !== 'undefined' && selectedNewImageFiles.length > 0;
+                        var existingInputs = document.querySelectorAll('#existingImagesArea input[name^="existing_images["]:not([disabled])');
+                        var hasExistingUpload = existingInputs.length > 0;
+
+                        if (hasNewUpload || hasExistingUpload) {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Tidak dapat menggunakan URL',
+                                text: 'Hero hanya boleh memiliki 1 gambar. Hapus gambar upload terlebih dahulu untuk bisa menggunakan URL gambar.',
+                                confirmButtonText: 'OK',
+                                confirmButtonColor: '#d97706',
+                            });
+                            var uploadRadio = document.querySelector('input[name="image_method"][value="upload"]');
+                            if (uploadRadio) uploadRadio.checked = true;
+                            uploadSection.classList.remove('hidden');
+                            uploadSection.style.display = '';
+                            urlSection.classList.add('hidden');
+                            urlSection.style.display = 'none';
+                            return;
+                        }
+                    }
                     uploadSection.classList.add('hidden');
+                    uploadSection.style.display = 'none';
                     urlSection.classList.remove('hidden');
+                    urlSection.style.display = '';
                     if (uploadCaptionArea) { uploadCaptionArea.classList.add('hidden'); uploadCaptionArea.style.display = 'none'; }
-                    if (urlCaptionArea) { urlCaptionArea.classList.remove('hidden'); urlCaptionArea.style.display = 'block'; }
+                    if (urlCaptionArea) {
+                        if (isHeroType) { urlCaptionArea.classList.add('hidden'); urlCaptionArea.style.display = 'none'; }
+                        else { urlCaptionArea.classList.remove('hidden'); urlCaptionArea.style.display = 'block'; }
+                    }
                     if (uploadPreviewArea) { uploadPreviewArea.classList.add('hidden'); uploadPreviewArea.style.display = 'none'; }
+                    var existingCaptionWrapper = document.getElementById('existingInfoPopupRowsWrapper');
+                    if (existingCaptionWrapper) { existingCaptionWrapper.classList.add('hidden'); existingCaptionWrapper.style.display = 'none'; }
                     updateUrlImagePreviews();
                 } else {
+                    // HERO: jika sudah ada URL yang diisi, tolak switch ke Upload
+                    if (isHeroType) {
+                        var urlEntries = document.querySelectorAll('#image-url-list .image-url-entry');
+                        var hasFilledUrl = false;
+                        urlEntries.forEach(function(entry) {
+                            var input = entry.querySelector('input[name="image_urls[]"]');
+                            if (input && input.value.trim() !== '') hasFilledUrl = true;
+                        });
+
+                        if (hasFilledUrl) {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Tidak dapat menggunakan Upload File',
+                                text: 'Hero hanya boleh memiliki 1 gambar. Hapus URL gambar terlebih dahulu untuk bisa menggunakan upload file.',
+                                confirmButtonText: 'OK',
+                                confirmButtonColor: '#d97706',
+                            });
+                            var urlRadio = document.querySelector('input[name="image_method"][value="url"]');
+                            if (urlRadio) urlRadio.checked = true;
+                            uploadSection.classList.add('hidden');
+                            uploadSection.style.display = 'none';
+                            urlSection.classList.remove('hidden');
+                            urlSection.style.display = '';
+                            return;
+                        }
+                    }
                     uploadSection.classList.remove('hidden');
+                    uploadSection.style.display = '';
                     urlSection.classList.add('hidden');
-                    if (uploadCaptionArea) { uploadCaptionArea.classList.remove('hidden'); uploadCaptionArea.style.display = 'block'; }
+                    urlSection.style.display = 'none';
+                    if (uploadCaptionArea) {
+                        if (isHeroType) { uploadCaptionArea.classList.add('hidden'); uploadCaptionArea.style.display = 'none'; }
+                        else { uploadCaptionArea.classList.remove('hidden'); uploadCaptionArea.style.display = 'block'; }
+                    }
                     if (urlCaptionArea) { urlCaptionArea.classList.add('hidden'); urlCaptionArea.style.display = 'none'; }
                     if (uploadPreviewArea) { uploadPreviewArea.classList.remove('hidden'); uploadPreviewArea.style.display = 'flex'; }
                     if (urlPreviewArea) { urlPreviewArea.classList.add('hidden'); urlPreviewArea.style.display = 'none'; }
+                    var existingCaptionWrapper = document.getElementById('existingInfoPopupRowsWrapper');
+                    if (existingCaptionWrapper) {
+                        if (isHeroType) { existingCaptionWrapper.classList.add('hidden'); existingCaptionWrapper.style.display = 'none'; }
+                        else { existingCaptionWrapper.classList.remove('hidden'); existingCaptionWrapper.style.display = ''; }
+                    }
                 }
             };
 
             window.toggleVideoMethod = function(method) {
                 var uploadSection = document.getElementById('video-upload-section');
                 var urlSection = document.getElementById('video-url-section');
+                var existingVideoInfo = document.getElementById('existingVideoInfo');
                 if (method === 'url') {
                     uploadSection.classList.add('hidden');
+                    uploadSection.style.display = 'none';
                     urlSection.classList.remove('hidden');
+                    urlSection.style.display = '';
                 } else {
                     uploadSection.classList.remove('hidden');
+                    uploadSection.style.display = '';
                     urlSection.classList.add('hidden');
+                    urlSection.style.display = 'none';
+                    // Show existing video info when switching to upload method
+                    if (existingVideoInfo) {
+                        existingVideoInfo.removeAttribute('hidden');
+                        existingVideoInfo.style.display = '';
+                    }
                 }
             };
 
@@ -1242,7 +1359,42 @@
                 updateUrlImagePreviews();
             };
 
+            // Hero: hanya boleh 1 gambar total (upload + URL)
+            window.isHeroSingleImageMode = function() {
+                var typeInput = document.getElementById('slide_type_input');
+                if (!typeInput || typeInput.value !== 'hero') return false;
+
+                // Count existing (saved) images
+                var existingCount = 0;
+                var existingInputs = document.querySelectorAll('#existingImagesArea input[name^="existing_images["]:not([disabled])');
+                existingInputs.forEach(function(inp) {
+                    existingCount++;
+                });
+
+                // Count newly uploaded files
+                var newUploadCount = (typeof selectedNewImageFiles !== 'undefined') ? selectedNewImageFiles.length : 0;
+
+                // Count filled URL entries
+                var urlEntries = document.querySelectorAll('#image-url-list .image-url-entry');
+                var urlCount = 0;
+                urlEntries.forEach(function(entry) {
+                    var input = entry.querySelector('input[name^="image_urls"]');
+                    if (input && input.value.trim() !== '') urlCount++;
+                });
+
+                return (existingCount + newUploadCount + urlCount) >= 1;
+            };
+
             window.addImageUrlEntry = function() {
+                // Hero: hanya 1 gambar
+                if (typeof isHeroSingleImageMode === 'function' && isHeroSingleImageMode()) {
+                    var warning = document.getElementById('heroImageLimitWarning');
+                    if (warning) {
+                        warning.textContent = 'Hanya boleh upload 1 gambar untuk Hero. Hapus gambar yang ada terlebih dahulu.';
+                        warning.style.display = 'block';
+                    }
+                    return;
+                }
                 var list = document.getElementById('image-url-list');
                 var entries = list.querySelectorAll('.image-url-entry');
                 var newIndex = entries.length;
@@ -1363,12 +1515,17 @@
                 // Show/hide URL caption section (only when URL method is active)
                 var isUrlMethod = document.querySelector('input[name="image_method"][value="url"]');
                 var isUrlMethodChecked = isUrlMethod && isUrlMethod.checked;
+                var typeInput = document.getElementById('slide_type_input');
+                var isHeroType = typeInput && typeInput.value === 'hero';
                 if (urlImages.length === 0 || !isUrlMethodChecked) {
                     urlCaptionArea.classList.add('hidden');
                     urlCaptionArea.style.display = 'none';
-                } else {
+                } else if (!isHeroType) {
                     urlCaptionArea.classList.remove('hidden');
                     urlCaptionArea.style.display = 'block';
+                } else {
+                    urlCaptionArea.classList.add('hidden');
+                    urlCaptionArea.style.display = 'none';
                 }
 
                 // Render URL image previews
@@ -1497,6 +1654,28 @@
 
                 if (files.length === 0) return;
 
+                // Hero: enforce 1 file max
+                var typeInput = document.getElementById('slide_type_input');
+                if (typeInput && typeInput.value === 'hero') {
+                    if (typeof isHeroSingleImageMode === 'function' && isHeroSingleImageMode()) {
+                        var warning = document.getElementById('heroImageLimitWarning');
+                        if (warning) {
+                            warning.textContent = 'Hanya boleh upload 1 gambar untuk Hero. Hapus gambar yang ada terlebih dahulu.';
+                            warning.style.display = 'block';
+                        }
+                        input.value = '';
+                        return;
+                    }
+                    if (files.length > 1) {
+                        files = [files[0]];
+                        var warning = document.getElementById('heroImageLimitWarning');
+                        if (warning) {
+                            warning.textContent = 'Hanya 1 gambar yang akan disimpan untuk Hero.';
+                            warning.style.display = 'block';
+                        }
+                    }
+                }
+
                 files.forEach(function(file) {
                     selectedNewImageFiles.push(file);
                 });
@@ -1505,7 +1684,7 @@
             };
 
             function getRemainingExistingCount() {
-                var existingInputs = document.querySelectorAll('#existingImagesArea input[name^="existing_images"]');
+                var existingInputs = document.querySelectorAll('#existingImagesArea input[name^="existing_images["]:not([disabled])');
                 return existingInputs.length;
             }
 
@@ -2112,7 +2291,7 @@
                 });
             });
 
-            // Initialize video caption widget
+            // Initialize video caption widget (Upload)
             var videoCaptionEl = document.getElementById('videoCaptionWidget');
             if (videoCaptionEl) {
                 var videoRawData = videoCaptionEl.getAttribute('data-caption-data');
@@ -2120,6 +2299,18 @@
                 try { videoCaptionData = JSON.parse(videoRawData); } catch(e) { videoCaptionData = videoRawData || ''; }
                 createCaptionWidget(videoCaptionEl, 'info_popup_video', null, videoCaptionData, {
                     singlePlaceholder: 'Keterangan video...',
+                    isArray: false
+                });
+            }
+
+            // Initialize video caption widget (URL)
+            var videoCaptionUrlEl = document.getElementById('videoCaptionWidgetUrl');
+            if (videoCaptionUrlEl) {
+                var videoUrlRawData = videoCaptionUrlEl.getAttribute('data-caption-data');
+                var videoUrlCaptionData = '';
+                try { videoUrlCaptionData = JSON.parse(videoUrlRawData); } catch(e) { videoUrlCaptionData = videoUrlRawData || ''; }
+                createCaptionWidget(videoCaptionUrlEl, 'info_popup_video_url', null, videoUrlCaptionData, {
+                    singlePlaceholder: 'Keterangan video URL...',
                     isArray: false
                 });
             }

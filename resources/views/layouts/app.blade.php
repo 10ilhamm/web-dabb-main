@@ -528,6 +528,10 @@
         </symbol>
     </svg>
 
+    {{-- SweetAlert2 & html2canvas — always loaded --}}
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
     @if(session('success') || session('error') || $errors->any() || session('warning') || session('info'))
         @php
             $tType = 'info';
@@ -545,10 +549,7 @@
             }
         @endphp
 
-        <!-- SweetAlert2 Toast -->
-        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-        <!-- html2canvas for thumbnail generation -->
-        <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+        {{-- SweetAlert2 Toast --}}
         <script>
             document.addEventListener('DOMContentLoaded', function() {
                 const Toast = Swal.mixin({
