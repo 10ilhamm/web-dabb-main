@@ -429,7 +429,7 @@
                                     d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                             </svg>
                             <span class="text-sm text-gray-500" id="uploadHintText">{{ __('cms.virtual_slideshow.image_upload_hint') }}</span>
-                            <input type="file" name="images[]" accept="image/*" class="hidden" id="imageInput"
+                            <input type="file" name="images[]" accept="image/*" multiple class="hidden" id="imageInput"
                                 onchange="previewImages(this)">
                         </label>
                     </div>
@@ -1383,6 +1383,23 @@
             // Carousel Video Variables and Functions
             var keptCarouselCaptions = {};
             var selectedCarouselVideoFiles = [];
+            var unifiedVideoOrder = [];
+
+            function updateUnifiedVideoOrderInput() {
+                var input = document.getElementById('unifiedVideoOrderInput');
+                if (!input) return;
+                // Serialize order data (exclude File objects for JSON serialization)
+                var serializable = unifiedVideoOrder.map(function(v) {
+                    return {
+                        type: v.type,
+                        urlIndex: v.urlIndex,
+                        newUploadIndex: v.newUploadIndex,
+                        urlValue: v.urlValue,
+                        order: v.order
+                    };
+                });
+                input.value = JSON.stringify(serializable);
+            }
 
             window.toggleCarouselVideoMethod = function(method) {
                 document.getElementById('carousel-video-url-section').classList.toggle('hidden', method !== 'url');
@@ -1747,7 +1764,7 @@
             var videoCaptionEl = document.getElementById('videoCaptionWidget');
             if (videoCaptionEl) {
                 createCaptionWidget(videoCaptionEl, 'info_popup_video', null, {!! json_encode(old('info_popup_video', '')) !!}, {
-                    singlePlaceholder: 'Keterangan yang muncul saat tombol ? diklik...',
+                    singlePlaceholder: '{{ __('cms.virtual_slideshow.popup_caption_hint') }}',
                     isArray: false
                 });
             }
@@ -1756,7 +1773,7 @@
             var videoCaptionUrlEl = document.getElementById('videoCaptionWidgetUrl');
             if (videoCaptionUrlEl) {
                 createCaptionWidget(videoCaptionUrlEl, 'info_popup_video_url', null, {!! json_encode(old('info_popup_video_url', '')) !!}, {
-                    singlePlaceholder: 'Keterangan video URL...',
+                    singlePlaceholder: '{{ __('cms.virtual_slideshow.popup_video_url') }}',
                     isArray: false
                 });
             }
