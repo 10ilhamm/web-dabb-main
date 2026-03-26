@@ -340,7 +340,7 @@
                 <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
                     @foreach (['text' => ['📝', 'Teks', 'Konten teks saja'], 'hero' => ['🌟', 'Hero', 'Banner pembuka'], 'carousel' => ['🖼️', 'Carousel', 'Slideshow gambar'], 'video' => ['🎬', 'Video', 'Embed video'], 'text_carousel' => ['📋', 'Teks + Carousel', 'Split layout']] as $type => $info)
                         <div class="slide-type-card {{ $slide->slide_type === $type ? 'active' : '' }}"
-                            data-type="{{ $type }}" onclick="selectType('{{ $type }}')">
+                            data-type="{{ $type }}" onclick="{{ $type === 'hero' ? 'trySelectHero()' : "selectType('$type')" }}">
                             <div class="icon">{{ $info[0] }}</div>
                             <div class="label">{{ $info[1] }}</div>
                             <div class="desc">{{ $info[2] }}</div>
@@ -1032,6 +1032,22 @@
                 },
             };
 
+            window.trySelectHero = function() {
+                var currentType = document.getElementById('slide_type_input').value;
+                var hasHeroSlide = @isset($hasHeroSlide) {{ $hasHeroSlide ? 'true' : 'false' }} @else false @endisset;
+                if (hasHeroSlide && currentType !== 'hero') {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Tidak dapat memilih Hero',
+                        text: 'Halaman ini sudah memiliki slide Hero. Hanya 1 slide Hero yang diizinkan per halaman.',
+                        confirmButtonText: 'OK',
+                        confirmButtonColor: '#ef4444',
+                    });
+                    return;
+                }
+                selectType('hero');
+            };
+
             window.selectType = function(type) {
                 document.getElementById('slide_type_input').value = type;
                 document.querySelectorAll('.slide-type-card').forEach(function(c) {
@@ -1452,6 +1468,18 @@
             // Caption tracker for new uploaded images to persist values across re-renders
             var newUploadImageCaptionTracker = {};
 
+            function convertImageUrl(url) {
+                // Google Drive
+                var match = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+                if (match) return 'https://lh3.googleusercontent.com/d/' + match[1];
+                match = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+                if (match) return 'https://lh3.googleusercontent.com/d/' + match[1];
+                // Wikimedia Commons: /wiki/File:NAME → Special:FilePath/NAME
+                match = url.match(/commons\.wikimedia\.org\/wiki\/File:(.+)/);
+                if (match) return 'https://commons.wikimedia.org/wiki/Special:FilePath/' + match[1];
+                return url;
+            }
+
             // Unified preview function for URL images and uploads
             function updateUrlImagePreviews() {
                 var uploadPreviewArea = document.getElementById('newImagePreviewArea');
@@ -1485,13 +1513,7 @@
                             linkBtn.classList.remove('opacity-30', 'cursor-not-allowed');
                             linkBtn.onclick = null;
                         }
-                        var displayUrl = url;
-                        if (url.includes('drive.google.com') && url.includes('/file/d/')) {
-                            var fileId = url.match(/\/file\/d\/([^\/]+)/);
-                            if (fileId) {
-                                displayUrl = 'https://lh3.googleusercontent.com/d/' + fileId[1];
-                            }
-                        }
+                        var displayUrl = convertImageUrl(url);
                         urlImages.push({ url: displayUrl, originalUrl: url, hasUrl: true, caption: caption });
                     } else {
                         urlImages.push({ url: '', originalUrl: '', hasUrl: false, caption: caption });
@@ -1557,7 +1579,9 @@
                                 '<button type="button" class="remove-img" onclick="removeUrlImage(' + idx + ')">✕</button>';
                         } else {
                             wrap.innerHTML = '<img src="' + img.url + '" alt="" style="height:60px;width:60px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb;" onerror="this.style.display=\'none\'; this.nextElementSibling.style.display=\'flex\';">' +
-                                '<div class="flex items-center justify-center" style="height:60px;width:60px;background:#f3f4f6;border-radius:8px;border:1px solid #e5e7eb;display:none;"><span class="text-xs text-gray-400">Error</span></div>' +
+                                '<div class="flex flex-col items-center justify-center" style="height:60px;width:60px;background:#f3f4f6;border-radius:8px;border:1px solid #e5e7eb;display:none;">' +
+                                '<svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>' +
+                                '<a href="' + img.originalUrl + '" target="_blank" class="text-xs text-blue-500 hover:text-blue-700 mt-1">Lihat</a></div>' +
                                 '<button type="button" class="remove-img" onclick="removeUrlImage(' + idx + ')">✕</button>';
                         }
                         urlPreviewArea.appendChild(wrap);

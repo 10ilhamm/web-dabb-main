@@ -452,7 +452,11 @@ class VirtualSlideshowController extends Controller
     {
         $page = VirtualSlideshowPage::findOrFail($pageId);
         $feature->load('parent');
-        return view('cms.features.virtual_slideshow.pages.edit', compact('feature', 'page', 'slide'));
+        $hasHeroSlide = VirtualSlideshowSlide::where('feature_page_id', $page->id)
+            ->where('slide_type', 'hero')
+            ->where('id', '!=', $slide->id)
+            ->exists();
+        return view('cms.features.virtual_slideshow.pages.edit', compact('feature', 'page', 'slide', 'hasHeroSlide'));
     }
 
     /**
@@ -518,8 +522,19 @@ class VirtualSlideshowController extends Controller
             'info_popup_qa_carousel_videos' => 'nullable|array',
         ]);
 
-        // Determine which data to keep based on slide type
+        // Server-side: prevent duplicate hero slides per page
         $slideType = $validated['slide_type'];
+        if ($slideType === 'hero' && $page) {
+            $existingHero = VirtualSlideshowSlide::where('feature_page_id', $page->id)
+                ->where('slide_type', 'hero')
+                ->where('id', '!=', $slide->id)
+                ->exists();
+            if ($existingHero) {
+                return back()->withErrors(['slide_type' => 'Halaman ini sudah memiliki slide Hero.'])->withInput();
+            }
+        }
+
+        // Determine which data to keep based on slide type
         $imageTypes = ['hero', 'carousel'];
         $videoTypes = ['video'];
         $carouselVideoTypes = ['text_carousel'];
