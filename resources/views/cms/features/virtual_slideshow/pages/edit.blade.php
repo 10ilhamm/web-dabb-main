@@ -481,7 +481,7 @@
                             @if($slide->image_urls && count($slide->image_urls) > 0)
                                 @foreach($slide->image_urls as $idx => $imgUrl)
                                 <div class="image-url-entry flex gap-2 items-start" data-index="{{ $idx }}">
-                                    <a href="{{ $imgUrl }}" target="_blank" class="px-2 py-2 text-blue-600 hover:bg-blue-50 rounded-lg flex-shrink-0" title="Buka link">
+                                    <a href="{{ $imgUrl }}" target="_blank" class="url-link-btn px-2 py-2 text-blue-600 hover:bg-blue-50 rounded-lg flex-shrink-0" title="Buka link">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
                                         </svg>
@@ -585,8 +585,13 @@
                         urlCaption.style.display = 'none';
                         uploadPreviewArea.classList.remove('hidden');
                         uploadPreviewArea.style.display = 'flex';
-                        urlPreviewArea.classList.add('hidden');
-                        urlPreviewArea.style.display = 'none';
+                        // Hero: tetap tampilkan URL preview jika ada URL images tersimpan
+                        if (!isHeroType) {
+                            urlPreviewArea.classList.add('hidden');
+                            urlPreviewArea.style.display = 'none';
+                        } else {
+                            updateUrlImagePreviews();
+                        }
                     }
 
                     // Initialize hero caption/limit state based on current type
@@ -1215,7 +1220,10 @@
                         if (isHeroType) { urlCaptionArea.classList.add('hidden'); urlCaptionArea.style.display = 'none'; }
                         else { urlCaptionArea.classList.remove('hidden'); urlCaptionArea.style.display = 'block'; }
                     }
-                    if (uploadPreviewArea) { uploadPreviewArea.classList.add('hidden'); uploadPreviewArea.style.display = 'none'; }
+                    // Hero: jangan sembunyikan preview areas, gambar harus selalu terlihat
+                    if (!isHeroType) {
+                        if (uploadPreviewArea) { uploadPreviewArea.classList.add('hidden'); uploadPreviewArea.style.display = 'none'; }
+                    }
                     var existingCaptionWrapper = document.getElementById('existingInfoPopupRowsWrapper');
                     if (existingCaptionWrapper) { existingCaptionWrapper.classList.add('hidden'); existingCaptionWrapper.style.display = 'none'; }
                     updateUrlImagePreviews();
@@ -1256,11 +1264,18 @@
                     }
                     if (urlCaptionArea) { urlCaptionArea.classList.add('hidden'); urlCaptionArea.style.display = 'none'; }
                     if (uploadPreviewArea) { uploadPreviewArea.classList.remove('hidden'); uploadPreviewArea.style.display = 'flex'; }
-                    if (urlPreviewArea) { urlPreviewArea.classList.add('hidden'); urlPreviewArea.style.display = 'none'; }
+                    // Hero: jangan sembunyikan URL preview, gambar harus selalu terlihat
+                    if (!isHeroType) {
+                        if (urlPreviewArea) { urlPreviewArea.classList.add('hidden'); urlPreviewArea.style.display = 'none'; }
+                    }
                     var existingCaptionWrapper = document.getElementById('existingInfoPopupRowsWrapper');
                     if (existingCaptionWrapper) {
                         if (isHeroType) { existingCaptionWrapper.classList.add('hidden'); existingCaptionWrapper.style.display = 'none'; }
                         else { existingCaptionWrapper.classList.remove('hidden'); existingCaptionWrapper.style.display = ''; }
+                    }
+                    // Hero: pastikan URL preview tetap terlihat saat switch ke upload
+                    if (isHeroType) {
+                        updateUrlImagePreviews();
                     }
                 }
             };
