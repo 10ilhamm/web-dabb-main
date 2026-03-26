@@ -900,12 +900,12 @@
             var singleDiv = document.createElement('div');
             singleDiv.className = 'caption-single-section';
             singleDiv.style.display = existingMode === 'single' ? 'block' : 'none';
-            var singleInput = document.createElement('input');
-            singleInput.type = 'text';
+            var singleInput = document.createElement('textarea');
             singleInput.name = singleName;
             singleInput.className = 'form-input';
             singleInput.placeholder = singlePlaceholder;
-            singleInput.value = existingSingle;
+            singleInput.rows = 3;
+            singleInput.textContent = existingSingle;
             singleDiv.appendChild(singleInput);
             containerEl.appendChild(singleDiv);
 
