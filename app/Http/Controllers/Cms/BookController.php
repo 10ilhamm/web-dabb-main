@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Storage;
 
 class BookController extends Controller
 {
+    use \App\Traits\SwapsOrder;
     /**
      * Display a listing of books for a feature.
      */
@@ -259,6 +260,7 @@ class BookController extends Controller
             $validated['thumbnail'] = null;
         }
 
+        $this->swapOrder($book, (int) $validated['order'], (int) $book->order, ['feature_id' => $book->feature_id]);
         $book->update($validated);
 
         return redirect()->route('cms.features.virtual_books.index', $feature)

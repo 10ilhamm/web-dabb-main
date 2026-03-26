@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Storage;
 
 class VirtualBookPageController extends Controller
 {
+    use \App\Traits\SwapsOrder;
     /**
      * Show create form for a new page within a book.
      */
@@ -197,6 +198,7 @@ class VirtualBookPageController extends Controller
         }
         unset($validated['generated_thumbnail'], $validated['remove_thumbnail']);
 
+        $this->swapOrder($virtualBookPage, (int) $validated['order'], (int) $virtualBookPage->order, ['book_id' => $virtualBookPage->book_id]);
         $virtualBookPage->update($validated);
 
         return redirect()->route('cms.features.virtual_books.pages.index', [$feature, $book])

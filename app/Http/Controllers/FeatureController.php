@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 
 class FeatureController extends Controller
 {
+    use \App\Traits\SwapsOrder;
     /**
      * Display a listing of the top-level features.
      */
@@ -171,6 +172,7 @@ class FeatureController extends Controller
             $validated['path'] = null;
         }
 
+        $this->swapOrder($feature, (int) $validated['order'], (int) $feature->order, ['parent_id' => $feature->parent_id]);
         $feature->update($validated);
 
         return redirect()->route('cms.features.index')
@@ -251,6 +253,7 @@ class FeatureController extends Controller
             $validated['path'] = null;
         }
 
+        $this->swapOrder($feature, (int) $validated['order'], (int) $feature->order, ['parent_id' => $feature->parent_id]);
         $feature->update($validated);
 
         return redirect()->route('cms.features.show', $feature->parent_id)

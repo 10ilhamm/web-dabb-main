@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Storage;
 
 class VirtualSlideshowController extends Controller
 {
+    use \App\Traits\SwapsOrder;
     /**
      * Show pages table for this slideshow feature
      */
@@ -902,6 +903,7 @@ class VirtualSlideshowController extends Controller
             }
         }
 
+        $this->swapOrder($slide, (int) $validated['order'], (int) $slide->order, ['feature_page_id' => $slide->feature_page_id]);
         $slide->update([
             'feature_page_id' => $featurePageId,
             'slide_type'     => $validated['slide_type'],

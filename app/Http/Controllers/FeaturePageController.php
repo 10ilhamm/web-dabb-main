@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Storage;
 
 class FeaturePageController extends Controller
 {
+    use \App\Traits\SwapsOrder;
     /**
      * List pages for a feature (CMS).
      */
@@ -150,6 +151,7 @@ class FeaturePageController extends Controller
             }
         }
 
+        $this->swapOrder($page, (int) $validated['order'], (int) $page->order, ['feature_id' => $page->feature_id]);
         $page->update($validated);
 
         if ($feature->page_type === 'slideshow') {
@@ -263,6 +265,7 @@ class FeaturePageController extends Controller
             }
         }
 
+        $this->swapOrder($section, (int) $validated['order'], (int) $section->order, ['feature_page_id' => $section->feature_page_id]);
         $section->update([
             'title' => $validated['title'],
             'title_en' => $translationService->translate($validated['title']),
