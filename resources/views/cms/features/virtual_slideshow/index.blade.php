@@ -41,7 +41,7 @@
                 </svg>
             </a>
             <div>
-                <h1 class="text-2xl font-bold text-gray-800">🎞️ Pameran Arsip Virtual SlideShow</h1>
+                <h1 class="text-2xl font-bold text-gray-800">🎞️ {{ __('cms.virtual_slideshow.title') }}</h1>
                 <p class="text-sm text-gray-500 mt-0.5">{{ $feature->name }}</p>
             </div>
         </div>
@@ -60,9 +60,8 @@
         <div class="bg-white rounded-xl shadow-sm border border-gray-100">
             <div class="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
                 <div>
-                    <h2 class="text-base font-semibold text-gray-800">Daftar Halaman / Exhibition</h2>
-                    <p class="text-sm text-gray-500 mt-0.5">Kelola halaman pameran arsip virtual dan konten slide di
-                        dalamnya.</p>
+                    <h2 class="text-base font-semibold text-gray-800">{{ __('cms.virtual_slideshow.pages_list_title') }}</h2>
+                    <p class="text-sm text-gray-500 mt-0.5">{{ __('cms.virtual_slideshow.pages_list_desc') }}</p>
                 </div>
                 <a href="{{ route('cms.features.slideshow.pages.create', $feature) }}"
                     class="flex items-center gap-2 bg-[#174E93] hover:bg-blue-800 text-white text-sm font-semibold px-4 py-2.5 rounded-lg transition-colors shadow-sm">
@@ -70,7 +69,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                     </svg>
-                    Tambah Halaman
+                    {{ __('cms.virtual_slideshow.add_page') }}
                 </a>
             </div>
 
@@ -83,14 +82,13 @@
                                     d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                             </svg>
                         </div>
-                        <p class="text-gray-400 text-sm">Belum ada halaman. Buat halaman terlebih dahulu di menu "Kelola
-                            Halaman".</p>
+                        <p class="text-gray-400 text-sm">{{ __('cms.virtual_slideshow.empty_pages') }}</p>
                         <a href="{{ route('cms.features.slideshow.pages.create', $feature) }}"
                             class="inline-flex items-center gap-2 px-4 py-2 bg-[#174E93] text-white text-sm font-semibold rounded-lg hover:bg-blue-800 transition-colors">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                             </svg>
-                            Tambah Halaman
+                            {{ __('cms.virtual_slideshow.add_page') }}
                         </a>
                     </div>
                 </div>
@@ -240,7 +238,7 @@
                                         {{ Str::limit($page->description, 80) }}</p>
                                 @endif
                                 <div class="flex items-center gap-3 mt-1 text-xs text-gray-400">
-                                    <span>📄 {{ $page->slideshow_slides_count ?? 0 }} slides</span>
+                                    <span>📄 {{ __('cms.virtual_slideshow.slides_count', ['count' => $page->slideshow_slides_count ?? 0]) }}</span>
                                 </div>
                             </div>
 
@@ -248,7 +246,7 @@
                             <div class="flex items-center gap-2 flex-shrink-0">
                                 <a href="{{ route('cms.features.slideshow.pages.slides.index', [$feature, $page]) }}"
                                     class="inline-flex items-center justify-center w-8 h-8 bg-[#174E93] hover:bg-blue-800 text-white rounded-md transition-colors"
-                                    title="Kelola Slides">
+                                    title="{{ __('cms.virtual_slideshow.manage_slides') }}">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M4 6h16M4 10h16M4 14h16M4 18h16" />
@@ -256,7 +254,7 @@
                                 </a>
                                 <a href="{{ route('cms.features.slideshow.pages.edit', [$feature, $page]) }}"
                                     class="inline-flex items-center justify-center w-8 h-8 bg-yellow-400 hover:bg-yellow-500 text-white rounded-md transition-colors"
-                                    title="Edit Halaman">
+                                    title="{{ __('cms.virtual_slideshow.edit_page') }}">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -265,7 +263,7 @@
                                 <button type="button"
                                     @click="deleteModal = { open: true, id: {{ $page->id }}, name: '{{ addslashes($page->title) }}' }"
                                     class="inline-flex items-center justify-center w-8 h-8 bg-red-500 hover:bg-red-600 text-white rounded-md transition-colors"
-                                    title="Hapus">
+                                    title="{{ __('cms.virtual_slideshow.delete') }}">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -283,7 +281,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                         </svg>
-                        Lihat Halaman Publik
+                        {{ __('cms.virtual_slideshow.view_public') }}
                     </a>
                 </div>
             @endif
@@ -309,16 +307,16 @@
                         </svg>
                     </div>
                     <div>
-                        <h3 class="text-base font-semibold text-gray-800">Hapus Halaman</h3>
+                        <h3 class="text-base font-semibold text-gray-800">{{ __('cms.virtual_slideshow.delete_page_title') }}</h3>
                         <p class="text-sm text-gray-500 mt-1">
-                            Apakah Anda yakin ingin menghapus halaman
+                            {{ __('cms.virtual_slideshow.delete_page_confirm') }}
                             <strong x-text="deleteModal.name" class="text-gray-700"></strong>?
                         </p>
                     </div>
                     <div class="flex items-center gap-3 w-full">
                         <button @click="deleteModal.open = false"
                             class="flex-1 px-4 py-2.5 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
-                            Batal
+                            {{ __('cms.virtual_slideshow.cancel') }}
                         </button>
                         <form :action="`{{ url('cms/features/' . $feature->id . '/slideshow/pages') }}/${deleteModal.id}`"
                             method="POST" class="flex-1">
@@ -326,7 +324,7 @@
                             @method('DELETE')
                             <button type="submit"
                                 class="w-full px-4 py-2.5 text-sm font-semibold text-white bg-red-500 hover:bg-red-600 rounded-lg transition-colors">
-                                Hapus
+                                {{ __('cms.virtual_slideshow.delete') }}
                             </button>
                         </form>
                     </div>

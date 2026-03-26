@@ -39,7 +39,7 @@
                 </svg>
             </a>
             <div>
-                <h1 class="text-2xl font-bold text-gray-800">🎞️ Kelola Slides: {{ $page->title }}</h1>
+                <h1 class="text-2xl font-bold text-gray-800">🎞️ {{ __('cms.virtual_slideshow.manage_slides_title', ['title' => $page->title]) }}</h1>
                 <p class="text-sm text-gray-500 mt-0.5">{{ $feature->name }}</p>
             </div>
         </div>
@@ -48,15 +48,15 @@
         <div class="bg-white rounded-xl shadow-sm border border-gray-100">
             <div class="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
                 <div>
-                    <h2 class="text-base font-semibold text-gray-800">Daftar Slide</h2>
-                    <p class="text-sm text-gray-500 mt-0.5">Atur urutan slide dan kelola konten interaktif.</p>
+                    <h2 class="text-base font-semibold text-gray-800">{{ __('cms.virtual_slideshow.slides_list_title') }}</h2>
+                    <p class="text-sm text-gray-500 mt-0.5">{{ __('cms.virtual_slideshow.slides_list_desc') }}</p>
                 </div>
                 <a href="{{ route('cms.features.slideshow.pages.slides.create', [$feature, $page]) }}"
                     class="flex items-center gap-2 bg-[#174E93] hover:bg-blue-800 text-white text-sm font-semibold px-4 py-2.5 rounded-lg transition-colors shadow-sm">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
-                    Tambah Slide
+                    {{ __('cms.virtual_slideshow.add_slide') }}
                 </a>
             </div>
 
@@ -69,13 +69,13 @@
                                     d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" />
                             </svg>
                         </div>
-                        <p class="text-gray-400 text-sm">Belum ada slide. Klik "Tambah Slide" untuk memulai.</p>
+                        <p class="text-gray-400 text-sm">{{ __('cms.virtual_slideshow.empty_slides') }}</p>
                         <a href="{{ route('cms.features.slideshow.pages.slides.create', [$feature, $page]) }}"
                             class="inline-flex items-center gap-2 px-4 py-2 bg-[#174E93] text-white text-sm font-semibold rounded-lg hover:bg-blue-800 transition-colors">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                             </svg>
-                            Tambah Slide Pertama
+                            {{ __('cms.virtual_slideshow.add_first_slide') }}
                         </a>
                     </div>
                 </div>
@@ -190,11 +190,11 @@
                                 <div class="flex items-center gap-2 mb-1">
                                     @php
                                         $typeLabels = [
-                                            'hero' => 'Hero',
-                                            'text' => 'Teks',
-                                            'carousel' => 'Carousel',
-                                            'video' => 'Video',
-                                            'text_carousel' => 'Teks + Carousel',
+                                            'hero' => __('cms.virtual_slideshow.type_hero'),
+                                            'text' => __('cms.virtual_slideshow.type_text'),
+                                            'carousel' => __('cms.virtual_slideshow.type_carousel'),
+                                            'video' => __('cms.virtual_slideshow.type_video'),
+                                            'text_carousel' => __('cms.virtual_slideshow.type_text_carousel'),
                                         ];
                                         $typeColors = [
                                             'hero' => 'bg-purple-100 text-purple-700',
@@ -216,7 +216,7 @@
                                     @endif
                                 </div>
                                 <p class="text-sm font-medium text-gray-800 truncate">
-                                    {{ $slide->title ?: '(tanpa judul)' }}</p>
+                                    {{ $slide->title ?: __('cms.virtual_slideshow.untitled') }}</p>
                                 @if ($slide->description)
                                     <p class="text-xs text-gray-400 truncate mt-0.5">
                                         {{ Str::limit(strip_tags($slide->description), 80) }}</p>
@@ -259,13 +259,13 @@
                                         }
                                     @endphp
                                     @if ($totalImages > 0)
-                                        <span>📷 {{ $totalImages }} gambar</span>
+                                        <span>📷 {{ __('cms.virtual_slideshow.images_count', ['count' => $totalImages]) }}</span>
                                     @endif
                                     @if ($slide->video_url)
-                                        <span>🎬 Video</span>
+                                        <span>🎬 {{ __('cms.virtual_slideshow.has_video') }}</span>
                                     @endif
                                     @if ($totalInfoPopup > 0)
-                                        <span>💬 {{ $totalInfoPopup }} info popup</span>
+                                        <span>💬 {{ __('cms.virtual_slideshow.info_popup_count', ['count' => $totalInfoPopup]) }}</span>
                                     @endif
                                 </div>
                             </div>
@@ -283,7 +283,7 @@
                                 <button type="button"
                                     @click="deleteModal = { open: true, id: {{ $slide->id }}, name: '{{ addslashes($slide->title ?? 'slide ' . $slide->order) }}' }"
                                     class="inline-flex items-center justify-center w-8 h-8 bg-red-500 hover:bg-red-600 text-white rounded-md transition-colors"
-                                    title="Hapus">
+                                    title="{{ __('cms.virtual_slideshow.delete') }}">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -301,7 +301,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                         </svg>
-                        Lihat Halaman Publik (Exhibition #{{ $page->order }})
+                        {{ __('cms.virtual_slideshow.view_exhibition', ['order' => $page->order]) }}
                     </a>
                 </div>
             @endif
@@ -327,16 +327,16 @@
                         </svg>
                     </div>
                     <div>
-                        <h3 class="text-base font-semibold text-gray-800">Hapus Slide</h3>
+                        <h3 class="text-base font-semibold text-gray-800">{{ __('cms.virtual_slideshow.delete_slide_title') }}</h3>
                         <p class="text-sm text-gray-500 mt-1">
-                            Apakah Anda yakin ingin menghapus slide
+                            {{ __('cms.virtual_slideshow.delete_slide_confirm') }}
                             <strong x-text="deleteModal.name" class="text-gray-700"></strong>?
                         </p>
                     </div>
                     <div class="flex items-center gap-3 w-full">
                         <button @click="deleteModal.open = false"
                             class="flex-1 px-4 py-2.5 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
-                            Batal
+                            {{ __('cms.virtual_slideshow.cancel') }}
                         </button>
                         <form
                             :action="`{{ url('cms/features/' . $feature->id . '/slideshow/pages/' . $page->id . '/slides') }}/${deleteModal.id}`"
@@ -345,7 +345,7 @@
                             @method('DELETE')
                             <button type="submit"
                                 class="w-full px-4 py-2.5 text-sm font-semibold text-white bg-red-500 hover:bg-red-600 rounded-lg transition-colors">
-                                Hapus
+                                {{ __('cms.virtual_slideshow.delete') }}
                             </button>
                         </form>
                     </div>

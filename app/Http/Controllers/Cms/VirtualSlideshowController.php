@@ -421,11 +421,11 @@ class VirtualSlideshowController extends Controller
         // Redirect based on context
         if ($page) {
             return redirect()->route('cms.features.slideshow.pages.slides.index', [$feature, $page])
-                ->with('success', 'Slide berhasil ditambahkan.');
+                ->with('success', __('cms.virtual_slideshow.flash.slide_created'));
         }
 
         return redirect()->route('cms.features.slideshow.index', $feature)
-            ->with('success', 'Slide berhasil ditambahkan.');
+            ->with('success', __('cms.virtual_slideshow.flash.slide_created'));
     }
 
     /**
@@ -927,11 +927,11 @@ class VirtualSlideshowController extends Controller
         // Redirect based on context
         if ($page) {
             return redirect()->route('cms.features.slideshow.pages.slides.index', [$feature, $page])
-                ->with('success', 'Slide berhasil diperbarui.');
+                ->with('success', __('cms.virtual_slideshow.flash.slide_updated'));
         }
 
         return redirect()->route('cms.features.slideshow.index', $feature)
-            ->with('success', 'Slide berhasil diperbarui.');
+            ->with('success', __('cms.virtual_slideshow.flash.slide_updated'));
     }
 
     /**
@@ -973,10 +973,10 @@ class VirtualSlideshowController extends Controller
         // Redirect based on context
         if ($page) {
             return redirect()->route('cms.features.slideshow.pages.slides.index', [$feature, $page])
-                ->with('success', 'Slide berhasil dihapus.');
+                ->with('success', __('cms.virtual_slideshow.flash.slide_deleted'));
         }
 
         return redirect()->route('cms.features.slideshow.index', $feature)
-            ->with('success', 'Slide berhasil dihapus.');
+            ->with('success', __('cms.virtual_slideshow.flash.slide_deleted'));
     }
 }

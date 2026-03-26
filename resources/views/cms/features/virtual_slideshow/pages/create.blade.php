@@ -27,7 +27,7 @@
     <a href="{{ route('cms.features.slideshow.pages.slides.index', [$feature, $page]) }}"
         class="text-gray-400 hover:text-gray-600 transition-colors">{{ $page->title }}</a>
 @endsection
-@section('breadcrumb_active', 'Tambah Slide')
+@section('breadcrumb_active', __('cms.virtual_slideshow.add_slide'))
 
 @push('styles')
     <link rel="stylesheet" href="https://richtexteditor.com/richtexteditor/rte_theme_default.css" />
@@ -267,10 +267,10 @@
                 </svg>
             </a>
             <div>
-                <h1 class="text-2xl font-bold text-gray-800">Tambah Slide Baru</h1>
+                <h1 class="text-2xl font-bold text-gray-800">{{ __('cms.virtual_slideshow.create_slide_title') }}</h1>
                 <p class="text-sm text-gray-500 mt-0.5">{{ $feature->name }}</p>
                 @if (isset($page))
-                    <p class="text-sm text-blue-600 mt-0.5">Halaman: {{ $page->title }}</p>
+                    <p class="text-sm text-blue-600 mt-0.5">{{ __('cms.virtual_slideshow.page_label', ['title' => $page->title]) }}</p>
                 @endif
             </div>
         </div>
@@ -283,7 +283,7 @@
 
             @if ($errors->any())
                 <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">
-                    <div class="font-semibold">Terdapat kesalahan:</div>
+                    <div class="font-semibold">{{ __('cms.virtual_slideshow.errors_found') }}</div>
                     <ul class="list-disc list-inside mt-1 text-sm">
                         @foreach ($errors->all() as $error)
                             <li>{{ $error }}</li>
@@ -298,66 +298,65 @@
 
             {{-- Step 1: Tipe Slide --}}
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-4">
-                <h2 class="text-base font-semibold text-gray-800">1. Pilih Tipe Slide</h2>
+                <h2 class="text-base font-semibold text-gray-800">{{ __('cms.virtual_slideshow.step1_type') }}</h2>
                 <input type="hidden" name="slide_type" id="slide_type_input" value="text">
                 <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
                     <div class="slide-type-card active" data-type="text" onclick="selectType('text')">
                         <div class="icon">📝</div>
-                        <div class="label">Teks</div>
-                        <div class="desc">Konten teks saja</div>
+                        <div class="label">{{ __('cms.virtual_slideshow.type_text') }}</div>
+                        <div class="desc">{{ __('cms.virtual_slideshow.type_text_desc') }}</div>
                     </div>
                     <div class="slide-type-card" data-type="hero" onclick="trySelectHero()">
                         <div class="icon">🌟</div>
-                        <div class="label">Hero</div>
-                        <div class="desc">Banner pembuka</div>
+                        <div class="label">{{ __('cms.virtual_slideshow.type_hero') }}</div>
+                        <div class="desc">{{ __('cms.virtual_slideshow.type_hero_desc') }}</div>
                     </div>
                     <div class="slide-type-card" data-type="carousel" onclick="selectType('carousel')">
                         <div class="icon">🖼️</div>
-                        <div class="label">Carousel</div>
-                        <div class="desc">Slideshow gambar</div>
+                        <div class="label">{{ __('cms.virtual_slideshow.type_carousel') }}</div>
+                        <div class="desc">{{ __('cms.virtual_slideshow.type_carousel_desc') }}</div>
                     </div>
                     <div class="slide-type-card" data-type="video" onclick="selectType('video')">
                         <div class="icon">🎬</div>
-                        <div class="label">Video</div>
-                        <div class="desc">Embed video</div>
+                        <div class="label">{{ __('cms.virtual_slideshow.type_video') }}</div>
+                        <div class="desc">{{ __('cms.virtual_slideshow.type_video_desc') }}</div>
                     </div>
                     <div class="slide-type-card" data-type="text_carousel" onclick="selectType('text_carousel')">
                         <div class="icon">📋</div>
-                        <div class="label">Teks + Carousel</div>
-                        <div class="desc">Split layout</div>
+                        <div class="label">{{ __('cms.virtual_slideshow.type_text_carousel') }}</div>
+                        <div class="desc">{{ __('cms.virtual_slideshow.type_text_carousel_desc') }}</div>
                     </div>
                 </div>
             </div>
 
             {{-- Step 2: Konten Umum --}}
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-4">
-                <h2 class="text-base font-semibold text-gray-800">2. Konten</h2>
+                <h2 class="text-base font-semibold text-gray-800">{{ __('cms.virtual_slideshow.step2_content') }}</h2>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label class="form-label">Judul <span class="text-gray-400 text-xs">(opsional)</span></label>
+                        <label class="form-label">{{ __('cms.virtual_slideshow.slide_title_label') }} <span class="text-gray-400 text-xs">({{ __('cms.virtual_slideshow.optional') }})</span></label>
                         <input type="text" name="title" class="form-input" placeholder="Judul slide..."
                             value="{{ old('title') }}">
                     </div>
                     <div>
-                        <label class="form-label">Sub-judul <span class="text-gray-400 text-xs">(opsional)</span></label>
+                        <label class="form-label">{{ __('cms.virtual_slideshow.slide_subtitle_label') }} <span class="text-gray-400 text-xs">({{ __('cms.virtual_slideshow.optional') }})</span></label>
                         <input type="text" name="subtitle" class="form-input" placeholder="Sub-judul..."
                             value="{{ old('subtitle') }}">
                     </div>
                 </div>
 
                 <div>
-                    <label class="form-label">Deskripsi / Teks Konten <span class="text-gray-400 text-xs">(opsional -
-                            gunakan toolbar untuk format)</span></label>
+                    <label class="form-label">{{ __('cms.virtual_slideshow.slide_desc_label') }} <span class="text-gray-400 text-xs">({{ __('cms.virtual_slideshow.desc_toolbar_hint') }})</span></label>
                     <div id="div_editor1" style="min-width:100%;">{!! old('description') !!}</div>
                     <input type="hidden" name="description" id="hiddenDescription">
                 </div>
 
                 {{-- Layout --}}
                 <div class="panel-layout" style="display:none;">
-                    <label class="form-label">Layout</label>
+                    <label class="form-label">{{ __('cms.virtual_slideshow.layout_label') }}</label>
                     <div class="flex gap-3">
-                        @foreach (['left' => 'Teks Kiri, Gambar Kanan', 'center' => 'Tengah', 'right' => 'Gambar Kiri, Teks Kanan'] as $val => $lbl)
+                        @foreach (['left' => __('cms.virtual_slideshow.layout_left'), 'center' => __('cms.virtual_slideshow.layout_center'), 'right' => __('cms.virtual_slideshow.layout_right')] as $val => $lbl)
                             <label class="flex items-center gap-2 cursor-pointer">
                                 <input type="radio" name="layout" value="{{ $val }}"
                                     {{ old('layout', 'center') === $val ? 'checked' : '' }}>
@@ -373,7 +372,7 @@
                 {{-- BG Color --}}
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                        <label class="form-label">Warna Background Section</label>
+                        <label class="form-label">{{ __('cms.virtual_slideshow.bg_color_label') }}</label>
                         <div class="flex items-center gap-2">
                             <input type="color" name="bg_color" value="{{ old('bg_color', '#ffffff') }}"
                                 class="w-10 h-10 rounded border border-gray-200 cursor-pointer">
@@ -383,7 +382,7 @@
                         </div>
                     </div>
                     <div>
-                        <label class="form-label">Urutan</label>
+                        <label class="form-label">{{ __('cms.virtual_slideshow.order_label') }}</label>
                         <input type="number" name="order" min="0" value="{{ old('order', 1) }}"
                             class="form-input" required>
                     </div>
@@ -393,17 +392,17 @@
             {{-- Step 3: Media --}}
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-4 mt-4 section-panel active"
                 id="panel-images">
-                <h2 class="text-base font-semibold text-gray-800">3. Media</h2>
+                <h2 class="text-base font-semibold text-gray-800">{{ __('cms.virtual_slideshow.step3_media') }}</h2>
 
                 {{-- Toggle untuk text_carousel: Gambar atau Video --}}
                 <div id="carouselMediaToggle" class="flex gap-4 mb-3 hidden">
                     <label class="flex items-center gap-2 cursor-pointer">
                         <input type="radio" name="carousel_media_type" value="images" checked onchange="toggleCarouselMediaType('images')">
-                        <span class="text-sm text-gray-700">Gambar</span>
+                        <span class="text-sm text-gray-700">{{ __('cms.virtual_slideshow.media_type_images') }}</span>
                     </label>
                     <label class="flex items-center gap-2 cursor-pointer">
                         <input type="radio" name="carousel_media_type" value="videos" onchange="toggleCarouselMediaType('videos')">
-                        <span class="text-sm text-gray-700">Video</span>
+                        <span class="text-sm text-gray-700">{{ __('cms.virtual_slideshow.media_type_videos') }}</span>
                     </label>
                 </div>
 
@@ -414,11 +413,11 @@
                     <div class="flex gap-4 mb-3">
                         <label class="flex items-center gap-2 cursor-pointer">
                             <input type="radio" name="image_method" value="upload" checked onchange="toggleImageMethod('upload')">
-                            <span class="text-sm text-gray-700">Upload File</span>
+                            <span class="text-sm text-gray-700">{{ __('cms.virtual_slideshow.method_upload') }}</span>
                         </label>
                         <label class="flex items-center gap-2 cursor-pointer">
                             <input type="radio" name="image_method" value="url" onchange="toggleImageMethod('url')">
-                            <span class="text-sm text-gray-700">URL</span>
+                            <span class="text-sm text-gray-700">{{ __('cms.virtual_slideshow.method_url') }}</span>
                         </label>
                     </div>
 
@@ -429,7 +428,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                             </svg>
-                            <span class="text-sm text-gray-500" id="uploadHintText">Klik untuk pilih gambar (bisa lebih dari 1)</span>
+                            <span class="text-sm text-gray-500" id="uploadHintText">{{ __('cms.virtual_slideshow.image_upload_hint') }}</span>
                             <input type="file" name="images[]" accept="image/*" class="hidden" id="imageInput"
                                 onchange="previewImages(this)">
                         </label>
@@ -444,7 +443,7 @@
                                     </svg>
                                 </a>
                                 <input type="text" name="image_urls[]" class="form-input flex-1"
-                                    placeholder="https://example.com/image.jpg atau link Google Drive" data-index="0" oninput="updateUrlLink(this)">
+                                    placeholder="{{ __('cms.virtual_slideshow.image_url_placeholder') }}" data-index="0" oninput="updateUrlLink(this)">
                                 <button type="button" onclick="removeImageUrlEntry(this)" class="px-2 py-2 text-red-500 hover:bg-red-50 rounded-lg flex-shrink-0" title="Hapus">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
@@ -465,9 +464,9 @@
 
                     <div id="infoPopupImageArea">
                         <label class="form-label mt-2">Keterangan Info Popup per Gambar <span
-                                class="text-gray-400 text-xs">(klik tombol ? akan menampilkan teks ini)</span></label>
+                                class="text-gray-400 text-xs">({{ __('cms.virtual_slideshow.popup_caption_hint') }})</span></label>
                         <div id="infoPopupRows" class="space-y-2">
-                            <p class="text-xs text-gray-400 italic" id="noImagesHint">Upload atau masukkan URL gambar dulu untuk mengisi keterangan popup.</p>
+                            <p class="text-xs text-gray-400 italic" id="noImagesHint">{{ __('cms.virtual_slideshow.upload_images_first') }}</p>
                         </div>
                     </div>
 
@@ -481,11 +480,11 @@
                     <div class="flex gap-4 mb-3">
                         <label class="flex items-center gap-2 cursor-pointer">
                             <input type="radio" name="carousel_video_method" value="url" checked onchange="toggleCarouselVideoMethod('url')">
-                            <span class="text-sm text-gray-700">URL</span>
+                            <span class="text-sm text-gray-700">{{ __('cms.virtual_slideshow.method_url') }}</span>
                         </label>
                         <label class="flex items-center gap-2 cursor-pointer">
                             <input type="radio" name="carousel_video_method" value="upload" onchange="toggleCarouselVideoMethod('upload')">
-                            <span class="text-sm text-gray-700">Upload File</span>
+                            <span class="text-sm text-gray-700">{{ __('cms.virtual_slideshow.method_upload') }}</span>
                         </label>
                     </div>
 
@@ -493,7 +492,7 @@
                         <div id="carousel-video-url-list" class="space-y-2 mb-3">
                             <div class="carousel-video-url-entry flex gap-2 items-start" data-index="0">
                                 <input type="text" name="carousel_video_urls[]" class="form-input flex-1"
-                                    placeholder="https://youtube.com/watch?v=... atau link Google Drive" data-index="0" data-caption="" oninput="updateCarouselUrlCaption(this)">
+                                    placeholder="{{ __('cms.virtual_slideshow.carousel_video_url_placeholder') }}" data-index="0" data-caption="" oninput="updateCarouselUrlCaption(this)">
                                 <button type="button" onclick="removeCarouselVideoUrlEntry(this)" class="px-2 py-2 text-red-500 hover:bg-red-50 rounded-lg flex-shrink-0" title="Hapus">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
@@ -520,7 +519,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
                             </svg>
-                            <span class="text-sm text-gray-500">Klik untuk pilih video (bisa lebih dari 1, .mp4, .webm)</span>
+                            <span class="text-sm text-gray-500">{{ __('cms.virtual_slideshow.carousel_video_upload_hint') }}</span>
                             <input type="file" name="carousel_videos[]" multiple accept="video/*" class="hidden" id="carouselVideoInput"
                                 onchange="previewCarouselVideos(this)">
                         </label>
@@ -529,9 +528,9 @@
 
                     <div id="infoPopupCarouselVideoArea">
                         <label class="form-label mt-2">Keterangan Info Popup per Video <span
-                                class="text-gray-400 text-xs">(klik tombol ? akan menampilkan teks ini)</span></label>
+                                class="text-gray-400 text-xs">({{ __('cms.virtual_slideshow.popup_caption_hint') }})</span></label>
                         <div id="carouselVideoInfoPopupRows" class="space-y-2">
-                            <p class="text-xs text-gray-400 italic" id="noCarouselVideosHint">Tambah video dulu untuk mengisi keterangan popup.</p>
+                            <p class="text-xs text-gray-400 italic" id="noCarouselVideosHint">{{ __('cms.virtual_slideshow.add_videos_first') }}</p>
                         </div>
                     </div>
                 </div>
@@ -540,7 +539,7 @@
             {{-- Step 4: Video --}}
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-4 mt-4 section-panel"
                 id="panel-video">
-                <h2 class="text-base font-semibold text-gray-800">4. Video</h2>
+                <h2 class="text-base font-semibold text-gray-800">{{ __('cms.virtual_slideshow.step4_video') }}</h2>
 
                 <div class="flex gap-4 mb-3">
                     <label class="flex items-center gap-2 cursor-pointer">
@@ -556,14 +555,14 @@
                 <div id="video-url-section">
                     <div class="flex gap-2 items-start">
                         <input type="text" name="video_url" class="form-input flex-1"
-                            placeholder="https://youtube.com/watch?v=..., Google Drive, atau URL video lainnya" oninput="previewVideoUrl(this)">
+                            placeholder="{{ __('cms.virtual_slideshow.single_video_url_placeholder') }}" oninput="previewVideoUrl(this)">
                         <div class="url-preview-placeholder w-24 h-16 rounded-lg border border-gray-200 bg-gray-50 flex items-center justify-center overflow-hidden flex-shrink-0">
-                            <span class="text-xs text-gray-400">Preview</span>
+                            <span class="text-xs text-gray-400">{{ __('cms.virtual_slideshow.preview') }}</span>
                         </div>
                     </div>
 
                     <div class="mt-4">
-                        <label class="form-label">Keterangan Info Popup Video (URL)</label>
+                        <label class="form-label">{{ __('cms.virtual_slideshow.popup_video_url') }}</label>
                         <div id="videoCaptionWidgetUrl"></div>
                     </div>
                 </div>
@@ -575,7 +574,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
                         </svg>
-                        <span class="text-sm text-gray-500">Klik untuk pilih video (.mp4, .webm)</span>
+                        <span class="text-sm text-gray-500">{{ __('cms.virtual_slideshow.video_upload_hint') }}</span>
                         <input type="file" name="video_file" accept="video/*" class="hidden" id="videoInput"
                             onchange="previewVideoFile(this)">
                     </label>
@@ -585,7 +584,7 @@
                     </div>
 
                     <div class="mt-4">
-                        <label class="form-label">Keterangan Info Popup Video (Upload)</label>
+                        <label class="form-label">{{ __('cms.virtual_slideshow.popup_video_upload') }}</label>
                         <div id="videoCaptionWidget"></div>
                     </div>
                 </div>
@@ -595,11 +594,11 @@
             <div class="flex items-center justify-end gap-3 mt-4">
                 <a href="{{ isset($page) ? route('cms.features.slideshow.pages.slides.index', [$feature, $page]) : route('cms.features.slideshow.index', $feature) }}"
                     class="px-5 py-2.5 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
-                    Batal
+                    {{ __('cms.virtual_slideshow.cancel') }}
                 </a>
                 <button type="submit"
                     class="px-6 py-2.5 text-sm font-semibold text-white bg-[#174E93] hover:bg-blue-800 rounded-lg transition-colors shadow-sm">
-                    Simpan Slide
+                    {{ __('cms.virtual_slideshow.save_slide') }}
                 </button>
             </div>
         </form>
@@ -610,6 +609,17 @@
     <script type="text/javascript" src="https://richtexteditor.com/richtexteditor/rte.js"></script>
     <script type="text/javascript" src="https://richtexteditor.com/richtexteditor/plugins/all_plugins.js"></script>
     <script>
+        // Translation strings for JS
+        var __t = {
+            upload_images_first: '{{ __('cms.virtual_slideshow.upload_images_first') }}',
+            add_videos_first: '{{ __('cms.virtual_slideshow.add_videos_first') }}',
+            preview: '{{ __('cms.virtual_slideshow.preview') }}',
+            view: '{{ __('cms.virtual_slideshow.view') }}',
+            google_drive: 'Google Drive',
+            video_url: '{{ __('cms.virtual_slideshow.method_url') }}',
+            image_url_placeholder: '{{ __('cms.virtual_slideshow.image_url_placeholder') }}',
+            carousel_video_url_placeholder: '{{ __('cms.virtual_slideshow.carousel_video_url_placeholder') }}',
+        };
         /**
          * Reusable Caption Widget: supports Single caption or Multi Q&A mode
          * @param {HTMLElement} containerEl - container to render into
@@ -648,8 +658,8 @@
             modeDiv.className = 'caption-widget-mode';
             var modeSelect = document.createElement('select');
             modeSelect.name = modeName;
-            modeSelect.innerHTML = '<option value="single"' + (existingMode === 'single' ? ' selected' : '') + '>Caption Tunggal</option>' +
-                                   '<option value="multi"' + (existingMode === 'multi' ? ' selected' : '') + '>Multi Q&A</option>';
+            modeSelect.innerHTML = '<option value="single"' + (existingMode === 'single' ? ' selected' : '') + '>{{ __('cms.virtual_slideshow.caption_single') }}</option>' +
+                                   '<option value="multi"' + (existingMode === 'multi' ? ' selected' : '') + '>{{ __('cms.virtual_slideshow.caption_multi_qa') }}</option>';
             modeDiv.appendChild(modeSelect);
             containerEl.appendChild(modeDiv);
 
@@ -1007,7 +1017,7 @@
                     '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
                     '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg></a>' +
                     '<input type="text" name="image_urls[]" class="form-input flex-1" ' +
-                    'placeholder="https://example.com/image.jpg atau link Google Drive" data-index="' + newIndex + '" oninput="updateUrlLink(this)">' +
+                    'placeholder="' + __t.image_url_placeholder + '" data-index="' + newIndex + '" oninput="updateUrlLink(this)">' +
                     '<button type="button" onclick="removeImageUrlEntry(this)" class="px-2 py-2 text-red-500 hover:bg-red-50 rounded-lg flex-shrink-0" title="Hapus">' +
                     '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
                     '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>';
@@ -1150,7 +1160,7 @@
                     previewArea.style.display = 'none';
                     if (hint) hint.style.display = '';
                     if (popupArea) popupArea.style.display = 'none';
-                    popupRows.innerHTML = '<p class="text-xs text-gray-400 italic" id="noImagesHint">Upload atau masukkan URL gambar dulu untuk mengisi keterangan popup.</p>';
+                    popupRows.innerHTML = '<p class="text-xs text-gray-400 italic" id="noImagesHint">' + __t.upload_images_first + '</p>';
                     return;
                 }
 
@@ -1215,13 +1225,13 @@
                     if (isGoogleDrive) {
                         wrap.innerHTML = '<div class="flex flex-col items-center justify-center" style="height:60px;width:60px;background:#f3f4f6;border-radius:8px;border:1px solid #e5e7eb;">' +
                             '<svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>' +
-                            '<a href="' + img.originalUrl + '" target="_blank" class="text-xs text-blue-500 hover:text-blue-700 mt-1">Lihat</a></div>' +
+                            '<a href="' + img.originalUrl + '" target="_blank" class="text-xs text-blue-500 hover:text-blue-700 mt-1">' + __t.view + '</a></div>' +
                             '<button type="button" class="remove-img" onclick="removeUrlImage(' + idx + ')">✕</button>';
                     } else {
                         wrap.innerHTML = '<img src="' + img.url + '" alt="" style="height:60px;width:60px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb;" onerror="this.style.display=\'none\'; this.nextElementSibling.style.display=\'flex\';">' +
                             '<div class="flex flex-col items-center justify-center" style="height:60px;width:60px;background:#f3f4f6;border-radius:8px;border:1px solid #e5e7eb;display:none;">' +
                             '<svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>' +
-                            '<a href="' + img.originalUrl + '" target="_blank" class="text-xs text-blue-500 hover:text-blue-700 mt-1">Lihat</a></div>' +
+                            '<a href="' + img.originalUrl + '" target="_blank" class="text-xs text-blue-500 hover:text-blue-700 mt-1">' + __t.view + '</a></div>' +
                             '<button type="button" class="remove-img" onclick="removeUrlImage(' + idx + ')">✕</button>';
                     }
                     previewArea.appendChild(wrap);
@@ -1267,7 +1277,7 @@
                 var url = input.value.trim();
 
                 if (!url) {
-                    preview.innerHTML = '<span class="text-xs text-gray-400">Preview</span>';
+                    preview.innerHTML = '<span class="text-xs text-gray-400">' + __t.preview + '</span>';
                     return;
                 }
 
@@ -1284,15 +1294,15 @@
                         preview.innerHTML = '<div class="flex flex-col items-center justify-center w-full h-full">' +
                             '<svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
                             '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>' +
-                            '<span class="text-xs text-blue-500 mt-1">Google Drive</span></div>';
+                            '<span class="text-xs text-blue-500 mt-1">' + __t.google_drive + '</span></div>';
                     }
                 } else if (url.startsWith('http://') || url.startsWith('https://')) {
                     preview.innerHTML = '<div class="flex flex-col items-center justify-center w-full h-full">' +
                         '<svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
                         '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>' +
-                        '<span class="text-xs text-gray-500 mt-1">Video URL</span></div>';
+                        '<span class="text-xs text-gray-500 mt-1">' + __t.video_url + '</span></div>';
                 } else {
-                    preview.innerHTML = '<span class="text-xs text-gray-400">Preview</span>';
+                    preview.innerHTML = '<span class="text-xs text-gray-400">' + __t.preview + '</span>';
                 }
             };
 
@@ -1390,7 +1400,7 @@
                 entry.setAttribute('data-index', newIndex);
                 entry.innerHTML =
                     '<input type="text" name="carousel_video_urls[' + newIndex + ']" class="form-input flex-1" ' +
-                    'placeholder="https://youtube.com/watch?v=... atau link Google Drive" data-index="' + newIndex + '" data-caption="" oninput="updateCarouselUrlCaption(this)">' +
+                    'placeholder="' + __t.carousel_video_url_placeholder + '" data-index="' + newIndex + '" data-caption="" oninput="updateCarouselUrlCaption(this)">' +
                     '<button type="button" onclick="removeCarouselVideoUrlEntry(this)" class="px-2 py-2 text-red-500 hover:bg-red-50 rounded-lg flex-shrink-0" title="Hapus">' +
                     '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
                     '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>';
@@ -1537,7 +1547,7 @@
 
                 if (totalVideos === 0) {
                     if (hint) hint.style.display = '';
-                    popupRows.innerHTML = '<p class="text-xs text-gray-400 italic" id="noCarouselVideosHint">Tambah video dulu untuk mengisi keterangan popup.</p>';
+                    popupRows.innerHTML = '<p class="text-xs text-gray-400 italic" id="noCarouselVideosHint">' + __t.add_videos_first + '</p>';
                     return;
                 }
 

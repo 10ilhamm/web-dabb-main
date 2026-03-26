@@ -24,7 +24,7 @@
     <a href="{{ route('cms.features.show', $feature) }}"
         class="text-gray-400 hover:text-gray-600 transition-colors">{{ $feature->name }}</a>
 @endsection
-@section('breadcrumb_active', $page->title . ' - Edit Halaman')
+@section('breadcrumb_active', $page->title . ' - ' . __('cms.virtual_slideshow.edit_page'))
 
 @section('content')
     <div class="space-y-6">
@@ -39,7 +39,7 @@
                 </svg>
             </a>
             <div>
-                <h1 class="text-2xl font-bold text-gray-800">Edit Halaman Exhibition</h1>
+                <h1 class="text-2xl font-bold text-gray-800">{{ __('cms.virtual_slideshow.edit_page_title') }}</h1>
                 <p class="text-sm text-gray-500 mt-0.5">{{ $feature->name }}</p>
             </div>
         </div>
@@ -50,34 +50,34 @@
             @method('PUT')
 
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-4">
-                <h2 class="text-base font-semibold text-gray-800">Informasi Halaman</h2>
+                <h2 class="text-base font-semibold text-gray-800">{{ __('cms.virtual_slideshow.page_info') }}</h2>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Judul Halaman <span
+                    <label class="block text-sm font-medium text-gray-700 mb-2">{{ __('cms.virtual_slideshow.page_title_label') }} <span
                             class="text-red-500">*</span></label>
                     <input type="text" name="title" value="{{ old('title', $page->title) }}"
                         class="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="Judul halaman exhibition..." required>
+                        placeholder="{{ __('cms.virtual_slideshow.page_title_placeholder') }}" required>
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Deskripsi</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">{{ __('cms.virtual_slideshow.page_desc_label') }}</label>
                     <textarea name="description" rows="3"
                         class="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="Deskripsi singkat...">{{ old('description', $page->description) }}</textarea>
+                        placeholder="{{ __('cms.virtual_slideshow.page_desc_placeholder') }}">{{ old('description', $page->description) }}</textarea>
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Urutan <span
+                    <label class="block text-sm font-medium text-gray-700 mb-2">{{ __('cms.virtual_slideshow.page_order_label') }} <span
                             class="text-red-500">*</span></label>
                     <input type="number" name="order" min="0" value="{{ old('order', $page->order) }}"
                         class="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         required>
-                    <p class="text-xs text-gray-500 mt-1">Urutan tampilan di halaman publik</p>
+                    <p class="text-xs text-gray-500 mt-1">{{ __('cms.virtual_slideshow.page_order_help') }}</p>
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Thumbnail</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">{{ __('cms.virtual_slideshow.page_thumbnail_label') }}</label>
                     <input type="hidden" name="remove_thumbnail" id="removeThumbnail" value="0">
                     <div class="flex items-start gap-4">
                         <div class="flex-1">
@@ -92,12 +92,11 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                                                 d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                         </svg>
-                                        <p class="mt-1 text-xs text-gray-500">Klik untuk upload gambar</p>
+                                        <p class="mt-1 text-xs text-gray-500">{{ __('cms.virtual_slideshow.upload_image_hint') }}</p>
                                     </div>
                                 </label>
                             </div>
-                            <p class="text-xs text-gray-500 mt-1">Opsional. Jika tidak diisi, thumbnail tetap seperti
-                                sebelumnya.</p>
+                            <p class="text-xs text-gray-500 mt-1">{{ __('cms.virtual_slideshow.thumbnail_edit_help') }}</p>
                         </div>
                         @if ($page->thumbnail_path)
                             <div id="thumbnailPreview"
@@ -166,11 +165,11 @@
             <div class="flex items-center justify-end gap-3">
                 <a href="{{ route('cms.features.slideshow.index', $feature) }}"
                     class="px-5 py-2.5 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
-                    Batal
+                    {{ __('cms.virtual_slideshow.cancel') }}
                 </a>
                 <button type="submit"
                     class="px-6 py-2.5 text-sm font-semibold text-white bg-[#174E93] hover:bg-blue-800 rounded-lg transition-colors shadow-sm">
-                    Perbarui Halaman
+                    {{ __('cms.virtual_slideshow.update_page') }}
                 </button>
             </div>
         </form>
