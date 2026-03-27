@@ -153,34 +153,62 @@
     padding: 0 1.5rem;
 }
 
-/* ---- Scroll Animations ---- */
-.vsshow-anim {
-    opacity: 0;
-    will-change: opacity, transform;
-}
-
 /* =============================================================
    UNIFIED ENTER ANIMATION SYSTEM
-   Direction is set via CSS custom property --enter-x on element
-   Usage: class="vsshow-enter" data-swipe="left"  for swipe left
-          class="vsshow-enter" data-swipe="right" for swipe right
-          class="vsshow-hero-anim"                  for hero (slow push-up)
+   Uses CSS animation (not transition) for reliable playback.
+   Class .vsshow-enter sets initial hidden state.
+   Class .vsshow-visible triggers the animation.
+   data-swipe="left|right" selects direction.
+   data-enter-delay="0-6" staggers multiple elements.
    ============================================================= */
+
+/* Initial hidden state */
 .vsshow-enter {
-    --enter-x: 0;
     opacity: 0;
-    will-change: opacity, transform;
-    transform: translateX(var(--enter-x)) translateY(32px);
-    transition:
-        opacity 0.75s cubic-bezier(0.22,1,0.36,1),
-        transform 0.75s cubic-bezier(0.22,1,0.36,1);
-}
-.vsshow-enter.vsshow-visible {
-    opacity: 1;
-    transform: translateX(0) translateY(0);
+    transform: translateY(32px);
 }
 
-/* Hero: slower, more dramatic push-up (uses .vsshow-hero-anim class) */
+/* Base animation on visible */
+.vsshow-enter.vsshow-visible {
+    animation-name: vsshow-fade-up;
+    animation-duration: 0.75s;
+    animation-timing-function: cubic-bezier(0.22,1,0.36,1);
+    animation-fill-mode: both;
+}
+
+/* Direction modifiers — swipe left */
+.vsshow-enter[data-swipe="left"].vsshow-visible {
+    animation-name: vsshow-slide-left;
+}
+/* Direction modifiers — swipe right */
+.vsshow-enter[data-swipe="right"].vsshow-visible {
+    animation-name: vsshow-slide-right;
+}
+
+/* Keyframes */
+@keyframes vsshow-fade-up {
+    from { opacity: 0; transform: translateY(32px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes vsshow-slide-left {
+    from { opacity: 0; transform: translateX(-80px) translateY(32px); }
+    to   { opacity: 1; transform: translateX(0) translateY(0); }
+}
+@keyframes vsshow-slide-right {
+    from { opacity: 0; transform: translateX(80px) translateY(32px); }
+    to   { opacity: 1; transform: translateX(0) translateY(0); }
+}
+
+/* Stagger delays — applied to .vsshow-visible so animation plays after class is added */
+[data-enter-delay="0"].vsshow-visible { animation-delay: 0ms; }
+[data-enter-delay="1"].vsshow-visible { animation-delay: 140ms; }
+[data-enter-delay="2"].vsshow-visible { animation-delay: 280ms; }
+[data-enter-delay="3"].vsshow-visible { animation-delay: 440ms; }
+[data-enter-delay="4"].vsshow-visible { animation-delay: 620ms; }
+[data-enter-delay="5"].vsshow-visible { animation-delay: 820ms; }
+[data-enter-delay="6"].vsshow-visible { animation-delay: 1020ms; }
+
+/* Hero: slow dramatic push-up (separate class, transition-based) */
 .vsshow-hero-anim {
     opacity: 0;
     transform: translateY(80px);
@@ -193,23 +221,6 @@
     opacity: 1;
     transform: translateY(0);
 }
-
-/* Direction modifiers (override --enter-x via higher-specificity attribute selector) */
-.vsshow-enter[data-swipe="left"] {
-    --enter-x: -80px;
-}
-.vsshow-enter[data-swipe="right"] {
-    --enter-x: 80px;
-}
-
-/* Transition delays (staggered cascade) */
-[data-enter-delay="0"] { transition-delay: 0ms; }
-[data-enter-delay="1"] { transition-delay: 140ms; }
-[data-enter-delay="2"] { transition-delay: 280ms; }
-[data-enter-delay="3"] { transition-delay: 440ms; }
-[data-enter-delay="4"] { transition-delay: 620ms; }
-[data-enter-delay="5"] { transition-delay: 820ms; }
-[data-enter-delay="6"] { transition-delay: 1020ms; }
 
 /* ---- Text Section ---- */
 .vsshow-text-section {

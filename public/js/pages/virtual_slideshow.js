@@ -27,15 +27,16 @@
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
-                const delay = entry.target.dataset.delay || 0;
-                setTimeout(() => {
-                    entry.target.classList.add('vsshow-visible');
-                }, Number(delay));
+                const el = entry.target;
+                // Force animation restart: remove class, force reflow, then re-add
+                el.classList.remove('vsshow-visible');
+                void el.offsetWidth;
+                el.classList.add('vsshow-visible');
             } else {
                 entry.target.classList.remove('vsshow-visible');
             }
         });
-    }, { threshold: 0.12, rootMargin: '0px 0px -60px 0px' });
+    }, { threshold: 0.18, rootMargin: '0px 0px -80px 0px' });
 
     animEls.forEach(el => observer.observe(el));
 

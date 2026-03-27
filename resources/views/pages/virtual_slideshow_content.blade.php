@@ -322,7 +322,7 @@
             @endif
 
             @if($desc)
-            <p class="vsshow-section-desc vsshow-enter" style="text-align:center;margin:2rem auto 0;max-width:680px;display:block;transition:opacity 0.75s cubic-bezier(0.22,1,0.36,1),transform 0.75s cubic-bezier(0.22,1,0.36,1);transition-delay:1020ms;">{!! $desc !!}</p>
+            <div class="vsshow-section-desc vsshow-enter" data-swipe="{{ $slideIndex % 2 === 0 ? 'left' : 'right' }}" data-enter-delay="4" style="text-align:center;margin:2rem auto 0;max-width:680px;display:block;">{!! $desc !!}</div>
             @endif
         </div>
 
@@ -335,7 +335,7 @@
                 <h2 class="vsshow-section-title vsshow-enter" data-swipe="{{ $slideIndex % 2 === 0 ? 'left' : 'right' }}" data-enter-delay="1">{{ $title }}</h2>
                 <div class="vsshow-divider vsshow-enter" data-swipe="{{ $slideIndex % 2 === 0 ? 'left' : 'right' }}" data-enter-delay="2"></div>
                 @if($subtitle)<p class="vsshow-section-subtitle vsshow-enter" data-swipe="{{ $slideIndex % 2 === 0 ? 'left' : 'right' }}" data-enter-delay="3">{{ $subtitle }}</p>@endif
-                @if($desc)<div class="vsshow-section-desc vsshow-enter" data-enter-delay="4">{!! $desc !!}</div>@endif
+                @if($desc)<div class="vsshow-section-desc vsshow-enter" data-swipe="{{ $slideIndex % 2 === 0 ? 'left' : 'right' }}" data-enter-delay="4">{!! $desc !!}</div>@endif
             </div>
             @endif
 
@@ -416,7 +416,7 @@
                 <p class="vsshow-section-subtitle vsshow-enter" data-swipe="{{ $slideIndex % 2 === 0 ? 'left' : 'right' }}" data-enter-delay="3" style="text-align:left;">{{ $subtitle }}</p>
                 @endif
                 @if($desc)
-                <div class="vsshow-section-desc vsshow-enter" data-enter-delay="4" style="text-align:left;">{!! $desc !!}</div>
+                <div class="vsshow-section-desc vsshow-enter" data-swipe="{{ $slideIndex % 2 === 0 ? 'left' : 'right' }}" data-enter-delay="4" style="text-align:left;">{!! $desc !!}</div>
                 @endif
             </div>
 
