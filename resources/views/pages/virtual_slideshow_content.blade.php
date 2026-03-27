@@ -179,32 +179,32 @@
     </div>
     @endif
 
-    <div class="vsshow-hero-content vsshow-anim vsshow-morph vsshow-push-up" data-delay="100">
-        <div class="vsshow-hero-badge">
+    <div class="vsshow-hero-content vsshow-hero-anim">
+        <div class="vsshow-hero-badge vsshow-enter" data-enter-delay="0">
             {{ $locale === 'en' && $selectedPage->title_en ? $selectedPage->title_en : $selectedPage->title }}
         </div>
         @if($heroSlide->title)
-        <h1 class="vsshow-hero-title">
+        <h1 class="vsshow-hero-title vsshow-enter" data-enter-delay="1">
             {{ $locale === 'en' && $heroSlide->title_en ? $heroSlide->title_en : $heroSlide->title }}
         </h1>
         @else
-        <h1 class="vsshow-hero-title">
+        <h1 class="vsshow-hero-title vsshow-enter" data-enter-delay="1">
             {{ $locale === 'en' && $selectedPage->title_en ? $selectedPage->title_en : $selectedPage->title }}
         </h1>
         @endif
         @if($heroSlide->subtitle)
-        <p class="vsshow-hero-subtitle">
+        <p class="vsshow-hero-subtitle vsshow-enter" data-enter-delay="2">
             {{ $locale === 'en' && $heroSlide->subtitle_en ? $heroSlide->subtitle_en : $heroSlide->subtitle }}
         </p>
         @endif
         @if($heroSlide->description)
-        <p class="vsshow-hero-subtitle" style="font-size:1rem;opacity:0.7;">
+        <p class="vsshow-hero-subtitle vsshow-enter" data-enter-delay="3" style="font-size:1rem;opacity:0.7;">
             {!! $locale === 'en' && $heroSlide->description_en ? $heroSlide->description_en : $heroSlide->description !!}
         </p>
         @endif
     </div>
 
-    <div class="vsshow-hero-scroll-hint">
+    <div class="vsshow-hero-scroll-hint vsshow-enter" data-enter-delay="5">
         <div class="vsshow-hero-scroll-line"></div>
         Scroll
     </div>
@@ -213,16 +213,16 @@
 {{-- Default Hero when no hero slide --}}
 <section class="vsshow-hero">
     <div id="vss-particles" class="vsshow-hero-particles"></div>
-    <div class="vsshow-hero-content vsshow-anim vsshow-morph vsshow-push-up" data-delay="100">
-        <div class="vsshow-hero-badge">{{ $locale === 'en' && $selectedPage->title_en ? $selectedPage->title_en : $selectedPage->title }}</div>
-        <h1 class="vsshow-hero-title">
+    <div class="vsshow-hero-content vsshow-hero-anim">
+        <div class="vsshow-hero-badge vsshow-enter" data-enter-delay="0">{{ $locale === 'en' && $selectedPage->title_en ? $selectedPage->title_en : $selectedPage->title }}</div>
+        <h1 class="vsshow-hero-title vsshow-enter" data-enter-delay="1">
             {{ $locale === 'en' && $selectedPage->title_en ? $selectedPage->title_en : $selectedPage->title }}
         </h1>
         @if($selectedPage->description)
-        <p class="vsshow-hero-subtitle">{!! Str::limit(strip_tags($locale === 'en' && $selectedPage->description_en ? $selectedPage->description_en : $selectedPage->description), 200) !!}</p>
+        <p class="vsshow-hero-subtitle vsshow-enter" data-enter-delay="2">{!! Str::limit(strip_tags($locale === 'en' && $selectedPage->description_en ? $selectedPage->description_en : $selectedPage->description), 200) !!}</p>
         @endif
     </div>
-    <div class="vsshow-hero-scroll-hint">
+    <div class="vsshow-hero-scroll-hint vsshow-enter" data-enter-delay="5">
         <div class="vsshow-hero-scroll-line"></div>
         Scroll
     </div>
@@ -240,8 +240,6 @@
     $allImages = array_merge($images, $imageUrls);
     $popup = $slide->info_popup ?? [];
     $bgStyle = ($slide->bg_color && $slide->bg_color !== '#ffffff') ? "background-color: {$slide->bg_color};" : '';
-    $animDir = $slideIndex % 2 === 0 ? 'vsshow-anim-left' : 'vsshow-anim-right';
-    $delay = $slideIndex * 80;
     $embedUrl = vssYouTubeEmbed($slide->video_url);
     $isYoutube = $slide->video_url && strpos($slide->video_url, 'youtube') !== false || strpos($slide->video_url, 'youtu.be') !== false;
 @endphp
@@ -251,33 +249,34 @@
 
         {{-- TEXT only --}}
         @if($slide->slide_type === 'text')
-        <div class="vsshow-text-section vsshow-anim vsshow-morph {{ $slideIndex % 2 === 0 ? 'vsshow-swipe-left' : 'vsshow-swipe-right' }}" data-delay="{{ $delay }}">
+        <div class="vsshow-text-section">
             @if($title)
-                <div class="vsshow-section-tag">{{ $locale === 'en' && $selectedPage->title_en ? $selectedPage->title_en : $selectedPage->title }}</div>
-                <h2 class="vsshow-section-title">{{ $title }}</h2>
-                <div class="vsshow-divider"></div>
+                <div class="vsshow-section-tag vsshow-enter" data-swipe="{{ $slideIndex % 2 === 0 ? 'left' : 'right' }}" data-enter-delay="0">{{ $locale === 'en' && $selectedPage->title_en ? $selectedPage->title_en : $selectedPage->title }}</div>
+                <h2 class="vsshow-section-title vsshow-enter" data-swipe="{{ $slideIndex % 2 === 0 ? 'left' : 'right' }}" data-enter-delay="1">{{ $title }}</h2>
+                <div class="vsshow-divider vsshow-enter" data-swipe="{{ $slideIndex % 2 === 0 ? 'left' : 'right' }}" data-enter-delay="2"></div>
             @endif
             @if($subtitle)
-                <p class="vsshow-section-subtitle">{{ $subtitle }}</p>
+                <p class="vsshow-section-subtitle vsshow-enter" data-swipe="{{ $slideIndex % 2 === 0 ? 'left' : 'right' }}" data-enter-delay="3">{{ $subtitle }}</p>
             @endif
             @if($desc)
-                <div class="vsshow-section-desc">{!! $desc !!}</div>
+                <div class="vsshow-section-desc vsshow-enter" data-swipe="{{ $slideIndex % 2 === 0 ? 'left' : 'right' }}" data-enter-delay="4">{!! $desc !!}</div>
             @endif
         </div>
 
         {{-- CAROUSEL only --}}
         @elseif($slide->slide_type === 'carousel')
-        <div class="vsshow-anim vsshow-morph {{ $slideIndex % 2 === 0 ? 'vsshow-swipe-left' : 'vsshow-swipe-right' }}" data-delay="{{ $delay }}">
+        <div>
             @if($title)
             <div class="vsshow-text-section" style="margin-bottom:2.5rem;">
-                <div class="vsshow-section-tag">{{ $locale === 'en' && $selectedPage->title_en ? $selectedPage->title_en : $selectedPage->title }}</div>
-                <h2 class="vsshow-section-title">{{ $title }}</h2>
-                <div class="vsshow-divider"></div>
-                @if($subtitle)<p class="vsshow-section-subtitle">{{ $subtitle }}</p>@endif
+                <div class="vsshow-section-tag vsshow-enter" data-swipe="{{ $slideIndex % 2 === 0 ? 'left' : 'right' }}" data-enter-delay="0">{{ $locale === 'en' && $selectedPage->title_en ? $selectedPage->title_en : $selectedPage->title }}</div>
+                <h2 class="vsshow-section-title vsshow-enter" data-swipe="{{ $slideIndex % 2 === 0 ? 'left' : 'right' }}" data-enter-delay="1">{{ $title }}</h2>
+                <div class="vsshow-divider vsshow-enter" data-swipe="{{ $slideIndex % 2 === 0 ? 'left' : 'right' }}" data-enter-delay="2"></div>
             </div>
+            @if($subtitle)<p class="vsshow-section-subtitle vsshow-enter" data-swipe="{{ $slideIndex % 2 === 0 ? 'left' : 'right' }}" data-enter-delay="3" style="text-align:center;">{{ $subtitle }}</p>@endif
             @endif
 
             @if(count($allImages) > 0)
+            <div class="vsshow-enter" data-swipe="{{ $slideIndex % 2 === 0 ? 'left' : 'right' }}" data-enter-delay="4">
             <div class="vsshow-carousel">
                 <div class="vsshow-carousel-track">
                     @php
@@ -319,28 +318,29 @@
                     @endforeach
                 </div>
             </div>
+            </div>
             @endif
 
             @if($desc)
-            <p class="vsshow-section-desc" style="text-align:center;margin-top:2rem;">{!! $desc !!}</p>
+            <p class="vsshow-section-desc vsshow-enter" style="text-align:center;margin:2rem auto 0;max-width:680px;display:block;transition:opacity 0.75s cubic-bezier(0.22,1,0.36,1),transform 0.75s cubic-bezier(0.22,1,0.36,1);transition-delay:1020ms;">{!! $desc !!}</p>
             @endif
         </div>
 
         {{-- VIDEO --}}
         @elseif($slide->slide_type === 'video')
-        <div class="vsshow-anim vsshow-morph {{ $slideIndex % 2 === 0 ? 'vsshow-swipe-left' : 'vsshow-swipe-right' }}" data-delay="{{ $delay }}">
+        <div>
             @if($title)
             <div class="vsshow-text-section" style="margin-bottom:2.5rem;">
-                <div class="vsshow-section-tag">{{ $locale === 'en' && $selectedPage->title_en ? $selectedPage->title_en : $selectedPage->title }}</div>
-                <h2 class="vsshow-section-title">{{ $title }}</h2>
-                <div class="vsshow-divider"></div>
-                @if($subtitle)<p class="vsshow-section-subtitle">{{ $subtitle }}</p>@endif
-                @if($desc)<div class="vsshow-section-desc">{!! $desc !!}</div>@endif
+                <div class="vsshow-section-tag vsshow-enter" data-swipe="{{ $slideIndex % 2 === 0 ? 'left' : 'right' }}" data-enter-delay="0">{{ $locale === 'en' && $selectedPage->title_en ? $selectedPage->title_en : $selectedPage->title }}</div>
+                <h2 class="vsshow-section-title vsshow-enter" data-swipe="{{ $slideIndex % 2 === 0 ? 'left' : 'right' }}" data-enter-delay="1">{{ $title }}</h2>
+                <div class="vsshow-divider vsshow-enter" data-swipe="{{ $slideIndex % 2 === 0 ? 'left' : 'right' }}" data-enter-delay="2"></div>
+                @if($subtitle)<p class="vsshow-section-subtitle vsshow-enter" data-swipe="{{ $slideIndex % 2 === 0 ? 'left' : 'right' }}" data-enter-delay="3">{{ $subtitle }}</p>@endif
+                @if($desc)<div class="vsshow-section-desc vsshow-enter" data-enter-delay="4">{!! $desc !!}</div>@endif
             </div>
             @endif
 
             @if($slide->video_url || $slide->video_file)
-            <div class="vsshow-video-wrap">
+            <div class="vsshow-video-wrap vsshow-enter" data-swipe="{{ $slideIndex % 2 === 0 ? 'left' : 'right' }}" data-enter-delay="5">
                 @if(!empty($popup['video']))
                 <button class="vsshow-info-btn vsshow-video-info-btn"
                     data-popup="{{ vssPopupData($popup['video']) }}"
@@ -406,22 +406,22 @@
         @endphp
         <div class="vsshow-split {{ $slide->layout === 'right' ? 'vsshow-split-right' : '' }}{{ $slide->layout === 'center' ? ' vsshow-split-center' : '' }}">
             {{-- Text --}}
-            <div class="vsshow-split-text vsshow-anim vsshow-morph {{ $slide->layout === 'right' ? ($slideIndex % 2 === 0 ? 'vsshow-swipe-right' : 'vsshow-swipe-left') : ($slideIndex % 2 === 0 ? 'vsshow-swipe-left' : 'vsshow-swipe-right') }}" data-delay="{{ $delay }}">
+            <div class="vsshow-split-text">
                 @if($title)
-                <div class="vsshow-section-tag">{{ $locale === 'en' && $selectedPage->title_en ? $selectedPage->title_en : $selectedPage->title }}</div>
-                <h2 class="vsshow-section-title" style="text-align:left;">{{ $title }}</h2>
-                <div class="vsshow-divider"></div>
+                <div class="vsshow-section-tag vsshow-enter" data-swipe="{{ $slideIndex % 2 === 0 ? 'left' : 'right' }}" data-enter-delay="0">{{ $locale === 'en' && $selectedPage->title_en ? $selectedPage->title_en : $selectedPage->title }}</div>
+                <h2 class="vsshow-section-title vsshow-enter" data-swipe="{{ $slideIndex % 2 === 0 ? 'left' : 'right' }}" data-enter-delay="1" style="text-align:left;">{{ $title }}</h2>
+                <div class="vsshow-divider vsshow-enter" data-swipe="{{ $slideIndex % 2 === 0 ? 'left' : 'right' }}" data-enter-delay="2"></div>
                 @endif
                 @if($subtitle)
-                <p class="vsshow-section-subtitle" style="text-align:left;">{{ $subtitle }}</p>
+                <p class="vsshow-section-subtitle vsshow-enter" data-swipe="{{ $slideIndex % 2 === 0 ? 'left' : 'right' }}" data-enter-delay="3" style="text-align:left;">{{ $subtitle }}</p>
                 @endif
                 @if($desc)
-                <div class="vsshow-section-desc" style="text-align:left;">{!! $desc !!}</div>
+                <div class="vsshow-section-desc vsshow-enter" data-enter-delay="4" style="text-align:left;">{!! $desc !!}</div>
                 @endif
             </div>
 
             {{-- Carousel (Images or Videos) --}}
-            <div class="vsshow-anim vsshow-morph {{ $slide->layout === 'right' ? ($slideIndex % 2 === 0 ? 'vsshow-swipe-right' : 'vsshow-swipe-left') : ($slideIndex % 2 === 0 ? 'vsshow-swipe-left' : 'vsshow-swipe-right') }}" data-delay="{{ $delay + 100 }}">
+            <div class="vsshow-enter" data-swipe="{{ $slideIndex % 2 === 0 ? 'left' : 'right' }}" data-enter-delay="5">
                 @if(count($allImages) > 0)
                 {{-- Image Carousel --}}
                 <div class="vsshow-carousel">

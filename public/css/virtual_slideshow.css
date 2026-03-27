@@ -159,63 +159,57 @@
     will-change: opacity, transform;
 }
 
-/* --- PowerPoint Morph (Hero + generic) --- */
-.vsshow-morph {
+/* =============================================================
+   UNIFIED ENTER ANIMATION SYSTEM
+   Direction is set via CSS custom property --enter-x on element
+   Usage: class="vsshow-enter" data-swipe="left"  for swipe left
+          class="vsshow-enter" data-swipe="right" for swipe right
+          class="vsshow-hero-anim"                  for hero (slow push-up)
+   ============================================================= */
+.vsshow-enter {
+    --enter-x: 0;
     opacity: 0;
-    transform: translateY(60px) scale(0.92);
-    transition: opacity 1s cubic-bezier(0.22,1,0.36,1),
-                transform 1s cubic-bezier(0.22,1,0.36,1);
+    will-change: opacity, transform;
+    transform: translateX(var(--enter-x)) translateY(32px);
+    transition:
+        opacity 0.75s cubic-bezier(0.22,1,0.36,1),
+        transform 0.75s cubic-bezier(0.22,1,0.36,1);
 }
-.vsshow-morph.vsshow-visible {
+.vsshow-enter.vsshow-visible {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translateX(0) translateY(0);
 }
 
-/* --- Push Up (Hero specific) --- */
-.vsshow-push-up {
+/* Hero: slower, more dramatic push-up (uses .vsshow-hero-anim class) */
+.vsshow-hero-anim {
     opacity: 0;
     transform: translateY(80px);
-    transition: opacity 1.2s cubic-bezier(0.16,1,0.3,1),
-                transform 1.2s cubic-bezier(0.16,1,0.3,1);
+    transition:
+        opacity 1.2s cubic-bezier(0.16,1,0.3,1),
+        transform 1.2s cubic-bezier(0.16,1,0.3,1);
+    transition-delay: 200ms;
 }
-.vsshow-push-up.vsshow-visible {
+.vsshow-hero-anim.vsshow-visible {
     opacity: 1;
     transform: translateY(0);
 }
 
-/* --- Swipe Left (odd content sections: 1,3,5...) --- */
-.vsshow-swipe-left {
-    opacity: 0;
-    transform: translateX(-100px);
-    transition: opacity 0.9s cubic-bezier(0.22,1,0.36,1),
-                transform 0.9s cubic-bezier(0.22,1,0.36,1);
+/* Direction modifiers (override --enter-x via higher-specificity attribute selector) */
+.vsshow-enter[data-swipe="left"] {
+    --enter-x: -80px;
 }
-.vsshow-swipe-left.vsshow-visible {
-    opacity: 1;
-    transform: translateX(0);
+.vsshow-enter[data-swipe="right"] {
+    --enter-x: 80px;
 }
 
-/* --- Swipe Right (even content sections: 2,4,6...) --- */
-.vsshow-swipe-right {
-    opacity: 0;
-    transform: translateX(100px);
-    transition: opacity 0.9s cubic-bezier(0.22,1,0.36,1),
-                transform 0.9s cubic-bezier(0.22,1,0.36,1);
-}
-.vsshow-swipe-right.vsshow-visible {
-    opacity: 1;
-    transform: translateX(0);
-}
-
-/* --- Fallback generic anim --- */
-.vsshow-anim-up    { transform: translateY(50px); }
-.vsshow-anim-left  { transform: translateX(-60px); }
-.vsshow-anim-right { transform: translateX(60px); }
-.vsshow-anim-scale { transform: scale(0.92); }
-.vsshow-anim.vsshow-visible {
-    opacity: 1;
-    transform: none;
-}
+/* Transition delays (staggered cascade) */
+[data-enter-delay="0"] { transition-delay: 0ms; }
+[data-enter-delay="1"] { transition-delay: 140ms; }
+[data-enter-delay="2"] { transition-delay: 280ms; }
+[data-enter-delay="3"] { transition-delay: 440ms; }
+[data-enter-delay="4"] { transition-delay: 620ms; }
+[data-enter-delay="5"] { transition-delay: 820ms; }
+[data-enter-delay="6"] { transition-delay: 1020ms; }
 
 /* ---- Text Section ---- */
 .vsshow-text-section {

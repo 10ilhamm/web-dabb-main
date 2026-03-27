@@ -20,12 +20,9 @@
 
     /* ========================================================
        2. SCROLL ANIMATIONS (IntersectionObserver)
-       Classes: vsshow-anim, vsshow-morph, vsshow-push-up,
-                vsshow-swipe-left, vsshow-swipe-right
+       Unified system: .vsshow-enter + data-swipe + data-enter-delay
     ======================================================== */
-    const animEls = document.querySelectorAll(
-        '.vsshow-anim, .vsshow-morph, .vsshow-push-up, .vsshow-swipe-left, .vsshow-swipe-right'
-    );
+    const animEls = document.querySelectorAll('.vsshow-enter, .vsshow-hero-anim');
 
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
