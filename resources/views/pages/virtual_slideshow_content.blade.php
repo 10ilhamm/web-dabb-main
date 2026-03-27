@@ -179,7 +179,7 @@
     </div>
     @endif
 
-    <div class="vsshow-hero-content vsshow-anim vsshow-anim-up" data-delay="100">
+    <div class="vsshow-hero-content vsshow-anim vsshow-morph vsshow-push-up" data-delay="100">
         <div class="vsshow-hero-badge">
             {{ $locale === 'en' && $selectedPage->title_en ? $selectedPage->title_en : $selectedPage->title }}
         </div>
@@ -213,7 +213,7 @@
 {{-- Default Hero when no hero slide --}}
 <section class="vsshow-hero">
     <div id="vss-particles" class="vsshow-hero-particles"></div>
-    <div class="vsshow-hero-content vsshow-anim vsshow-anim-up" data-delay="100">
+    <div class="vsshow-hero-content vsshow-anim vsshow-morph vsshow-push-up" data-delay="100">
         <div class="vsshow-hero-badge">{{ $locale === 'en' && $selectedPage->title_en ? $selectedPage->title_en : $selectedPage->title }}</div>
         <h1 class="vsshow-hero-title">
             {{ $locale === 'en' && $selectedPage->title_en ? $selectedPage->title_en : $selectedPage->title }}
@@ -251,7 +251,7 @@
 
         {{-- TEXT only --}}
         @if($slide->slide_type === 'text')
-        <div class="vsshow-text-section vsshow-anim vsshow-anim-up" data-delay="{{ $delay }}">
+        <div class="vsshow-text-section vsshow-anim vsshow-morph {{ $slideIndex % 2 === 0 ? 'vsshow-swipe-left' : 'vsshow-swipe-right' }}" data-delay="{{ $delay }}">
             @if($title)
                 <div class="vsshow-section-tag">{{ $locale === 'en' && $selectedPage->title_en ? $selectedPage->title_en : $selectedPage->title }}</div>
                 <h2 class="vsshow-section-title">{{ $title }}</h2>
@@ -267,7 +267,7 @@
 
         {{-- CAROUSEL only --}}
         @elseif($slide->slide_type === 'carousel')
-        <div class="vsshow-anim vsshow-anim-up" data-delay="{{ $delay }}">
+        <div class="vsshow-anim vsshow-morph {{ $slideIndex % 2 === 0 ? 'vsshow-swipe-left' : 'vsshow-swipe-right' }}" data-delay="{{ $delay }}">
             @if($title)
             <div class="vsshow-text-section" style="margin-bottom:2.5rem;">
                 <div class="vsshow-section-tag">{{ $locale === 'en' && $selectedPage->title_en ? $selectedPage->title_en : $selectedPage->title }}</div>
@@ -328,7 +328,7 @@
 
         {{-- VIDEO --}}
         @elseif($slide->slide_type === 'video')
-        <div class="vsshow-anim vsshow-anim-up" data-delay="{{ $delay }}">
+        <div class="vsshow-anim vsshow-morph {{ $slideIndex % 2 === 0 ? 'vsshow-swipe-left' : 'vsshow-swipe-right' }}" data-delay="{{ $delay }}">
             @if($title)
             <div class="vsshow-text-section" style="margin-bottom:2.5rem;">
                 <div class="vsshow-section-tag">{{ $locale === 'en' && $selectedPage->title_en ? $selectedPage->title_en : $selectedPage->title }}</div>
@@ -406,7 +406,7 @@
         @endphp
         <div class="vsshow-split {{ $slide->layout === 'right' ? 'vsshow-split-right' : '' }}{{ $slide->layout === 'center' ? ' vsshow-split-center' : '' }}">
             {{-- Text --}}
-            <div class="vsshow-split-text vsshow-anim {{ $slide->layout === 'right' ? 'vsshow-anim-right' : 'vsshow-anim-left' }}" data-delay="{{ $delay }}">
+            <div class="vsshow-split-text vsshow-anim vsshow-morph {{ $slide->layout === 'right' ? ($slideIndex % 2 === 0 ? 'vsshow-swipe-right' : 'vsshow-swipe-left') : ($slideIndex % 2 === 0 ? 'vsshow-swipe-left' : 'vsshow-swipe-right') }}" data-delay="{{ $delay }}">
                 @if($title)
                 <div class="vsshow-section-tag">{{ $locale === 'en' && $selectedPage->title_en ? $selectedPage->title_en : $selectedPage->title }}</div>
                 <h2 class="vsshow-section-title" style="text-align:left;">{{ $title }}</h2>
@@ -421,7 +421,7 @@
             </div>
 
             {{-- Carousel (Images or Videos) --}}
-            <div class="vsshow-anim {{ $slide->layout === 'right' ? 'vsshow-anim-left' : 'vsshow-anim-right' }}" data-delay="{{ $delay + 100 }}">
+            <div class="vsshow-anim vsshow-morph {{ $slide->layout === 'right' ? ($slideIndex % 2 === 0 ? 'vsshow-swipe-right' : 'vsshow-swipe-left') : ($slideIndex % 2 === 0 ? 'vsshow-swipe-left' : 'vsshow-swipe-right') }}" data-delay="{{ $delay + 100 }}">
                 @if(count($allImages) > 0)
                 {{-- Image Carousel --}}
                 <div class="vsshow-carousel">
