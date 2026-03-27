@@ -341,9 +341,9 @@
 
             @if($slide->video_url || $slide->video_file)
             <div class="vsshow-video-wrap vsshow-enter" data-swipe="{{ $slideIndex % 2 === 0 ? 'left' : 'right' }}" data-enter-delay="5">
-                @if(!empty($popup['video']))
+                @if(!empty($popup['video']) || (!empty($popup['video_url']) && $slide->video_url))
                 <button class="vsshow-info-btn vsshow-video-info-btn"
-                    data-popup="{{ vssPopupData($popup['video']) }}"
+                    data-popup="{{ vssPopupData($popup['video'] ?? $popup['video_url'] ?? '') }}"
                     title="Info Video">?</button>
                 @endif
 
