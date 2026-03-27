@@ -397,26 +397,31 @@ class VirtualSlideshowController extends Controller
             }
         }
 
-        VirtualSlideshowSlide::create([
-            'feature_id'      => $feature->id,
-            'feature_page_id' => $featurePageId,
-            'slide_type'     => $validated['slide_type'],
-            'title'          => $validated['title'] ?? null,
-            'title_en'       => !empty($validated['title']) ? $translationService->translate($validated['title']) : null,
-            'subtitle'       => $validated['subtitle'] ?? null,
-            'subtitle_en'    => !empty($validated['subtitle']) ? $translationService->translate($validated['subtitle']) : null,
-            'description'    => $validated['description'] ?? null,
-            'description_en' => !empty($validated['description']) ? $translationService->translate($validated['description']) : null,
-            'images'         => $storeImages,
-            'image_urls'     => $storeImageUrls,
-            'video_url'      => $primaryVideoUrl,
-            'video_file'     => $videoFilePath,
-            'carousel_video_urls' => $storeCarouselVideoUrls,
-            'layout'         => $validated['layout'],
-            'bg_color'      => $validated['bg_color'] ?? null,
-            'info_popup'    => $infoPopup ?: null,
-            'order'          => $validated['order'],
-        ]);
+        // Insert slide with order shifting (all slides at or after insert position shift up by 1)
+        $this->insertAndShiftOrder(
+            VirtualSlideshowSlide::class,
+            (int) $validated['order'],
+            ['feature_page_id' => $featurePageId],
+            array_filter([
+                'feature_id'           => $feature->id,
+                'feature_page_id'      => $featurePageId,
+                'slide_type'          => $validated['slide_type'],
+                'title'               => $validated['title'] ?? null,
+                'title_en'            => !empty($validated['title']) ? $translationService->translate($validated['title']) : null,
+                'subtitle'            => $validated['subtitle'] ?? null,
+                'subtitle_en'          => !empty($validated['subtitle']) ? $translationService->translate($validated['subtitle']) : null,
+                'description'          => $validated['description'] ?? null,
+                'description_en'       => !empty($validated['description']) ? $translationService->translate($validated['description']) : null,
+                'images'              => $storeImages,
+                'image_urls'          => $storeImageUrls,
+                'video_url'           => $primaryVideoUrl,
+                'video_file'          => $videoFilePath,
+                'carousel_video_urls' => $storeCarouselVideoUrls,
+                'layout'              => $validated['layout'],
+                'bg_color'            => $validated['bg_color'] ?? null,
+                'info_popup'          => $infoPopup ?: null,
+            ], fn($v) => $v !== null)
+        );
 
         // Redirect based on context
         if ($page) {

@@ -86,14 +86,24 @@ class FeaturePageController extends Controller
             $validated['thumbnail_path'] = $request->file('thumbnail')->store('features/pages/thumbnails', 'public');
         }
 
+        $insertOrder = (int) $validated['order'];
+        $scopeConditions = ['feature_id' => $feature->id];
+        $extraAttributes = array_filter([
+            'title' => $validated['title'],
+            'title_en' => $validated['title_en'] ?? null,
+            'description' => $validated['description'] ?? null,
+            'description_en' => $validated['description_en'] ?? null,
+            'thumbnail_path' => $validated['thumbnail_path'] ?? null,
+        ], fn($v) => $v !== null);
+
         // Use VirtualSlideshowPage for slideshow page_type
         if ($feature->page_type === 'slideshow') {
-            VirtualSlideshowPage::create($validated);
+            $this->insertAndShiftOrder(VirtualSlideshowPage::class, $insertOrder, $scopeConditions, $extraAttributes);
             return redirect()->route('cms.features.slideshow.index', $feature)
                 ->with('success', __('cms.feature_pages.flash.page_added'));
         }
 
-        FeaturePage::create($validated);
+        $this->insertAndShiftOrder(FeaturePage::class, $insertOrder, $scopeConditions, $extraAttributes);
 
         return redirect()->route('cms.features.pages.index', $feature)
             ->with('success', __('cms.feature_pages.flash.page_added'));
