@@ -1063,7 +1063,7 @@
                         var widgetContainer = document.createElement('div');
                         widgetContainer.setAttribute('data-upload-slot-index', item.domIdx);
                         // Force Backend Index for precise matching
-                        createCaptionWidget(widgetContainer, 'info_popup_images', item.backendIdx, savedCaption, {
+                        createCaptionWidget(widgetContainer, 'info_popup_new_images', item.domIdx, savedCaption, {
                             singlePlaceholder: 'Keterangan gambar ' + (item.domIdx + 1) + ' (opsional)...',
                             isArray: true
                         });
@@ -1074,20 +1074,12 @@
                         // Render URL preview
                         var wrap = document.createElement('div');
                         wrap.className = 'img-preview-wrap';
-                        var isGoogleDrive = item.originalUrl.includes('drive.google.com');
 
-                        if (isGoogleDrive) {
-                            wrap.innerHTML = '<div class="flex flex-col items-center justify-center" style="height:60px;width:60px;background:#f3f4f6;border-radius:8px;border:1px solid #e5e7eb;">' +
-                                '<svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>' +
-                                '<a href="' + item.originalUrl + '" target="_blank" class="text-xs text-blue-500 hover:text-blue-700 mt-1">' + __t.view + '</a></div>' +
-                                '<button type="button" class="remove-img" onclick="removeUrlImage(' + item.domIdx + ')">✕</button>';
-                        } else {
-                            wrap.innerHTML = '<img src="' + item.url + '" alt="" style="height:60px;width:60px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb;" onerror="this.style.display=\'none\'; this.nextElementSibling.style.display=\'flex\';">' +
-                                '<div class="flex flex-col items-center justify-center" style="height:60px;width:60px;background:#f3f4f6;border-radius:8px;border:1px solid #e5e7eb;display:none;">' +
-                                '<svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>' +
-                                '<a href="' + item.originalUrl + '" target="_blank" class="text-xs text-blue-500 hover:text-blue-700 mt-1">' + __t.view + '</a></div>' +
-                                '<button type="button" class="remove-img" onclick="removeUrlImage(' + item.domIdx + ')">✕</button>';
-                        }
+                        wrap.innerHTML = '<img src="' + item.url + '" alt="" style="height:60px;width:60px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb;" onerror="this.style.display=\'none\'; this.nextElementSibling.style.display=\'flex\';">' +
+                            '<div class="flex flex-col items-center justify-center" style="height:60px;width:60px;background:#f3f4f6;border-radius:8px;border:1px solid #e5e7eb;display:none;">' +
+                            '<svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>' +
+                            '<a href="' + item.originalUrl + '" target="_blank" class="text-xs text-blue-500 hover:text-blue-700 mt-1">' + __t.view + '</a></div>' +
+                            '<button type="button" class="remove-img" onclick="removeUrlImage(' + item.domIdx + ')">✕</button>';
                         previewArea.appendChild(wrap);
 
                         // Render URL caption

@@ -229,19 +229,21 @@
                                     @elseif ($item['type'] === 'url')
                                         @php $idx = $item['idx']; $imgUrl = $item['url']; @endphp
                                         <div class="existing-url-img-wrap" id="existing-url-wrap-{{ $idx }}" data-url-original-index="{{ $idx }}">
-                                            @php $isGDrive = str_contains($imgUrl, 'drive.google.com'); @endphp
-                                            @if ($isGDrive)
-                                                <div class="flex flex-col items-center justify-center" style="height:60px;width:60px;background:#f3f4f6;border-radius:8px;border:1px solid #e5e7eb;">
-                                                    <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                                                    <a href="{{ $imgUrl }}" target="_blank" class="text-xs text-blue-500 hover:text-blue-700 mt-1">{{ __('cms.virtual_slideshow.view') }}</a>
-                                                </div>
-                                            @else
-                                                <img src="{{ $imgUrl }}" alt="" style="height:60px;width:60px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb;" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
-                                                <div class="flex flex-col items-center justify-center" style="height:60px;width:60px;background:#f3f4f6;border-radius:8px;border:1px solid #e5e7eb;display:none;">
-                                                    <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                                                    <a href="{{ $imgUrl }}" target="_blank" class="text-xs text-blue-500 hover:text-blue-700 mt-1">{{ __('cms.virtual_slideshow.view') }}</a>
-                                                </div>
-                                            @endif
+                                            @php
+                                                $displayUrl = $imgUrl;
+                                                if (preg_match('/\/file\/d\/([a-zA-Z0-9_-]+)/', $imgUrl, $m)) {
+                                                    $displayUrl = 'https://lh3.googleusercontent.com/d/' . $m[1];
+                                                } elseif (preg_match('/[?&]id=([a-zA-Z0-9_-]+)/', $imgUrl, $m)) {
+                                                    $displayUrl = 'https://lh3.googleusercontent.com/d/' . $m[1];
+                                                } elseif (preg_match('/commons\.wikimedia\.org\/wiki\/File:(.+)/', $imgUrl, $m)) {
+                                                    $displayUrl = 'https://commons.wikimedia.org/wiki/Special:FilePath/' . $m[1];
+                                                }
+                                            @endphp
+                                            <img src="{{ $displayUrl }}" alt="" style="height:60px;width:60px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb;" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                                            <div class="flex flex-col items-center justify-center" style="height:60px;width:60px;background:#f3f4f6;border-radius:8px;border:1px solid #e5e7eb;display:none;">
+                                                <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                                <a href="{{ $imgUrl }}" target="_blank" class="text-xs text-blue-500 hover:text-blue-700 mt-1">{{ __('cms.virtual_slideshow.view') }}</a>
+                                            </div>
                                             <button type="button" class="remove-existing" onclick="removeExistingUrl({{ $idx }})">✕</button>
                                         </div>
                                     @endif
@@ -1512,18 +1514,11 @@
                         wrap.className = 'img-preview-wrap';
                         var isGoogleDrive = item.originalUrl.includes('drive.google.com');
 
-                        if (isGoogleDrive) {
-                            wrap.innerHTML = '<div class="flex flex-col items-center justify-center" style="height:60px;width:60px;background:#f3f4f6;border-radius:8px;border:1px solid #e5e7eb;">' +
-                                '<svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>' +
-                                '<a href="' + item.originalUrl + '" target="_blank" class="text-xs text-blue-500 hover:text-blue-700 mt-1">' + __t.view + '</a></div>' +
-                                '<button type="button" class="remove-img" onclick="removeUrlImage(' + item.domIdx + ')">✕</button>';
-                        } else {
-                            wrap.innerHTML = '<img src="' + item.url + '" alt="" style="height:60px;width:60px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb;" onerror="this.style.display=\'none\'; this.nextElementSibling.style.display=\'flex\';">' +
-                                '<div class="flex flex-col items-center justify-center" style="height:60px;width:60px;background:#f3f4f6;border-radius:8px;border:1px solid #e5e7eb;display:none;">' +
-                                '<svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>' +
-                                '<a href="' + item.originalUrl + '" target="_blank" class="text-xs text-blue-500 hover:text-blue-700 mt-1">' + __t.view + '</a></div>' +
-                                '<button type="button" class="remove-img" onclick="removeUrlImage(' + item.domIdx + ')">✕</button>';
-                        }
+                        wrap.innerHTML = '<img src="' + item.url + '" alt="" style="height:60px;width:60px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb;" onerror="this.style.display=\'none\'; this.nextElementSibling.style.display=\'flex\';">' +
+                            '<div class="flex flex-col items-center justify-center" style="height:60px;width:60px;background:#f3f4f6;border-radius:8px;border:1px solid #e5e7eb;display:none;">' +
+                            '<svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>' +
+                            '<a href="' + item.originalUrl + '" target="_blank" class="text-xs text-blue-500 hover:text-blue-700 mt-1">' + __t.view + '</a></div>' +
+                            '<button type="button" class="remove-img" onclick="removeUrlImage(' + item.domIdx + ')">✕</button>';
                         uploadPreviewArea.appendChild(wrap);
 
                         // Render URL caption
@@ -2337,15 +2332,13 @@
             });
 
             // Initialize existing URL image caption widgets
-            var existingUploadCount = {{ isset($slide->images) ? count($slide->images) : 0 }};
             document.querySelectorAll('.existing-url-caption-widget').forEach(function(el) {
                 var urlIdx = parseInt(el.getAttribute('data-url-caption-index'));
-                var storageIdx = existingUploadCount + urlIdx;
                 var rawData = el.getAttribute('data-url-caption-data');
                 var captionData = '';
                 try { captionData = JSON.parse(rawData); } catch(e) { captionData = rawData || ''; }
-                // Gunakan info_popup_images dengan index = existingUploadCount + urlIdx
-                createCaptionWidget(el, 'info_popup_images', storageIdx, captionData, {
+                // Gunakan info_popup_existing_urls dengan index = urlIdx agar sesuai controller
+                createCaptionWidget(el, 'info_popup_existing_urls', urlIdx, captionData, {
                     singlePlaceholder: 'Info Popup Caption (gambar URL) ' + (urlIdx + 1) + '...',
                     isArray: true
                 });

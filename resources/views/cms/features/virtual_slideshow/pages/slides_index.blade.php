@@ -233,17 +233,39 @@
                                                 if (!empty($vUrl)) $totalVideos++;
                                             }
                                         }
-                                        // Carousel uploaded video files
-                                        if (isset($slide->carousel_videos) && is_array($slide->carousel_videos)) {
-                                            $totalVideos += count($slide->carousel_videos);
+                                        // Carousel uploaded video files (may be JSON string)
+                                        if (!empty($slide->carousel_videos)) {
+                                            $cv = $slide->carousel_videos;
+                                            if (is_string($cv)) {
+                                                $cvDecoded = json_decode($cv, true);
+                                                if (is_array($cvDecoded)) {
+                                                    $totalVideos += count($cvDecoded);
+                                                } else {
+                                                    $totalVideos++;
+                                                }
+                                            } elseif (is_array($cv)) {
+                                                $totalVideos += count($cv);
+                                            }
                                         }
                                         // Single video URL
                                         if (!empty($slide->video_url)) {
                                             $totalVideos++;
                                         }
-                                        // Single video file upload
+                                        // Single video file upload (may be JSON array for text_carousel)
                                         if (!empty($slide->video_file)) {
-                                            $totalVideos++;
+                                            $vf = $slide->video_file;
+                                            if (is_string($vf)) {
+                                                $decoded = json_decode($vf, true);
+                                                if (is_array($decoded)) {
+                                                    $totalVideos += count($decoded);
+                                                } else {
+                                                    $totalVideos++;
+                                                }
+                                            } elseif (is_array($vf)) {
+                                                $totalVideos += count($vf);
+                                            } else {
+                                                $totalVideos++;
+                                            }
                                         }
 
                                         $totalInfoPopup = 0;
