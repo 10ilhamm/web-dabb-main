@@ -216,10 +216,10 @@
                                     @endif
                                 </div>
                                 <p class="text-sm font-medium text-gray-800 truncate">
-                                    {{ $slide->title ?: __('cms.virtual_slideshow.untitled') }}</p>
+                                    {{ html_entity_decode($slide->title ?: __('cms.virtual_slideshow.untitled')) }}</p>
                                 @if ($slide->description)
                                     <p class="text-xs text-gray-400 truncate mt-0.5">
-                                        {{ Str::limit(strip_tags($slide->description), 80) }}</p>
+                                        {{ Str::limit(strip_tags(html_entity_decode($slide->description)), 80) }}</p>
                                 @endif
                                 <div class="flex items-center gap-3 mt-1 text-xs text-gray-400">
                                     @php
