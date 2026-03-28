@@ -47,7 +47,30 @@ trait SwapsOrder
             ->where('order', '>=', $insertOrder)
             ->increment('order');
 
-        // Create the new item at the desired order
         return $modelClass::create(array_merge($scopeConditions, $extraAttributes, ['order' => $insertOrder]));
+    }
+
+    /**
+     * Delete an item and shift remaining items up to fill the gap.
+     * All items with order > $deletedOrder will be decremented by 1.
+     *
+     * @param Model $model           The item to delete
+     * @param array $scopeConditions Scope conditions, e.g. ['feature_id' => 5]
+     * @return bool|null
+     */
+    protected function deleteAndShiftOrder(Model $model, array $scopeConditions): ?bool
+    {
+        $deletedOrder = $model->order;
+        $modelClass = get_class($model);
+        
+        $result = $model->delete();
+
+        if ($deletedOrder !== null && $deletedOrder >= 0) {
+            $modelClass::where($scopeConditions)
+                ->where('order', '>', $deletedOrder)
+                ->decrement('order');
+        }
+
+        return $result;
     }
 }

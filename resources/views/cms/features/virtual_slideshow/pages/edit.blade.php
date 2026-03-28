@@ -35,7 +35,7 @@
 @endpush
 
 @section('content')
-    <div class="space-y-6" x-data="{ deleteVideoModal: false, deleteUrlModal: false, deleteUrlIndex: null }">
+    <div class="space-y-6">
 
         {{-- Header --}}
         <div class="flex items-center gap-3">
@@ -168,35 +168,83 @@
 
                 {{-- Image Sections --}}
                 <div id="imageSections">
-                    @if ($slide->images && count($slide->images) > 0)
+                    <input type="hidden" name="unified_image_order" id="unifiedImageOrderInput" value="">
+
+                    {{-- === DATA TERSIMPAN: Gambar Upload + Gambar URL disatukan di atas === --}}
+                    @php
+                        $hasExistingUploads = $slide->images && count($slide->images) > 0;
+                        $hasExistingUrls    = $slide->image_urls && count($slide->image_urls) > 0;
+                        $existingUploadCount = $hasExistingUploads ? count($slide->images) : 0;
+                    @endphp
+
+                    @if ($hasExistingUploads || $hasExistingUrls)
                         <div class="mb-4">
                             <label class="form-label">{{ __('cms.virtual_slideshow.existing_images') }}</label>
+
+                            {{-- Preview bersama: gambar upload + gambar URL yang sudah tersimpan --}}
                             <div id="existingImagesArea" class="flex flex-wrap gap-2 mb-3">
-                                @foreach ($slide->images as $idx => $imgPath)
-                                    <div class="existing-img-wrap" id="existing-wrap-{{ $idx }}" data-original-index="{{ $idx }}">
-                                        <img src="{{ asset('storage/' . $imgPath) }}" alt="">
-                                        <input type="hidden" name="existing_images[{{ $idx }}]" value="{{ $imgPath }}"
-                                            id="existing-input-{{ $idx }}">
-                                        <input type="hidden" name="deleted_images[]" id="deleted-input-{{ $idx }}" value="">
-                                        <button type="button" class="remove-existing"
-                                            onclick="removeExisting({{ $idx }})">✕</button>
-                                    </div>
-                                @endforeach
+                                @if ($hasExistingUploads)
+                                    @foreach ($slide->images as $idx => $imgPath)
+                                        <div class="existing-img-wrap" id="existing-wrap-{{ $idx }}" data-original-index="{{ $idx }}">
+                                            <img src="{{ asset('storage/' . $imgPath) }}" alt="">
+                                            <input type="hidden" name="existing_images[{{ $idx }}]" value="{{ $imgPath }}" id="existing-input-{{ $idx }}">
+                                            <input type="hidden" name="deleted_images[]" id="deleted-input-{{ $idx }}" value="">
+                                            <button type="button" class="remove-existing" onclick="removeExisting({{ $idx }})">✕</button>
+                                        </div>
+                                    @endforeach
+                                @endif
+
+                                @if ($hasExistingUrls)
+                                    @foreach ($slide->image_urls as $idx => $imgUrl)
+                                        <div class="existing-url-img-wrap" id="existing-url-wrap-{{ $idx }}" data-url-original-index="{{ $idx }}">
+                                            @php $isGDrive = str_contains($imgUrl, 'drive.google.com'); @endphp
+                                            @if ($isGDrive)
+                                                <div class="flex flex-col items-center justify-center" style="height:60px;width:60px;background:#f3f4f6;border-radius:8px;border:1px solid #e5e7eb;">
+                                                    <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                                    <a href="{{ $imgUrl }}" target="_blank" class="text-xs text-blue-500 hover:text-blue-700 mt-1">{{ __('cms.virtual_slideshow.view') }}</a>
+                                                </div>
+                                            @else
+                                                <img src="{{ $imgUrl }}" alt="" style="height:60px;width:60px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb;" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                                                <div class="flex flex-col items-center justify-center" style="height:60px;width:60px;background:#f3f4f6;border-radius:8px;border:1px solid #e5e7eb;display:none;">
+                                                    <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                                    <a href="{{ $imgUrl }}" target="_blank" class="text-xs text-blue-500 hover:text-blue-700 mt-1">{{ __('cms.virtual_slideshow.view') }}</a>
+                                                </div>
+                                            @endif
+                                            {{-- Tombol hapus URL tersimpan: menyembunyikan preview & menonaktifkan input di image-url-list --}}
+                                            <button type="button" class="remove-existing" onclick="removeExistingUrl({{ $idx }})">✕</button>
+                                        </div>
+                                    @endforeach
+                                @endif
                             </div>
-                            <div id="existingInfoPopupRowsWrapper" class="{{ $slide->type === 'hero' ? 'hidden' : '' }}">
-                            <div id="existingInfoPopupRows" class="space-y-2">
-                                <label class="form-label">{{ __('cms.virtual_slideshow.popup_existing_images') }}</label>
-                                @foreach ($slide->images as $idx => $imgPath)
-                                    <div class="info-popup-row" id="existing-popup-row-{{ $idx }}">
-                                        <label class="form-label" style="margin-bottom:4px;">{{ __('cms.virtual_slideshow.image_number', ['number' => $idx + 1]) }}</label>
-                                        <div class="existing-caption-widget" data-caption-index="{{ $idx }}" data-caption-data="{{ json_encode($slide->info_popup[$idx] ?? ($slide->info_popup[(string)$idx] ?? '')) }}"></div>
-                                    </div>
-                                @endforeach
-                            </div>
+
+                            {{-- Caption: gambar upload + gambar URL yang sudah tersimpan --}}
+                            <div id="existingInfoPopupRowsWrapper" class="{{ ($slide->slide_type ?? $slide->type) === 'hero' ? 'hidden' : '' }}">
+                                <div id="existingInfoPopupRows" class="space-y-2">
+                                    <label class="form-label">{{ __('cms.virtual_slideshow.popup_existing_images') }}</label>
+                                    @if ($hasExistingUploads)
+                                        @foreach ($slide->images as $idx => $imgPath)
+                                            <div class="info-popup-row" id="existing-popup-row-{{ $idx }}">
+                                                <label class="form-label" style="margin-bottom:4px;">{{ __('cms.virtual_slideshow.image_number', ['number' => $idx + 1]) }}</label>
+                                                <div class="existing-caption-widget" data-caption-index="{{ $idx }}" data-caption-data="{{ json_encode($slide->info_popup[$idx] ?? ($slide->info_popup[(string)$idx] ?? '')) }}"></div>
+                                            </div>
+                                        @endforeach
+                                    @endif
+                                    @if ($hasExistingUrls)
+                                        @foreach ($slide->image_urls as $idx => $imgUrl)
+                                            <div class="info-popup-row" id="existing-url-popup-row-{{ $idx }}">
+                                                <label class="form-label" style="margin-bottom:4px;">Info Popup Caption (gambar URL) {{ $idx + 1 }}</label>
+                                                <div class="existing-url-caption-widget"
+                                                    data-url-caption-index="{{ $idx }}"
+                                                    data-url-caption-data="{{ json_encode($slide->info_popup[$existingUploadCount + $idx] ?? ($slide->info_popup[(string)($existingUploadCount + $idx)] ?? '')) }}"></div>
+                                            </div>
+                                        @endforeach
+                                    @endif
+                                </div>
                             </div>
                         </div>
                     @endif
 
+                    {{-- Radio untuk MENAMBAH gambar baru --}}
                     <div class="flex gap-4 mb-3">
                         <label class="flex items-center gap-2 cursor-pointer">
                             <input type="radio" name="image_method" value="upload" checked onchange="toggleImageMethod('upload')">
@@ -221,11 +269,12 @@
                         </label>
                     </div>
 
+                    {{-- Bagian URL: existing URL tetap di sini (agar JS berjalan), ditambah slot untuk URL baru --}}
                     <div id="image-url-section" class="hidden">
                         <div id="image-url-list" class="space-y-2 mb-3">
                             @if($slide->image_urls && count($slide->image_urls) > 0)
                                 @foreach($slide->image_urls as $idx => $imgUrl)
-                                <div class="image-url-entry flex gap-2 items-start" data-index="{{ $idx }}">
+                                <div class="image-url-entry flex gap-2 items-start" data-index="{{ $idx }}" data-is-existing="1">
                                     <a href="{{ $imgUrl }}" target="_blank" class="url-link-btn px-2 py-2 text-blue-600 hover:bg-blue-50 rounded-lg flex-shrink-0" title="{{ __('cms.virtual_slideshow.open_link') }}">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
@@ -248,7 +297,7 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
                                     </svg>
                                 </a>
-                                <input type="text" name="image_urls[0]" class="form-input flex-1"
+                                <input type="text" name="new_image_urls[0]" class="form-input flex-1"
                                     placeholder="{{ __('cms.virtual_slideshow.image_url_placeholder') }}" data-index="0" oninput="updateUrlLink(this)">
                                 <button type="button" onclick="removeImageUrlEntry(this)" class="px-2 py-2 text-red-500 hover:bg-red-50 rounded-lg flex-shrink-0" title="{{ __('cms.virtual_slideshow.delete') }}">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -271,23 +320,23 @@
 
                     <div id="infoPopupUploadImageArea" class="mt-4 hidden" style="display: none;">
                         <label class="form-label">{{ __('cms.virtual_slideshow.popup_existing_images') }}</label>
-                        <div id="infoPopupUploadRows" class="space-y-2">
-                        </div>
+                        <div id="infoPopupUploadRows" class="space-y-2"></div>
                     </div>
 
                     <div id="infoPopupUrlImageArea" class="mt-4 hidden" style="display: none;">
                         <label class="form-label">{{ __('cms.virtual_slideshow.popup_url_images') }}</label>
-                        <div id="infoPopupUrlRows" class="space-y-2">
-                        </div>
+                        <div id="infoPopupUrlRows" class="space-y-2"></div>
                     </div>
 
                     <div id="heroImageLimitWarning" class="hidden mt-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-700">
                         {{ __('cms.virtual_slideshow.hero_limit_warning') }}
                     </div>
+                {{-- ./end imageSections --}}
                 </div>
 
-                {{-- Preview area for uploaded images (outside imageSections) --}}
+                {{-- Preview area for new uploaded images (outside imageSections) --}}
                 <div id="newImagePreviewArea" class="flex flex-wrap gap-3 mt-3 hidden"></div>
+
 
                 <script>
                 // Initialize on page load
@@ -309,14 +358,6 @@
                         uploadSection.style.display = 'none';
                         urlSection.classList.remove('hidden');
                         urlSection.style.display = '';
-                        uploadCaption.classList.add('hidden');
-                        uploadCaption.style.display = 'none';
-                        if (isHeroType) { urlCaption.classList.add('hidden'); urlCaption.style.display = 'none'; }
-                        else { urlCaption.classList.remove('hidden'); urlCaption.style.display = 'block'; }
-                        uploadPreviewArea.classList.add('hidden');
-                        uploadPreviewArea.style.display = 'none';
-                        urlPreviewArea.classList.remove('hidden');
-                        urlPreviewArea.style.display = 'flex';
                         updateUrlImagePreviews();
                     } else {
                         // Upload method selected (default)
@@ -324,19 +365,7 @@
                         uploadSection.style.display = '';
                         urlSection.classList.add('hidden');
                         urlSection.style.display = 'none';
-                        if (isHeroType) { uploadCaption.classList.add('hidden'); uploadCaption.style.display = 'none'; }
-                        else { uploadCaption.classList.remove('hidden'); uploadCaption.style.display = 'block'; }
-                        urlCaption.classList.add('hidden');
-                        urlCaption.style.display = 'none';
-                        uploadPreviewArea.classList.remove('hidden');
-                        uploadPreviewArea.style.display = 'flex';
-                        // Hero: tetap tampilkan URL preview jika ada URL images tersimpan
-                        if (!isHeroType) {
-                            urlPreviewArea.classList.add('hidden');
-                            urlPreviewArea.style.display = 'none';
-                        } else {
-                            updateUrlImagePreviews();
-                        }
+                        updateUrlImagePreviews();
                     }
 
                     // Initialize hero caption/limit state based on current type
@@ -367,7 +396,7 @@
                                 @foreach($slide->carousel_video_urls as $index => $videoUrl)
                                     <div class="carousel-video-url-entry flex gap-2 items-start" data-index="{{ $index }}">
                                         <input type="text" name="carousel_video_urls[]" class="form-input flex-1"
-                                            placeholder="{{ __('cms.virtual_slideshow.carousel_video_url_placeholder') }}" data-index="{{ $index }}" data-caption="{{ $slide->info_popup['carousel_videos']['url_' . $index] ?? '' }}" value="{{ $videoUrl }}" oninput="updateCarouselUrlCaption(this)">
+                                            placeholder="{{ __('cms.virtual_slideshow.carousel_video_url_placeholder') }}" data-index="{{ $index }}" data-caption="{{ is_array($slide->info_popup['carousel_videos']['url_' . $index] ?? '') ? json_encode($slide->info_popup['carousel_videos']['url_' . $index]) : ($slide->info_popup['carousel_videos']['url_' . $index] ?? '') }}" value="{{ $videoUrl }}" oninput="updateCarouselUrlCaption(this)">
                                         <button type="button" onclick="removeCarouselVideoUrlEntry(this)" class="px-2 py-2 text-red-500 hover:bg-red-50 rounded-lg flex-shrink-0" title="{{ __('cms.virtual_slideshow.delete') }}">
                                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
@@ -447,7 +476,7 @@
                             <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
                                 <span class="text-sm text-gray-600 flex-1 truncate">{{ $slide->video_url }}</span>
                                 <a href="{{ $slide->video_url }}" target="_blank" class="text-blue-600 hover:underline text-sm">{{ __('cms.virtual_slideshow.view') }}</a>
-                                <button type="button" @click="deleteUrlModal = true" class="px-3 py-1 text-sm text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors">
+                                <button type="button" onclick="openDeleteUrlModal()" class="px-3 py-1 text-sm text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors">
                                     {{ __('cms.virtual_slideshow.delete') }}
                                 </button>
                             </div>
@@ -481,7 +510,7 @@
                                     <p class="text-sm text-gray-600 truncate">{{ basename($slide->video_file) }}</p>
                                     <div class="flex items-center gap-2">
                                         <a href="{{ asset('storage/' . $slide->video_file) }}" target="_blank" class="text-blue-600 hover:underline text-sm">{{ __('cms.virtual_slideshow.open') }}</a>
-                                        <button type="button" @click="deleteVideoModal = true" class="px-3 py-1 text-sm text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors">
+                                        <button type="button" onclick="openDeleteVideoModal()" class="px-3 py-1 text-sm text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors">
                                             {{ __('cms.virtual_slideshow.delete') }}
                                         </button>
                                     </div>
@@ -524,16 +553,11 @@
             </div>
 
             {{-- Delete Video Modal --}}
-            <div x-show="deleteVideoModal" x-cloak class="fixed inset-0 flex items-center justify-center p-4"
-                style="z-index: 9999;" x-transition:enter="transition ease-out duration-200"
-                x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
-                x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100"
-                x-transition:leave-end="opacity-0">
-                <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" @click="deleteVideoModal = false"
+            <div id="deleteVideoModal" class="fixed inset-0 items-center justify-center p-4 hidden"
+                style="z-index: 9999;">
+                <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeDeleteVideoModal()"
                     style="position: fixed; top: 0; right: 0; bottom: 0; left: 0;"></div>
-                <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm z-[9999] p-6"
-                    x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-95"
-                    x-transition:enter-end="opacity-100 scale-100">
+                <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm z-[9999] p-6">
                     <div class="flex flex-col items-center text-center gap-4">
                         <div class="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center">
                             <svg class="w-7 h-7 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -549,11 +573,11 @@
                             </p>
                         </div>
                         <div class="flex items-center gap-3 w-full">
-                            <button type="button" @click="deleteVideoModal = false"
+                            <button type="button" onclick="closeDeleteVideoModal()"
                                 class="flex-1 px-4 py-2.5 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
                                 {{ __('cms.virtual_slideshow.cancel') }}
                             </button>
-                            <button type="button" @click="deleteVideoModal = false; document.getElementById('deleteExistingVideo').value = '1'; document.getElementById('existingVideoInfo').style.display = 'none'; document.getElementById('infoPopupVideoInput').value = '';"
+                            <button type="button" onclick="submitDeleteVideoModal()"
                                 class="flex-1 px-4 py-2.5 text-sm font-semibold text-white bg-red-500 hover:bg-red-600 rounded-lg transition-colors">
                                 {{ __('cms.virtual_slideshow.delete') }}
                             </button>
@@ -563,16 +587,11 @@
             </div>
 
             {{-- Clear URL Modal --}}
-            <div x-show="deleteUrlModal" x-cloak class="fixed inset-0 flex items-center justify-center p-4"
-                style="z-index: 9999;" x-transition:enter="transition ease-out duration-200"
-                x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
-                x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100"
-                x-transition:leave-end="opacity-0">
-                <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" @click="deleteUrlModal = false"
+            <div id="deleteUrlModal" class="fixed inset-0 items-center justify-center p-4 hidden"
+                style="z-index: 9999;">
+                <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeDeleteUrlModal()"
                     style="position: fixed; top: 0; right: 0; bottom: 0; left: 0;"></div>
-                <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm z-[9999] p-6"
-                    x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-95"
-                    x-transition:enter-end="opacity-100 scale-100">
+                <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm z-[9999] p-6">
                     <div class="flex flex-col items-center text-center gap-4">
                         <div class="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center">
                             <svg class="w-7 h-7 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -588,11 +607,11 @@
                             </p>
                         </div>
                         <div class="flex items-center gap-3 w-full">
-                            <button type="button" @click="deleteUrlModal = false"
+                            <button type="button" onclick="closeDeleteUrlModal()"
                                 class="flex-1 px-4 py-2.5 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
                                 {{ __('cms.virtual_slideshow.cancel') }}
                             </button>
-                            <button type="button" @click="deleteUrlModal = false; document.getElementById('clearExistingUrl').value = '1'; var urlSection = document.getElementById('video-url-section'); var urlDiv = urlSection.querySelector('.mb-3'); if(urlDiv) urlDiv.remove(); document.getElementById('infoPopupVideoInput').value = '';"
+                            <button type="button" onclick="submitDeleteUrlModal()"
                                 class="flex-1 px-4 py-2.5 text-sm font-semibold text-white bg-red-500 hover:bg-red-600 rounded-lg transition-colors">
                                 {{ __('cms.virtual_slideshow.delete') }}
                             </button>
@@ -600,6 +619,43 @@
                     </div>
                 </div>
             </div>
+
+            <script>
+                function openDeleteVideoModal() {
+                    document.getElementById('deleteVideoModal').classList.remove('hidden');
+                    document.getElementById('deleteVideoModal').classList.add('flex');
+                }
+                function closeDeleteVideoModal() {
+                    document.getElementById('deleteVideoModal').classList.add('hidden');
+                    document.getElementById('deleteVideoModal').classList.remove('flex');
+                }
+                function submitDeleteVideoModal() {
+                    closeDeleteVideoModal();
+                    document.getElementById('deleteExistingVideo').value = '1';
+                    var existingVidInfo = document.getElementById('existingVideoInfo');
+                    if (existingVidInfo) existingVidInfo.style.display = 'none';
+                    var vidInput = document.getElementById('infoPopupVideoInput');
+                    if (vidInput) vidInput.value = '';
+                }
+
+                function openDeleteUrlModal() {
+                    document.getElementById('deleteUrlModal').classList.remove('hidden');
+                    document.getElementById('deleteUrlModal').classList.add('flex');
+                }
+                function closeDeleteUrlModal() {
+                    document.getElementById('deleteUrlModal').classList.add('hidden');
+                    document.getElementById('deleteUrlModal').classList.remove('flex');
+                }
+                function submitDeleteUrlModal() {
+                    closeDeleteUrlModal();
+                    document.getElementById('clearExistingUrl').value = '1';
+                    var urlSection = document.getElementById('video-url-section');
+                    var urlDiv = urlSection.querySelector('.mb-3');
+                    if(urlDiv) urlDiv.remove();
+                    var vidInput = document.getElementById('infoPopupVideoInput');
+                    if (vidInput) vidInput.value = '';
+                }
+            </script>
         </form>
     </div>
 @endsection
@@ -671,7 +727,7 @@
             singleInput.className = 'form-input';
             singleInput.placeholder = singlePlaceholder;
             singleInput.rows = 3;
-            singleInput.textContent = existingSingle;
+            singleInput.value = existingSingle;
             singleDiv.appendChild(singleInput);
             containerEl.appendChild(singleDiv);
 
@@ -731,18 +787,6 @@
         }
 
         (function() {
-            // Existing info_popup data for URL images (indices start after uploaded images)
-            var existingUploadedCount = {{ $slide->images ? count($slide->images) : 0 }};
-            var existingInfoPopup = {!! json_encode($slide->info_popup ?? []) !!};
-            @if($slide->image_urls && count($slide->image_urls) > 0)
-                @foreach($slide->image_urls as $idx => $imgUrl)
-                    var urlInput{{ $idx }} = document.querySelector('#image-url-list input[name="image_urls[{{ $idx }}]"]');
-                    if (urlInput{{ $idx }}) {
-                        var captionVal{{ $idx }} = existingInfoPopup[existingUploadedCount + {{ $idx }}] || existingInfoPopup[String(existingUploadedCount + {{ $idx }})] || '';
-                        urlInput{{ $idx }}.setAttribute('data-caption', captionVal{{ $idx }});
-                    }
-                @endforeach
-            @endif
 
             // Existing carousel video files (stored in video_file as JSON array)
             @php
@@ -997,15 +1041,6 @@
                     uploadSection.style.display = 'none';
                     urlSection.classList.remove('hidden');
                     urlSection.style.display = '';
-                    if (uploadCaptionArea) { uploadCaptionArea.classList.add('hidden'); uploadCaptionArea.style.display = 'none'; }
-                    if (urlCaptionArea) {
-                        if (isHeroType) { urlCaptionArea.classList.add('hidden'); urlCaptionArea.style.display = 'none'; }
-                        else { urlCaptionArea.classList.remove('hidden'); urlCaptionArea.style.display = 'block'; }
-                    }
-                    // Hero: jangan sembunyikan preview areas, gambar harus selalu terlihat
-                    if (!isHeroType) {
-                        if (uploadPreviewArea) { uploadPreviewArea.classList.add('hidden'); uploadPreviewArea.style.display = 'none'; }
-                    }
                     var existingCaptionWrapper = document.getElementById('existingInfoPopupRowsWrapper');
                     if (existingCaptionWrapper) { existingCaptionWrapper.classList.add('hidden'); existingCaptionWrapper.style.display = 'none'; }
                     updateUrlImagePreviews();
@@ -1015,7 +1050,7 @@
                         var urlEntries = document.querySelectorAll('#image-url-list .image-url-entry');
                         var hasFilledUrl = false;
                         urlEntries.forEach(function(entry) {
-                            var input = entry.querySelector('input[name="image_urls[]"]');
+                            var input = entry.querySelector('input[name^="new_image_urls"]');
                             if (input && input.value.trim() !== '') hasFilledUrl = true;
                         });
 
@@ -1040,25 +1075,12 @@
                     uploadSection.style.display = '';
                     urlSection.classList.add('hidden');
                     urlSection.style.display = 'none';
-                    if (uploadCaptionArea) {
-                        if (isHeroType) { uploadCaptionArea.classList.add('hidden'); uploadCaptionArea.style.display = 'none'; }
-                        else { uploadCaptionArea.classList.remove('hidden'); uploadCaptionArea.style.display = 'block'; }
-                    }
-                    if (urlCaptionArea) { urlCaptionArea.classList.add('hidden'); urlCaptionArea.style.display = 'none'; }
-                    if (uploadPreviewArea) { uploadPreviewArea.classList.remove('hidden'); uploadPreviewArea.style.display = 'flex'; }
-                    // Hero: jangan sembunyikan URL preview, gambar harus selalu terlihat
-                    if (!isHeroType) {
-                        if (urlPreviewArea) { urlPreviewArea.classList.add('hidden'); urlPreviewArea.style.display = 'none'; }
-                    }
                     var existingCaptionWrapper = document.getElementById('existingInfoPopupRowsWrapper');
                     if (existingCaptionWrapper) {
                         if (isHeroType) { existingCaptionWrapper.classList.add('hidden'); existingCaptionWrapper.style.display = 'none'; }
                         else { existingCaptionWrapper.classList.remove('hidden'); existingCaptionWrapper.style.display = ''; }
                     }
-                    // Hero: pastikan URL preview tetap terlihat saat switch ke upload
-                    if (isHeroType) {
-                        updateUrlImagePreviews();
-                    }
+                    updateUrlImagePreviews();
                 }
             };
 
@@ -1155,10 +1177,9 @@
                 if (entries.length > 1) {
                     entry.remove();
                 } else {
-                    var input = entry.querySelector('input[name^="image_urls"]');
+                    var input = entry.querySelector('input[name^="new_image_urls"]');
                     if (input) {
                         input.value = '';
-                        input.setAttribute('data-caption', '');
                     }
                 }
                 updateUrlImagePreviews();
@@ -1179,11 +1200,11 @@
                 // Count newly uploaded files
                 var newUploadCount = (typeof selectedNewImageFiles !== 'undefined') ? selectedNewImageFiles.length : 0;
 
-                // Count filled URL entries
+                // Count filled URL entries (new ones)
                 var urlEntries = document.querySelectorAll('#image-url-list .image-url-entry');
                 var urlCount = 0;
                 urlEntries.forEach(function(entry) {
-                    var input = entry.querySelector('input[name^="image_urls"]');
+                    var input = entry.querySelector('input[name^="new_image_urls"]');
                     if (input && input.value.trim() !== '') urlCount++;
                 });
 
@@ -1211,7 +1232,7 @@
                     '<a href="#" target="_blank" class="url-link-btn px-2 py-2 text-blue-600 hover:bg-blue-50 rounded-lg flex-shrink-0 opacity-30 cursor-not-allowed" title="{{ __('cms.virtual_slideshow.open_link') }}" onclick="return false;">' +
                     '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
                     '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg></a>' +
-                    '<input type="text" name="image_urls[' + newIndex + ']" class="form-input flex-1" ' +
+                    '<input type="text" name="new_image_urls[' + newIndex + ']" class="form-input flex-1" ' +
                     'placeholder="' + __t.image_url_placeholder + '" data-index="' + newIndex + '" oninput="updateUrlLink(this)">' +
                     '<button type="button" onclick="removeImageUrlEntry(this)" class="px-2 py-2 text-red-500 hover:bg-red-50 rounded-lg flex-shrink-0" title="' + __t.delete + '">' +
                     '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
@@ -1242,6 +1263,29 @@
             // Caption tracker for new uploaded images to persist values across re-renders
             var newUploadImageCaptionTracker = {};
 
+            function extractWidgetState(widgetContainer) {
+                if (!widgetContainer) return '';
+                var modeSelect = widgetContainer.querySelector('select[name^="info_popup_mode_"]');
+                if (!modeSelect) return '';
+                if (modeSelect.value === 'single') {
+                    var singleInput = widgetContainer.querySelector('.caption-single-section textarea');
+                    return singleInput ? singleInput.value : '';
+                } else {
+                    var items = [];
+                    var pairs = widgetContainer.querySelectorAll('.caption-qa-pair');
+                    pairs.forEach(function(pair) {
+                        var qInput = pair.querySelector('input[type="text"]');
+                        var aTextarea = pair.querySelector('textarea');
+                        items.push({
+                            question: qInput ? qInput.value : '',
+                            answer: aTextarea ? aTextarea.value : ''
+                        });
+                    });
+                    if (items.length === 0) items.push({question: '', answer: ''});
+                    return { type: 'multi', items: items };
+                }
+            }
+
             function convertImageUrl(url) {
                 // Google Drive
                 var match = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
@@ -1258,28 +1302,56 @@
             function updateUrlImagePreviews() {
                 var uploadPreviewArea = document.getElementById('newImagePreviewArea');
                 var urlPreviewArea = document.getElementById('newUrlPreviewArea');
-                var urlCaptionArea = document.getElementById('infoPopupUrlImageArea');
-                var urlCaptionRows = document.getElementById('infoPopupUrlRows');
                 var uploadCaptionArea = document.getElementById('infoPopupUploadImageArea');
                 var uploadCaptionRows = document.getElementById('infoPopupUploadRows');
+                var urlCaptionArea = document.getElementById('infoPopupUrlImageArea');
 
-                // Save current new upload caption values before clearing
-                uploadCaptionRows.querySelectorAll('input[name^="info_popup_new_images"]').forEach(function(input) {
-                    var match = input.name.match(/info_popup_new_images\[(\d+)\]/);
-                    if (match) {
-                        newUploadImageCaptionTracker[parseInt(match[1])] = input.value;
+                // Hide the old url areas completely
+                if (urlPreviewArea) { urlPreviewArea.classList.add('hidden'); urlPreviewArea.style.display = 'none'; }
+                if (urlCaptionArea) { urlCaptionArea.classList.add('hidden'); urlCaptionArea.style.display = 'none'; }
+
+                // Save URL image captions before clearing
+                uploadCaptionRows.querySelectorAll('[data-url-slot-index]').forEach(function(container) {
+                    var slotIdx = parseInt(container.getAttribute('data-url-slot-index'));
+                    if (!isNaN(slotIdx)) {
+                        var state = extractWidgetState(container);
+                        var stateStr = typeof state === 'object' ? JSON.stringify(state) : state;
+                        var urlInputs = document.querySelectorAll('#image-url-list input[name^="new_image_urls"]');
+                        if (urlInputs[slotIdx]) {
+                            urlInputs[slotIdx].setAttribute('data-caption', stateStr);
+                        }
                     }
                 });
 
-                // Get all URL inputs
-                var urlInputs = document.querySelectorAll('#image-url-list input[name^="image_urls"]');
-                var urlImages = [];
+                // Save new upload caption values before clearing
+                uploadCaptionRows.querySelectorAll('[data-upload-slot-index]').forEach(function(container) {
+                    var slotIdx = parseInt(container.getAttribute('data-upload-slot-index'));
+                    if (!isNaN(slotIdx)) {
+                        newUploadImageCaptionTracker[slotIdx] = extractWidgetState(container);
+                    }
+                });
 
-                urlInputs.forEach(function(input, inputIdx) {
+                window.mediaTimeline = window.mediaTimeline || [];
+                var activeItems = [];
+                var numValidUrls = 0;
+
+                // Get all URL inputs
+                var urlInputs = document.querySelectorAll('#image-url-list input[name^="new_image_urls"]');
+                var existingUploadedCount = getRemainingExistingCount();
+                var uploadedCount = selectedNewImageFiles.length;
+
+                urlInputs.forEach(function(input, idx) {
                     var url = input.value.trim();
                     var entry = input.closest('.image-url-entry');
                     var linkBtn = entry ? entry.querySelector('.url-link-btn') : null;
                     var caption = input.getAttribute('data-caption') || '';
+
+                    var uid = input.getAttribute('data-uid');
+                    if (!uid && url) { // Only timestamp when user actually enters a URL
+                        uid = 'url_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                        input.setAttribute('data-uid', uid);
+                        window.mediaTimeline.push({ type: 'url', uid: uid, timestamp: Date.now() });
+                    }
 
                     if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
                         if (linkBtn) {
@@ -1287,10 +1359,19 @@
                             linkBtn.classList.remove('opacity-30', 'cursor-not-allowed');
                             linkBtn.onclick = null;
                         }
-                        var displayUrl = convertImageUrl(url);
-                        urlImages.push({ url: displayUrl, originalUrl: url, hasUrl: true, caption: caption });
+                        var timelineEntry = window.mediaTimeline.find(function(t) { return t.uid === uid; });
+                        activeItems.push({
+                            type: 'url',
+                            url: convertImageUrl(url),
+                            originalUrl: url,
+                            uid: uid,
+                            domIdx: idx, // M index
+                            backendIdx: existingUploadedCount + uploadedCount + numValidUrls, // E + N + M
+                            caption: caption,
+                            timestamp: timelineEntry ? timelineEntry.timestamp : Date.now()
+                        });
+                        numValidUrls++;
                     } else {
-                        urlImages.push({ url: '', originalUrl: '', hasUrl: false, caption: caption });
                         if (linkBtn) {
                             linkBtn.href = '#';
                             linkBtn.classList.add('opacity-30', 'cursor-not-allowed');
@@ -1299,23 +1380,31 @@
                     }
                 });
 
-                var existingUploadedCount = getRemainingExistingCount();
+                selectedNewImageFiles.forEach(function(file, idx) {
+                    var uid = file._uid;
+                    if (!uid) { // default if missing
+                        uid = 'upload_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                        file._uid = uid;
+                        window.mediaTimeline.push({ type: 'upload', uid: uid, timestamp: Date.now() });
+                    }
+                    var timelineEntry = window.mediaTimeline.find(function(t) { return t.uid === uid; });
+                    activeItems.push({
+                        type: 'upload',
+                        file: file,
+                        uid: uid,
+                        domIdx: idx, // N index
+                        backendIdx: idx, // Prefix covers the shift
+                        timestamp: timelineEntry ? timelineEntry.timestamp : Date.now()
+                    });
+                });
 
-                // Clear both preview areas
+                // Clear unified areas
                 uploadPreviewArea.innerHTML = '';
-                urlPreviewArea.innerHTML = '';
+                uploadCaptionRows.innerHTML = '';
 
-                // Show/hide URL preview area based on URL images
-                if (urlImages.some(function(img) { return img.hasUrl; })) {
-                    urlPreviewArea.classList.remove('hidden');
-                    urlPreviewArea.style.display = 'flex';
-                } else {
-                    urlPreviewArea.classList.add('hidden');
-                    urlPreviewArea.style.display = 'none';
-                }
+                var totalImages = activeItems.length;
 
-                // Show/hide upload preview area based on uploaded files
-                if (selectedNewImageFiles.length > 0) {
+                if (totalImages > 0) {
                     uploadPreviewArea.classList.remove('hidden');
                     uploadPreviewArea.style.display = 'flex';
                 } else {
@@ -1323,122 +1412,138 @@
                     uploadPreviewArea.style.display = 'none';
                 }
 
-                // Show/hide URL caption section (only when URL method is active)
-                var isUrlMethod = document.querySelector('input[name="image_method"][value="url"]');
-                var isUrlMethodChecked = isUrlMethod && isUrlMethod.checked;
                 var typeInput = document.getElementById('slide_type_input');
                 var isHeroType = typeInput && typeInput.value === 'hero';
-                if (urlImages.length === 0 || !isUrlMethodChecked) {
-                    urlCaptionArea.classList.add('hidden');
-                    urlCaptionArea.style.display = 'none';
-                } else if (!isHeroType) {
-                    urlCaptionArea.classList.remove('hidden');
-                    urlCaptionArea.style.display = 'block';
+                if (totalImages > 0 && !isHeroType) {
+                    uploadCaptionArea.classList.remove('hidden');
+                    uploadCaptionArea.style.display = 'block';
                 } else {
-                    urlCaptionArea.classList.add('hidden');
-                    urlCaptionArea.style.display = 'none';
+                    uploadCaptionArea.classList.add('hidden');
+                    uploadCaptionArea.style.display = 'none';
                 }
 
-                // Render URL image previews
-                urlImages.forEach(function(img, idx) {
-                    if (img.hasUrl) {
+                // Sort purely chronologically by timestamp (ascending) so visual order matches input order
+                activeItems.sort(function(a, b) { return a.timestamp - b.timestamp; });
+
+                var renderIdx = 0;
+                activeItems.forEach(function(item) {
+                    var displayPosition = renderIdx + 1;
+                    renderIdx++;
+
+                    if (item.type === 'upload') {
+                        // Render upload preview synchronously to preserve order
                         var wrap = document.createElement('div');
                         wrap.className = 'img-preview-wrap';
-                        var isGoogleDrive = img.originalUrl.includes('drive.google.com');
+                        wrap.innerHTML = '<div style="height:60px;width:60px;background:#f3f4f6;border-radius:8px;border:1px solid #e5e7eb;display:flex;align-items:center;justify-content:center;"><span class="text-xs text-gray-400">...</span></div>';
+                        uploadPreviewArea.appendChild(wrap);
+
+                        var reader = new FileReader();
+                        (function(idx, fileReader, container) {
+                            fileReader.onload = function(e) {
+                                container.innerHTML = '<img src="' + e.target.result + '" alt="" style="height:60px;width:60px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb;">' +
+                                    '<button type="button" class="remove-img" onclick="removePreviewImage(' + idx + ')">✕</button>';
+                            };
+                        })(item.domIdx, reader, wrap);
+                        reader.readAsDataURL(item.file);
+
+                        // Render upload caption
+                        var savedCaption = newUploadImageCaptionTracker[item.domIdx] || '';
+                        var row = document.createElement('div');
+                        row.className = 'info-popup-row';
+                        var labelEl = document.createElement('label');
+                        labelEl.className = 'form-label';
+                        labelEl.style.marginBottom = '4px';
+                        labelEl.textContent = __t.popup_existing_images + ' ' + displayPosition;
+                        row.appendChild(labelEl);
+                        var widgetContainer = document.createElement('div');
+                        widgetContainer.setAttribute('data-upload-slot-index', item.domIdx);
+                        createCaptionWidget(widgetContainer, 'info_popup_new_images', item.backendIdx, savedCaption, {
+                            singlePlaceholder: __t.popup_existing_images + ' ' + displayPosition + '...',
+                            isArray: true
+                        });
+                        row.appendChild(widgetContainer);
+                        uploadCaptionRows.appendChild(row);
+
+                    } else if (item.type === 'url') {
+                        // Render URL preview
+                        var wrap = document.createElement('div');
+                        wrap.className = 'img-preview-wrap';
+                        var isGoogleDrive = item.originalUrl.includes('drive.google.com');
 
                         if (isGoogleDrive) {
                             wrap.innerHTML = '<div class="flex flex-col items-center justify-center" style="height:60px;width:60px;background:#f3f4f6;border-radius:8px;border:1px solid #e5e7eb;">' +
                                 '<svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>' +
-                                '<a href="' + img.originalUrl + '" target="_blank" class="text-xs text-blue-500 hover:text-blue-700 mt-1">' + __t.view + '</a></div>' +
-                                '<button type="button" class="remove-img" onclick="removeUrlImage(' + idx + ')">✕</button>';
+                                '<a href="' + item.originalUrl + '" target="_blank" class="text-xs text-blue-500 hover:text-blue-700 mt-1">' + __t.view + '</a></div>' +
+                                '<button type="button" class="remove-img" onclick="removeUrlImage(' + item.domIdx + ')">✕</button>';
                         } else {
-                            wrap.innerHTML = '<img src="' + img.url + '" alt="" style="height:60px;width:60px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb;" onerror="this.style.display=\'none\'; this.nextElementSibling.style.display=\'flex\';">' +
+                            wrap.innerHTML = '<img src="' + item.url + '" alt="" style="height:60px;width:60px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb;" onerror="this.style.display=\'none\'; this.nextElementSibling.style.display=\'flex\';">' +
                                 '<div class="flex flex-col items-center justify-center" style="height:60px;width:60px;background:#f3f4f6;border-radius:8px;border:1px solid #e5e7eb;display:none;">' +
                                 '<svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>' +
-                                '<a href="' + img.originalUrl + '" target="_blank" class="text-xs text-blue-500 hover:text-blue-700 mt-1">' + __t.view + '</a></div>' +
-                                '<button type="button" class="remove-img" onclick="removeUrlImage(' + idx + ')">✕</button>';
+                                '<a href="' + item.originalUrl + '" target="_blank" class="text-xs text-blue-500 hover:text-blue-700 mt-1">' + __t.view + '</a></div>' +
+                                '<button type="button" class="remove-img" onclick="removeUrlImage(' + item.domIdx + ')">✕</button>';
                         }
-                        urlPreviewArea.appendChild(wrap);
+                        uploadPreviewArea.appendChild(wrap);
+
+                        // Render URL caption
+                        var captionValue = item.caption || '';
+                        var captionData = captionValue;
+                        if (typeof captionValue === 'string' && captionValue.charAt(0) === '{') {
+                            try { captionData = JSON.parse(captionValue); } catch(e) {}
+                        }
+                        var row = document.createElement('div');
+                        row.className = 'info-popup-row';
+                        var labelEl = document.createElement('label');
+                        labelEl.className = 'form-label';
+                        labelEl.style.marginBottom = '4px';
+                        labelEl.textContent = __t.popup_url_images + ' ' + displayPosition;
+                        row.appendChild(labelEl);
+                        var widgetContainer = document.createElement('div');
+                        widgetContainer.setAttribute('data-url-slot-index', item.domIdx);
+                        createCaptionWidget(widgetContainer, 'info_popup_images', item.backendIdx, captionData, {
+                            singlePlaceholder: __t.popup_url_images + ' ' + displayPosition + '...',
+                            isArray: true
+                        });
+                        row.appendChild(widgetContainer);
+                        uploadCaptionRows.appendChild(row);
                     }
                 });
 
-                // Render new uploaded image previews
-                selectedNewImageFiles.forEach(function(file, idx) {
-                    var reader = new FileReader();
-                    (function(index, fileReader) {
-                        fileReader.onload = function(e) {
-                            var wrap = document.createElement('div');
-                            wrap.className = 'img-preview-wrap';
-                            wrap.innerHTML = '<img src="' + e.target.result + '" alt="" style="height:60px;width:60px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb;">' +
-                                '<button type="button" class="remove-img" onclick="removePreviewImage(' + index + ')">✕</button>';
-                            uploadPreviewArea.appendChild(wrap);
-                        };
-                    })(idx, reader);
-                    reader.readAsDataURL(file);
+                updateUnifiedImageOrderInput(activeItems);
+            }
+
+            function updateUnifiedImageOrderInput(activeItems) {
+                var input = document.getElementById('unifiedImageOrderInput');
+                if (!input) return;
+
+                var serializable = [];
+                // Push all existing upload images
+                var existingWraps = document.querySelectorAll('.existing-img-wrap');
+                existingWraps.forEach(function(wrap) {
+                     var inp = wrap.querySelector('input[name^="existing_images["]:not([disabled])');
+                     if (inp) {
+                         var idx = parseInt(wrap.getAttribute('data-original-index'));
+                         serializable.push({ type: 'existing', existingIndex: idx, order: 0 });
+                     }
+                });
+                // Push all existing URL images (saved in DB)
+                var existingUrlWraps = document.querySelectorAll('.existing-url-img-wrap');
+                existingUrlWraps.forEach(function(wrap) {
+                     var inp = wrap.querySelector('input[name^="existing_image_urls["]');
+                     if (inp && !inp.disabled) {
+                         var idx = parseInt(wrap.getAttribute('data-url-original-index'));
+                         serializable.push({ type: 'existingUrl', existingUrlIndex: idx, order: 1 });
+                     }
                 });
 
-                // Show/hide upload caption section
-                if (selectedNewImageFiles.length === 0) {
-                    uploadCaptionArea.classList.add('hidden');
-                } else {
-                    uploadCaptionArea.classList.remove('hidden');
-                }
-
-                // Render caption fields for URL images
-                urlCaptionRows.innerHTML = '';
-                urlImages.forEach(function(img, idx) {
-                    var captionIndex = existingUploadedCount + selectedNewImageFiles.length + idx;
-                    var captionValue = img.caption || '';
-                    // Try to parse existing caption data for multi mode
-                    var captionData = captionValue;
-                    if (typeof captionValue === 'string' && captionValue.charAt(0) === '{') {
-                        try { captionData = JSON.parse(captionValue); } catch(e) {}
+                // Then append the active items (new uploads and URLs)
+                activeItems.forEach(function(item) {
+                    if (item.type === 'url') {
+                        serializable.push({ type: 'url', urlIndex: item.domIdx, urlValue: item.originalUrl, order: item.timestamp });
+                    } else if (item.type === 'upload') {
+                        serializable.push({ type: 'newUpload', newUploadIndex: item.domIdx, order: item.timestamp });
                     }
-                    var row = document.createElement('div');
-                    row.className = 'info-popup-row';
-                    var labelEl = document.createElement('label');
-                    labelEl.className = 'form-label';
-                    labelEl.style.marginBottom = '4px';
-                    labelEl.textContent = __t.popup_url_images + ' ' + (idx + 1);
-                    row.appendChild(labelEl);
-                    var widgetContainer = document.createElement('div');
-                    var widget = createCaptionWidget(widgetContainer, 'info_popup_images', captionIndex, captionData, {
-                        singlePlaceholder: __t.popup_url_images + ' ' + (idx + 1) + '...',
-                        isArray: true
-                    });
-                    widget.singleInput.addEventListener('input', function() {
-                        var urlInputs = document.querySelectorAll('#image-url-list input[name^="image_urls"]');
-                        if (urlInputs[idx]) {
-                            urlInputs[idx].setAttribute('data-caption', this.value);
-                        }
-                    });
-                    row.appendChild(widgetContainer);
-                    urlCaptionRows.appendChild(row);
                 });
-
-                // Render caption fields for new uploaded images
-                uploadCaptionRows.innerHTML = '';
-                selectedNewImageFiles.forEach(function(file, idx) {
-                    var captionIndex = idx;
-                    var savedCaption = newUploadImageCaptionTracker[captionIndex] || '';
-                    var row = document.createElement('div');
-                    row.className = 'info-popup-row';
-                    var labelEl = document.createElement('label');
-                    labelEl.className = 'form-label';
-                    labelEl.style.marginBottom = '4px';
-                    labelEl.textContent = __t.popup_existing_images + ' ' + (idx + 1);
-                    row.appendChild(labelEl);
-                    var widgetContainer = document.createElement('div');
-                    var widget = createCaptionWidget(widgetContainer, 'info_popup_new_images', captionIndex, savedCaption, {
-                        singlePlaceholder: __t.popup_existing_images + ' ' + (idx + 1) + '...',
-                        isArray: true
-                    });
-                    widget.singleInput.addEventListener('input', (function(captIdx) {
-                        return function() { newUploadImageCaptionTracker[captIdx] = this.value; };
-                    })(captionIndex));
-                    row.appendChild(widgetContainer);
-                    uploadCaptionRows.appendChild(row);
-                });
+                input.value = JSON.stringify(serializable);
             }
 
             window.removeUrlImage = function(idx) {
@@ -1450,10 +1555,9 @@
                     }
                 } else {
                     // Just clear the URL input if it's the only entry
-                    var inputs = document.querySelectorAll('#image-url-list input[name^="image_urls"]');
+                    var inputs = document.querySelectorAll('#image-url-list input[name^="new_image_urls"]');
                     if (inputs[0]) {
                         inputs[0].value = '';
-                        inputs[0].setAttribute('data-caption', '');
                     }
                 }
                 updateUrlImagePreviews();
@@ -1552,6 +1656,41 @@
                 }
 
                 // Re-render new image previews with updated count
+                renderNewImagePreviews();
+            };
+
+            window.removeExistingUrl = function(idx) {
+                var wrap = document.getElementById('existing-url-wrap-' + idx);
+                var popupRow = document.getElementById('existing-url-popup-row-' + idx);
+                var duplicateEntry = document.querySelector('#image-url-list .image-url-entry[data-is-existing="1"][data-index="' + idx + '"]');
+
+                if (wrap) {
+                    wrap.style.opacity = '0.5';
+                    wrap.style.pointerEvents = 'none';
+                }
+
+                if (popupRow) {
+                    popupRow.style.opacity = '0.5';
+                    popupRow.style.pointerEvents = 'none';
+                    var inputField = popupRow.querySelector('input, textarea');
+                    if (inputField) {
+                        inputField.disabled = true;
+                        inputField.name = 'deleted_info_popup_images[' + ({{ $slide->images ? count($slide->images) : 0 }} + idx) + ']';
+                    }
+                }
+
+                if (duplicateEntry) {
+                    var dupInput = duplicateEntry.querySelector('input');
+                    if (dupInput) {
+                        dupInput.disabled = true;
+                        // rename so backend can pick it up safely if needed, or omit it from image_urls
+                        dupInput.name = 'deleted_existing_image_urls[' + idx + ']';
+                    }
+                    duplicateEntry.style.opacity = '0.5';
+                    duplicateEntry.style.pointerEvents = 'none';
+                }
+
+                // Make sure to sync order
                 renderNewImagePreviews();
             };
 
@@ -1712,6 +1851,20 @@
                     return entry.data !== null || entry.uploadPath;
                 });
 
+                // Save Carousel Video captions before clearing
+                popupRows.querySelectorAll('select[name^="info_popup_mode_carousel_videos"]').forEach(function(select) {
+                    var match = select.name.match(/info_popup_mode_carousel_videos\[([^\]]+)\]/);
+                    if (match) {
+                        var widgetContainer = select.parentElement.parentElement;
+                        var state = extractWidgetState(widgetContainer);
+                        allVideoEntries.forEach(function(entry) {
+                            if (entry.lastCaptionKey === match[1]) {
+                                entry.caption = state;
+                            }
+                        });
+                    }
+                });
+
                 // Clear preview area
                 previewArea.innerHTML = '';
 
@@ -1755,6 +1908,8 @@
                         captionKey = 'newUpload_' + newUploadIdx;
                         newUploadIdx++;
                     }
+
+                    video.lastCaptionKey = captionKey;
 
                     if (video.type === 'url') {
                         // URL video
@@ -2103,6 +2258,49 @@
                     isArray: true
                 });
             });
+
+            // Initialize existing URL image caption widgets
+            var existingUploadCount = {{ isset($slide->images) ? count($slide->images) : 0 }};
+            document.querySelectorAll('.existing-url-caption-widget').forEach(function(el) {
+                var urlIdx = parseInt(el.getAttribute('data-url-caption-index'));
+                var storageIdx = existingUploadCount + urlIdx;
+                var rawData = el.getAttribute('data-url-caption-data');
+                var captionData = '';
+                try { captionData = JSON.parse(rawData); } catch(e) { captionData = rawData || ''; }
+                // Gunakan info_popup_images dengan index = existingUploadCount + urlIdx
+                createCaptionWidget(el, 'info_popup_images', storageIdx, captionData, {
+                    singlePlaceholder: 'Info Popup Caption (gambar URL) ' + (urlIdx + 1) + '...',
+                    isArray: true
+                });
+            });
+
+            // Hapus gambar URL tersimpan dari preview atas + kosongkan input di image-url-list
+            window.removeExistingUrl = function(idx) {
+                // Sembunyikan thumbnail di bagian preview atas
+                var wrap = document.getElementById('existing-url-wrap-' + idx);
+                if (wrap) {
+                    wrap.style.opacity = '0.3';
+                    wrap.style.pointerEvents = 'none';
+                    var btn = wrap.querySelector('button');
+                    if (btn) btn.style.display = 'none';
+                }
+                // Sembunyikan caption row
+                var captionRow = document.getElementById('existing-url-popup-row-' + idx);
+                if (captionRow) captionRow.style.display = 'none';
+
+                // Kosongkan input image_urls[idx] di image-url-list agar tidak ikut tersimpan
+                var urlInput = document.querySelector('#image-url-list input[name="image_urls[' + idx + ']"]');
+                if (urlInput) {
+                    var entry = urlInput.closest('.image-url-entry');
+                    var entries = document.querySelectorAll('#image-url-list .image-url-entry');
+                    if (entries.length > 1) {
+                        if (entry) entry.remove();
+                    } else {
+                        urlInput.value = '';
+                    }
+                    updateUrlImagePreviews();
+                }
+            };
 
             // Initialize video caption widget (Upload)
             var videoCaptionEl = document.getElementById('videoCaptionWidget');

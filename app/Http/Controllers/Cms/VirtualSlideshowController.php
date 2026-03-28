@@ -174,20 +174,79 @@ class VirtualSlideshowController extends Controller
         $useCarouselVideo = in_array($slideType, $carouselVideoTypes) && !$usesImagesForCarousel;
         $useCarouselImages = $usesImagesForCarousel;
 
-        // Upload images (for hero, carousel, or text_carousel with images selected)
-        $imagePaths = [];
+        // Add new uploads manually into an ordered list first
+        $newUploadList = [];
         if (($useImages || $useCarouselImages) && $request->hasFile('images')) {
             foreach ($request->file('images') as $img) {
-                $imagePaths[] = $img->store('features/slideshow', 'public');
+                $newUploadList[] = $img->store('features/slideshow', 'public');
             }
         }
 
-        // Process image URLs (filter empty values)
-        $imageUrls = [];
-        if (($useImages || $useCarouselImages) && !empty($validated['image_urls'])) {
-            $imageUrls = array_values(array_filter(array_map('trim', $validated['image_urls']), function($url) {
-                return !empty($url);
-            }));
+        // Process unified image order for editing and creating
+        $unifiedImageOrder = [];
+        $unifiedImageInput = $request->input('unified_image_order');
+        if ($unifiedImageInput) {
+            $decodedImageOrder = is_array($unifiedImageInput) ? $unifiedImageInput : json_decode($unifiedImageInput, true);
+            $unifiedImageOrder = is_array($decodedImageOrder) ? $decodedImageOrder : [];
+        }
+
+        $orderedImageUrls = [];
+        $orderedImagePaths = [];
+
+        if (($useImages || $useCarouselImages)) {
+            if (!empty($unifiedImageOrder)) {
+                $newUploadsCopy = $newUploadList;
+                foreach ($unifiedImageOrder as $item) {
+                    $type = $item['type'] ?? null;
+                    if ($type === 'newUpload') {
+                        if (!empty($newUploadsCopy)) {
+                            $orderedImagePaths[] = array_shift($newUploadsCopy);
+                        }
+                    } elseif ($type === 'url') {
+                        $url = trim($item['urlValue'] ?? '');
+                        if (!empty($url) && (str_starts_with($url, 'http://') || str_starts_with($url, 'https://'))) {
+                            $orderedImageUrls[] = $url;
+                        }
+                    }
+                }
+            } else {
+                // Fallback
+                $orderedImagePaths = $newUploadList;
+                if (!empty($validated['image_urls'])) {
+                    $orderedImageUrls = array_values(array_filter(array_map('trim', $validated['image_urls']), function($url) {
+                        return !empty($url);
+                    }));
+                }
+            }
+        }
+
+        $imagePaths = $orderedImagePaths;
+        $imageUrls = $orderedImageUrls;
+
+        // Save original tracking for caption mappings, then generate final array for rendering
+        $originalUnifiedImageOrder = $unifiedImageOrder;
+
+        if (!empty($unifiedImageOrder)) {
+            $normalizedImageOrder = [];
+            $uploadSeq = 0;
+            $urlSeq = 0;
+            foreach ($originalUnifiedImageOrder as $item) {
+                $type = $item['type'] ?? null;
+                if ($type === 'existing' || $type === 'newUpload' || $type === 'upload') {
+                    $normalizedImageOrder[] = [
+                        'type' => 'upload',
+                        'uploadIndex' => $uploadSeq
+                    ];
+                    $uploadSeq++;
+                } elseif ($type === 'url') {
+                    $normalizedImageOrder[] = [
+                        'type' => 'url',
+                        'urlIndex' => $urlSeq
+                    ];
+                    $urlSeq++;
+                }
+            }
+            $unifiedImageOrder = $normalizedImageOrder;
         }
 
         // Upload carousel video files (only for text_carousel type)
@@ -209,7 +268,7 @@ class VirtualSlideshowController extends Controller
         // Process carousel videos using unified order
         $orderedUrls = [];
         $orderedUploads = [];
-        
+
         if ($useCarouselVideo) {
             if (!empty($unifiedOrder)) {
                 // Process based on unified order
@@ -284,29 +343,59 @@ class VirtualSlideshowController extends Controller
         $captionQaData = $request->input('info_popup_qa_images', []);
 
         if (($useImages || $useCarouselImages)) {
-            // For new slides, use info_popup_images directly (since no existing images)
-            if (!empty($validated['info_popup_images'])) {
-                foreach ($validated['info_popup_images'] as $idx => $caption) {
-                    $mode = $captionModes[$idx] ?? 'single';
-                    $qaItems = $captionQaData[$idx] ?? [];
-                    $value = $this->buildCaptionValue($mode, $caption, $qaItems);
-                    if ($value !== null) {
-                        $infoPopup[(string)$idx] = $value;
+            $captionToStorage = [];
+            $urlStorageIdx = 0;
+            $finalUnifiedIdx = 0;
+
+            $jsNewUploadCount = count($newUploadList);
+
+            if (!empty($unifiedImageOrder)) {
+                $infoPopup['unified_image_order'] = $unifiedImageOrder;
+
+                foreach ($originalUnifiedImageOrder as $item) {
+                    $type = $item['type'] ?? null;
+                    if ($type === 'newUpload') {
+                        $idx = $item['newUploadIndex'] ?? 0;
+                        $captionToStorage['newUploads_' . $idx] = $finalUnifiedIdx;
+                        $finalUnifiedIdx++;
+                    } elseif ($type === 'url') {
+                        // URL elements in JS start at N + iteratedIdx
+                        $jsBackendIdx = $jsNewUploadCount + $urlStorageIdx;
+                        $captionToStorage['images_' . $jsBackendIdx] = $finalUnifiedIdx;
+                        $urlStorageIdx++;
+                        $finalUnifiedIdx++;
                     }
                 }
             }
-            // Also support info_popup_new_images for consistency
+
+            // Process info_popup_images - maps to correct DB storage index
+            if (!empty($validated['info_popup_images'])) {
+                foreach ($validated['info_popup_images'] as $idx => $caption) {
+                    $storageIdx = empty($unifiedImageOrder) ? $idx : ($captionToStorage['images_' . $idx] ?? null);
+                    if ($storageIdx !== null) {
+                        $mode = $captionModes[$idx] ?? 'single';
+                        $qaItems = $captionQaData[$idx] ?? [];
+                        $value = $this->buildCaptionValue($mode, $caption, $qaItems);
+                        if ($value !== null) {
+                            $infoPopup[(string)$storageIdx] = $value;
+                        }
+                    }
+                }
+            }
+
+            // Process info_popup_new_images[] for new uploads
             if (!empty($validated['info_popup_new_images'])) {
-                $startIdx = !empty($validated['info_popup_images']) ? count($validated['info_popup_images']) : 0;
                 $newImageModes = $request->input('info_popup_mode_new_images', []);
                 $newImageQaData = $request->input('info_popup_qa_new_images', []);
                 foreach ($validated['info_popup_new_images'] as $idx => $caption) {
-                    $actualIdx = $startIdx + $idx;
-                    $mode = $newImageModes[$idx] ?? ($captionModes[$actualIdx] ?? 'single');
-                    $qaItems = $newImageQaData[$idx] ?? ($captionQaData[$actualIdx] ?? []);
-                    $value = $this->buildCaptionValue($mode, $caption, $qaItems);
-                    if ($value !== null) {
-                        $infoPopup[(string)$actualIdx] = $value;
+                    $storageIdx = empty($unifiedImageOrder) ? $idx : ($captionToStorage['newUploads_' . $idx] ?? null);
+                    if ($storageIdx !== null) {
+                        $mode = $newImageModes[$idx] ?? 'single';
+                        $qaItems = $newImageQaData[$idx] ?? [];
+                        $value = $this->buildCaptionValue($mode, $caption, $qaItems);
+                        if ($value !== null) {
+                            $infoPopup[(string)$storageIdx] = $value;
+                        }
                     }
                 }
             }
@@ -496,6 +585,8 @@ class VirtualSlideshowController extends Controller
             'deleted_existing_images.*' => 'string',
             'image_urls'  => 'nullable|array',
             'image_urls.*'=> 'nullable|string',
+            'new_image_urls' => 'nullable|array',
+            'new_image_urls.*' => 'nullable|string',
             'carousel_videos' => 'nullable|array',
             'carousel_videos.*' => 'file',
             'carousel_video_urls' => 'nullable|array',
@@ -512,6 +603,15 @@ class VirtualSlideshowController extends Controller
             'info_popup_images.*' => 'nullable|string',
             'info_popup_new_images' => 'nullable|array',
             'info_popup_new_images.*' => 'nullable|string',
+            'info_popup_existing_urls' => 'nullable|array',
+            'info_popup_existing_urls.*' => 'nullable|string',
+            'existing_image_urls' => 'nullable|array',
+            'existing_image_urls.*' => 'string',
+            'deleted_existing_image_urls' => 'nullable|array',
+            'deleted_existing_image_urls.*' => 'string',
+            'info_popup_mode_existing_urls' => 'nullable|array',
+            'info_popup_mode_existing_urls.*' => 'nullable|in:single,multi',
+            'info_popup_qa_existing_urls' => 'nullable|array',
             'info_popup_carousel_videos' => 'nullable|array',
             'info_popup_carousel_videos.*' => 'nullable|string',
             'info_popup_video'    => 'nullable|string',
@@ -567,7 +667,7 @@ class VirtualSlideshowController extends Controller
         // Delete removed images from storage
         $oldImages = $slide->images ?? [];
         $deletedImages = $validated['deleted_existing_images'] ?? [];
-        
+
         if (!$useImages && !$useCarouselImages) {
             // Non-image type: delete all old images from storage
             foreach ($oldImages as $old) {
@@ -583,22 +683,111 @@ class VirtualSlideshowController extends Controller
             }
         }
 
-        // Add new uploads
-        $imagePaths = ($useImages || $useCarouselImages) ? $existingImages : [];
+        // Add new uploads manually into an ordered list first
+        $newUploadList = [];
         if (($useImages || $useCarouselImages) && $request->hasFile('images')) {
             foreach ($request->file('images') as $img) {
-                $imagePaths[] = $img->store('features/slideshow', 'public');
+                $newUploadList[] = $img->store('features/slideshow', 'public');
             }
         }
 
-        // Process image URLs (filter empty values)
-        $imageUrls = [];
-        if (($useImages || $useCarouselImages) && !empty($validated['image_urls'])) {
-            $imageUrls = array_values(array_filter(array_map('trim', $validated['image_urls']), function($url) {
-                return !empty($url);
-            }));
+        $existingImageUrls = [];
+        if ($useImages || $useCarouselImages) {
+            $deletedUrls = $validated['deleted_existing_image_urls'] ?? [];
+            if (!empty($validated['existing_image_urls'])) {
+                foreach ($validated['existing_image_urls'] as $idx => $url) {
+                    if (!in_array((string)$idx, $deletedUrls)) {
+                        $existingImageUrls[$idx] = $url;
+                    }
+                }
+            }
         }
-        
+
+        // Process unified image order for editing and creating
+        $unifiedImageOrder = [];
+        $unifiedImageInput = $request->input('unified_image_order');
+        if ($unifiedImageInput) {
+            $decodedImageOrder = is_array($unifiedImageInput) ? $unifiedImageInput : json_decode($unifiedImageInput, true);
+            $unifiedImageOrder = is_array($decodedImageOrder) ? $decodedImageOrder : [];
+        }
+
+        $orderedImageUrls = [];
+        $orderedImagePaths = [];
+
+        if (($useImages || $useCarouselImages)) {
+            if (!empty($unifiedImageOrder)) {
+                $newUploadsCopy = $newUploadList;
+                foreach ($unifiedImageOrder as $item) {
+                    $type = $item['type'] ?? null;
+                    if ($type === 'existing') {
+                        $idx = $item['existingIndex'] ?? 0;
+                        if (isset($existingImages[$idx])) {
+                            $orderedImagePaths[] = $existingImages[$idx];
+                        }
+                    } elseif ($type === 'newUpload') {
+                        if (!empty($newUploadsCopy)) {
+                            $orderedImagePaths[] = array_shift($newUploadsCopy);
+                        }
+                    } elseif ($type === 'existingUrl') {
+                        $idx = $item['existingUrlIndex'] ?? 0;
+                        if (isset($existingImageUrls[$idx])) {
+                            $orderedImageUrls[] = $existingImageUrls[$idx];
+                        }
+                    } elseif ($type === 'url') {
+                        $url = trim($item['urlValue'] ?? '');
+                        if (!empty($url) && (str_starts_with($url, 'http://') || str_starts_with($url, 'https://'))) {
+                            $orderedImageUrls[] = $url;
+                        }
+                    }
+                }
+            } else {
+                // Fallback if no JS tracking: keep existing first, then new uploads, then URLs
+                $orderedImagePaths = array_values($existingImages);
+                foreach ($newUploadList as $f) {
+                    $orderedImagePaths[] = $f;
+                }
+                // existing_image_urls are already kept via $existingImageUrls
+                foreach (array_values($existingImageUrls) as $u) {
+                    $orderedImageUrls[] = $u;
+                }
+                // new_image_urls from the "add new" section
+                if (!empty($validated['new_image_urls'])) {
+                    foreach (array_filter(array_map('trim', $validated['new_image_urls'])) as $u) {
+                        if (!empty($u)) $orderedImageUrls[] = $u;
+                    }
+                }
+            }
+        }
+
+        $imagePaths = $orderedImagePaths;
+        $imageUrls = $orderedImageUrls;
+
+        // Save original tracking for caption mappings, then generate final array for rendering
+        $originalUnifiedImageOrder = $unifiedImageOrder;
+
+        if (!empty($unifiedImageOrder)) {
+            $normalizedImageOrder = [];
+            $uploadSeq = 0;
+            $urlSeq = 0;
+            foreach ($originalUnifiedImageOrder as $item) {
+                $type = $item['type'] ?? null;
+                if ($type === 'existing' || $type === 'newUpload' || $type === 'upload') {
+                    $normalizedImageOrder[] = [
+                        'type' => 'upload',
+                        'uploadIndex' => $uploadSeq
+                    ];
+                    $uploadSeq++;
+                } elseif ($type === 'url') {
+                    $normalizedImageOrder[] = [
+                        'type' => 'url',
+                        'urlIndex' => $urlSeq
+                    ];
+                    $urlSeq++;
+                }
+            }
+            $unifiedImageOrder = $normalizedImageOrder;
+        }
+
         // Handle carousel videos (for text_carousel type)
         $carouselVideoPaths = [];
         if ($useCarouselVideo && $request->hasFile('carousel_videos')) {
@@ -622,7 +811,7 @@ class VirtualSlideshowController extends Controller
                     $existingCarouselVideos = is_array($decoded) ? $decoded : [];
                 }
             }
-            
+
             // Get kept carousel videos from form
             $keptVideos = [];
             $existingInput = $request->input('existing_carousel_videos');
@@ -630,14 +819,14 @@ class VirtualSlideshowController extends Controller
                 $decodedExisting = is_array($existingInput) ? $existingInput : json_decode($existingInput, true);
                 $keptVideos = is_array($decodedExisting) ? $decodedExisting : [];
             }
-            
+
             // Delete videos that are no longer in the kept list
             foreach ($existingCarouselVideos as $oldVideo) {
                 if (!in_array($oldVideo, $keptVideos)) {
                     Storage::disk('public')->delete($oldVideo);
                 }
             }
-            
+
             // Get unified video order from form
             $unifiedOrder = [];
             $unifiedInput = $request->input('unified_video_order');
@@ -645,7 +834,7 @@ class VirtualSlideshowController extends Controller
                 $decodedOrder = is_array($unifiedInput) ? $unifiedInput : json_decode($unifiedInput, true);
                 $unifiedOrder = is_array($decodedOrder) ? $decodedOrder : [];
             }
-            
+
             // Build ordered URLs and uploads based on unified order
             $orderedUrls = [];
             $orderedUploads = [];
@@ -762,7 +951,7 @@ class VirtualSlideshowController extends Controller
         if ($useVideo) {
             $useVideoMethod = $request->input('video_method') === 'url';
             $clearExistingUrl = $request->input('clear_existing_url') === '1';
-            
+
             if ($useVideoMethod) {
                 // Using URL method - get video URL (single video only)
                 if (!empty($validated['video_url'])) {
@@ -785,19 +974,49 @@ class VirtualSlideshowController extends Controller
         $captionQaData = $request->input('info_popup_qa_images', []);
 
         if (($useImages || $useCarouselImages)) {
-            // Count existing images (before new uploads)
-            $existingImageCount = count($existingImages);
-            $uploadedCount = count($imagePaths); // This includes both existing and new
-            $urlCount = count($imageUrls);
+            // Provide info_popup sequential mapping for info popups
+            $captionToStorage = [];
+            $urlStorageIdx = 0;
+            $finalUnifiedIdx = 0;
 
-            // Process info_popup_images - this contains captions for existing images only
+            $jsExistingCount = count($existingImages);
+            $jsNewUploadCount = count($newUploadList);
+
+            if (!empty($unifiedImageOrder)) {
+                $infoPopup['unified_image_order'] = $unifiedImageOrder;
+
+                foreach ($originalUnifiedImageOrder as $item) {
+                    $type = $item['type'] ?? null;
+                    if ($type === 'existing') {
+                        $idx = $item['existingIndex'] ?? 0;
+                        $captionToStorage['images_' . $idx] = $finalUnifiedIdx;
+                        $finalUnifiedIdx++;
+                    } elseif ($type === 'newUpload') {
+                        $idx = $item['newUploadIndex'] ?? 0;
+                        $captionToStorage['newUploads_' . $idx] = $finalUnifiedIdx;
+                        $finalUnifiedIdx++;
+                    } elseif ($type === 'url') {
+                        // URL elements in JS start at E + N + iteratedIdx
+                        $jsBackendIdx = $jsExistingCount + $jsNewUploadCount + $urlStorageIdx;
+                        $captionToStorage['images_' . $jsBackendIdx] = $finalUnifiedIdx;
+                        $urlStorageIdx++;
+                        $finalUnifiedIdx++;
+                    }
+                }
+            }
+
+            // Process info_popup_images - maps to correct unified DB storage index
             if (!empty($validated['info_popup_images'])) {
                 foreach ($validated['info_popup_images'] as $idx => $caption) {
-                    $mode = $captionModes[$idx] ?? 'single';
-                    $qaItems = $captionQaData[$idx] ?? [];
-                    $value = $this->buildCaptionValue($mode, $caption, $qaItems);
-                    if ($value !== null) {
-                        $infoPopup[(string)$idx] = $value;
+                    // Check if mapping exists, fallback to numeric $idx if direct
+                    $storageIdx = empty($unifiedImageOrder) ? $idx : ($captionToStorage['images_' . $idx] ?? null);
+                    if ($storageIdx !== null) {
+                        $mode = $captionModes[$idx] ?? 'single';
+                        $qaItems = $captionQaData[$idx] ?? [];
+                        $value = $this->buildCaptionValue($mode, $caption, $qaItems);
+                        if ($value !== null) {
+                            $infoPopup[(string)$storageIdx] = $value;
+                        }
                     }
                 }
             }
@@ -807,12 +1026,33 @@ class VirtualSlideshowController extends Controller
                 $newImageModes = $request->input('info_popup_mode_new_images', []);
                 $newImageQaData = $request->input('info_popup_qa_new_images', []);
                 foreach ($validated['info_popup_new_images'] as $idx => $caption) {
-                    $actualIndex = $existingImageCount + $idx;
-                    $mode = $newImageModes[$idx] ?? ($captionModes[$actualIndex] ?? 'single');
-                    $qaItems = $newImageQaData[$idx] ?? ($captionQaData[$actualIndex] ?? []);
+                    // Mapping fallback: $jsExistingCount + $idx if no unified sequence
+                    $storageIdx = empty($unifiedImageOrder) ? ($jsExistingCount + $idx) : ($captionToStorage['newUploads_' . $idx] ?? null);
+                    if ($storageIdx !== null) {
+                        $mode = $newImageModes[$idx] ?? 'single';
+                        $qaItems = $newImageQaData[$idx] ?? [];
+                        $value = $this->buildCaptionValue($mode, $caption, $qaItems);
+                        if ($value !== null) {
+                            $infoPopup[(string)$storageIdx] = $value;
+                        }
+                    }
+                }
+            }
+
+            // Process info_popup_existing_urls[] for saved URL images
+            if (!empty($validated['info_popup_existing_urls'])) {
+                $existingUrlModes = $request->input('info_popup_mode_existing_urls', []);
+                $existingUrlQaData = $request->input('info_popup_qa_existing_urls', []);
+                // Count remaining existing image uploads (those not deleted)
+                $remainingUploadCount = count($existingImages);
+                foreach ($validated['info_popup_existing_urls'] as $urlIdx => $caption) {
+                    // Storage index = remaining uploads + url idx
+                    $storageIdx = $remainingUploadCount + $urlIdx;
+                    $mode = $existingUrlModes[$urlIdx] ?? 'single';
+                    $qaItems = $existingUrlQaData[$urlIdx] ?? [];
                     $value = $this->buildCaptionValue($mode, $caption, $qaItems);
                     if ($value !== null) {
-                        $infoPopup[(string)$actualIndex] = $value;
+                        $infoPopup[(string)$storageIdx] = $value;
                     }
                 }
             }
@@ -967,13 +1207,13 @@ class VirtualSlideshowController extends Controller
                 Storage::disk('public')->delete($img);
             }
         }
-        
+
         // Delete video file from storage
         if ($slide->video_file) {
             Storage::disk('public')->delete($slide->video_file);
         }
-        
-        $slide->delete();
+
+        $this->deleteAndShiftOrder($slide, ['feature_page_id' => $slide->feature_page_id]);
 
         // Redirect based on context
         if ($page) {

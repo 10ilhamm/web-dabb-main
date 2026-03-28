@@ -103,7 +103,7 @@
         if (is_array($captionData) && ($captionData['type'] ?? '') === 'multi') {
             return json_encode($captionData);
         }
-        return e((string)($captionData ?? ''));
+        return (string)($captionData ?? '');
     }
 
     function vssProcessImageUrl($url) {
@@ -280,23 +280,65 @@
             <div class="vsshow-carousel">
                 <div class="vsshow-carousel-track">
                     @php
-                        $uploadedCount = count($images);
+                        $unifiedImageOrder = $popup['unified_image_order'] ?? null;
+                        $carouselRenderIdx = 0;
                     @endphp
-                    @foreach($allImages as $imgIdx => $imgPath)
-                    <div class="vsshow-carousel-slide">
+                    @if($unifiedImageOrder && is_array($unifiedImageOrder))
+                        @foreach($unifiedImageOrder as $orderItem)
+                            @php
+                                $itemType = $orderItem['type'] ?? null;
+                                $imgSrc = null;
+                                $itemCaption = '';
+                                
+                                if ($itemType === 'upload') {
+                                    $idx = $orderItem['uploadIndex'] ?? 0;
+                                    $imgPath = $images[$idx] ?? null;
+                                    if ($imgPath) {
+                                        $imgSrc = asset('storage/'.$imgPath);
+                                        $itemCaption = $popup[(string)$carouselRenderIdx] ?? '';
+                                    }
+                                } elseif ($itemType === 'url') {
+                                    $idx = $orderItem['urlIndex'] ?? 0;
+                                    $imgPath = $imageUrls[$idx] ?? null;
+                                    if ($imgPath) {
+                                        $imgSrc = vssProcessImageUrl($imgPath);
+                                        $itemCaption = $popup[(string)$carouselRenderIdx] ?? '';
+                                    }
+                                }
+                            @endphp
+                            @if($imgSrc)
+                            <div class="vsshow-carousel-slide">
+                                <img src="{{ $imgSrc }}" alt="{{ $title }} — gambar {{ $carouselRenderIdx+1 }}" loading="lazy" style="width:100%;height:100%;object-fit:contain;">
+                                @if(!empty($itemCaption))
+                                <button class="vsshow-info-btn"
+                                    data-popup="{{ vssPopupData($itemCaption) }}"
+                                    data-img-src="{{ $imgSrc }}"
+                                    title="Info">?</button>
+                                @endif
+                            </div>
+                            @php $carouselRenderIdx++; @endphp
+                            @endif
+                        @endforeach
+                    @else
                         @php
-                            $isUploadedImage = $imgIdx < $uploadedCount;
-                            $imgSrc = $isUploadedImage ? asset('storage/'.$imgPath) : vssProcessImageUrl($imgPath);
+                            $uploadedCount = count($images);
                         @endphp
-                        <img src="{{ $imgSrc }}" alt="{{ $title }} — gambar {{ $imgIdx+1 }}" loading="lazy" style="width:100%;height:100%;object-fit:contain;">
-                        @if(!empty($popup[$imgIdx]) || !empty($popup[(string)$imgIdx]))
-                        <button class="vsshow-info-btn"
-                            data-popup="{{ vssPopupData($popup[$imgIdx] ?? $popup[(string)$imgIdx] ?? '') }}"
-                            data-img-src="{{ $imgSrc }}"
-                            title="Info">?</button>
-                        @endif
-                    </div>
-                    @endforeach
+                        @foreach($allImages as $imgIdx => $imgPath)
+                        <div class="vsshow-carousel-slide">
+                            @php
+                                $isUploadedImage = $imgIdx < $uploadedCount;
+                                $imgSrc = $isUploadedImage ? asset('storage/'.$imgPath) : vssProcessImageUrl($imgPath);
+                            @endphp
+                            <img src="{{ $imgSrc }}" alt="{{ $title }} — gambar {{ $imgIdx+1 }}" loading="lazy" style="width:100%;height:100%;object-fit:contain;">
+                            @if(!empty($popup[$imgIdx]) || !empty($popup[(string)$imgIdx]))
+                            <button class="vsshow-info-btn"
+                                data-popup="{{ vssPopupData($popup[$imgIdx] ?? $popup[(string)$imgIdx] ?? '') }}"
+                                data-img-src="{{ $imgSrc }}"
+                                title="Info">?</button>
+                            @endif
+                        </div>
+                        @endforeach
+                    @endif
                 </div>
 
                 @if(count($allImages) > 1)
@@ -427,27 +469,73 @@
                 <div class="vsshow-carousel">
                     <div class="vsshow-carousel-track">
                         @php
-                            $uploadedCount = count($images);
+                            $unifiedImageOrder = $popup['unified_image_order'] ?? null;
+                            $carouselRenderIdx = 0;
                         @endphp
-                        @foreach($allImages as $imgIdx => $imgPath)
-                        <div class="vsshow-carousel-slide">
+                        @if($unifiedImageOrder && is_array($unifiedImageOrder))
+                            @foreach($unifiedImageOrder as $orderItem)
+                                @php
+                                    $itemType = $orderItem['type'] ?? null;
+                                    $imgSrc = null;
+                                    $itemCaption = '';
+                                    
+                                    if ($itemType === 'upload') {
+                                        $idx = $orderItem['uploadIndex'] ?? 0;
+                                        $imgPath = $images[$idx] ?? null;
+                                        if ($imgPath) {
+                                            $imgSrc = asset('storage/'.$imgPath);
+                                            $itemCaption = $popup[(string)$carouselRenderIdx] ?? '';
+                                        }
+                                    } elseif ($itemType === 'url') {
+                                        $idx = $orderItem['urlIndex'] ?? 0;
+                                        $imgPath = $imageUrls[$idx] ?? null;
+                                        if ($imgPath) {
+                                            $imgSrc = vssProcessImageUrl($imgPath);
+                                            $itemCaption = $popup[(string)$carouselRenderIdx] ?? '';
+                                        }
+                                    }
+                                @endphp
+                                @if($imgSrc)
+                                <div class="vsshow-carousel-slide">
+                                    <img src="{{ $imgSrc }}"
+                                        alt="{{ $title }} — gambar {{ $carouselRenderIdx+1 }}"
+                                        loading="lazy"
+                                        style="width:100%;height:100%;object-fit:contain;"
+                                    >
+                                    @if(!empty($itemCaption))
+                                    <button class="vsshow-info-btn"
+                                        data-popup="{{ vssPopupData($itemCaption) }}"
+                                        data-img-src="{{ $imgSrc }}"
+                                        title="Info">?</button>
+                                    @endif
+                                </div>
+                                @php $carouselRenderIdx++; @endphp
+                                @endif
+                            @endforeach
+                        @else
                             @php
-                                $isUploadedImage = $imgIdx < $uploadedCount;
-                                $imgSrc = $isUploadedImage ? asset('storage/'.$imgPath) : vssProcessImageUrl($imgPath);
+                                $uploadedCount = count($images);
                             @endphp
-                            <img src="{{ $imgSrc }}" 
-                                alt="{{ $title }} — gambar {{ $imgIdx+1 }}" 
-                                loading="lazy" 
-                                style="width:100%;height:100%;object-fit:contain;"
-                            >
-                            @if(!empty($popup[$imgIdx]) || !empty($popup[(string)$imgIdx]))
-                            <button class="vsshow-info-btn"
-                                data-popup="{{ vssPopupData($popup[$imgIdx] ?? $popup[(string)$imgIdx] ?? '') }}"
-                                data-img-src="{{ $imgSrc }}"
-                                title="Info">?</button>
-                            @endif
-                        </div>
-                        @endforeach
+                            @foreach($allImages as $imgIdx => $imgPath)
+                            <div class="vsshow-carousel-slide">
+                                @php
+                                    $isUploadedImage = $imgIdx < $uploadedCount;
+                                    $imgSrc = $isUploadedImage ? asset('storage/'.$imgPath) : vssProcessImageUrl($imgPath);
+                                @endphp
+                                <img src="{{ $imgSrc }}"
+                                    alt="{{ $title }} — gambar {{ $imgIdx+1 }}"
+                                    loading="lazy"
+                                    style="width:100%;height:100%;object-fit:contain;"
+                                >
+                                @if(!empty($popup[$imgIdx]) || !empty($popup[(string)$imgIdx]))
+                                <button class="vsshow-info-btn"
+                                    data-popup="{{ vssPopupData($popup[$imgIdx] ?? $popup[(string)$imgIdx] ?? '') }}"
+                                    data-img-src="{{ $imgSrc }}"
+                                    title="Info">?</button>
+                                @endif
+                            </div>
+                            @endforeach
+                        @endif
                     </div>
 
                     @if(count($allImages) > 1)

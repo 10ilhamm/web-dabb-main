@@ -185,7 +185,7 @@ class FeaturePageController extends Controller
             if ($page->thumbnail_path) {
                 Storage::disk('public')->delete($page->thumbnail_path);
             }
-            $page->delete();
+            $this->deleteAndShiftOrder($page, ['feature_id' => $page->feature_id]);
             return redirect()->route('cms.features.slideshow.index', $feature)
                 ->with('success', __('cms.feature_pages.flash.page_deleted'));
         }
@@ -196,7 +196,7 @@ class FeaturePageController extends Controller
             $this->deleteSectionImages($section);
         }
 
-        $page->delete();
+        $this->deleteAndShiftOrder($page, ['feature_id' => $page->feature_id]);
 
         return redirect()->route('cms.features.pages.index', $feature)
             ->with('success', __('cms.feature_pages.flash.page_deleted'));
@@ -298,7 +298,7 @@ class FeaturePageController extends Controller
     public function destroySection(Feature $feature, FeaturePage $page, FeaturePageSection $section)
     {
         $this->deleteSectionImages($section);
-        $section->delete();
+        $this->deleteAndShiftOrder($section, ['feature_page_id' => $section->feature_page_id]);
 
         return redirect()->route('cms.features.pages.show', [$feature, $page])
             ->with('success', __('cms.feature_pages.flash.section_deleted'));

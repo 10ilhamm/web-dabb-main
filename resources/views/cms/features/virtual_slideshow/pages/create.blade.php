@@ -202,6 +202,7 @@
                     </div>
 
                     <div id="image-upload-section">
+                        <input type="hidden" name="unified_image_order" id="unifiedImageOrderInput" value="">
                         <label
                             class="flex items-center gap-3 px-4 py-3 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors">
                             <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -452,7 +453,7 @@
             singleInput.className = 'form-input';
             singleInput.placeholder = singlePlaceholder;
             singleInput.rows = 3;
-            singleInput.textContent = existingSingle;
+            singleInput.value = existingSingle;
             singleDiv.appendChild(singleInput);
             containerEl.appendChild(singleDiv);
 
@@ -789,14 +790,18 @@
                 var entries = list.querySelectorAll('.image-url-entry');
                 var newIndex = entries.length;
 
+                var uid = 'url_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                window.mediaTimeline = window.mediaTimeline || [];
+                window.mediaTimeline.push({ type: 'url', uid: uid, timestamp: Date.now() });
+
                 var entry = document.createElement('div');
                 entry.className = 'image-url-entry flex gap-2 items-start';
                 entry.setAttribute('data-index', newIndex);
                 entry.innerHTML =
-                    '<a href="#" target="_blank" class="url-link-btn px-2 py-2 text-blue-600 hover:bg-blue-50 rounded-lg flex-shrink-0 opacity-30 cursor-not-allowed" title="Buka link" onclick="return false;">' +
+                    '<a href="#" target="_blank" class="url-link-btn px-2 py-2 text-blue-600 hover:bg-blue-50 rounded-lg flex-shrink-0 opacity-30 cursor-not-allowed" title="' + __t.open_link + '" onclick="return false;">' +
                     '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
                     '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg></a>' +
-                    '<input type="text" name="image_urls[]" class="form-input flex-1" ' +
+                    '<input type="text" name="image_urls[]" class="form-input flex-1" data-uid="' + uid + '" ' +
                     'placeholder="' + __t.image_url_placeholder + '" data-index="' + newIndex + '" oninput="updateUrlLink(this)">' +
                     '<button type="button" onclick="removeImageUrlEntry(this)" class="px-2 py-2 text-red-500 hover:bg-red-50 rounded-lg flex-shrink-0" title="Hapus">' +
                     '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
@@ -829,11 +834,45 @@
             var urlImageCaptionTracker = {};   // keyed by url index
             var uploadImageCaptionTracker = {}; // keyed by upload index
 
+            function extractWidgetState(widgetContainer) {
+                if (!widgetContainer) return '';
+                var modeSelect = widgetContainer.querySelector('select[name^="info_popup_mode_"]');
+                if (!modeSelect) return '';
+                if (modeSelect.value === 'single') {
+                    var singleInput = widgetContainer.querySelector('.caption-single-section textarea');
+                    return singleInput ? singleInput.value : '';
+                } else {
+                    var items = [];
+                    var pairs = widgetContainer.querySelectorAll('.caption-qa-pair');
+                    pairs.forEach(function(pair) {
+                        var qInput = pair.querySelector('input[type="text"]');
+                        var aTextarea = pair.querySelector('textarea');
+                        items.push({
+                            question: qInput ? qInput.value : '',
+                            answer: aTextarea ? aTextarea.value : ''
+                        });
+                    });
+                    if (items.length === 0) items.push({question: '', answer: ''});
+                    return { type: 'multi', items: items };
+                }
+            }
+
             window.removeImageUrlEntry = function(btn) {
                 var entry = btn.closest('.image-url-entry');
                 var entries = document.querySelectorAll('.image-url-entry');
-                // Find this entry's index among valid URL entries before removing
+                // Find this entry's index among all URL entries before removing
                 var entryIdx = Array.prototype.indexOf.call(entries, entry);
+
+                // First save all current widget states before modifying anything
+                var popupRows = document.getElementById('infoPopupRows');
+                if (popupRows) {
+                    popupRows.querySelectorAll('[data-url-slot-index]').forEach(function(container) {
+                        var slotIdx = parseInt(container.getAttribute('data-url-slot-index'));
+                        if (!isNaN(slotIdx)) {
+                            urlImageCaptionTracker[slotIdx] = extractWidgetState(container);
+                        }
+                    });
+                }
 
                 if (entries.length > 1) {
                     entry.remove();
@@ -888,30 +927,39 @@
                 var popupArea = document.getElementById('infoPopupImageArea');
                 var hint = document.getElementById('noImagesHint');
 
-                // Save current caption values before clearing
-                popupRows.querySelectorAll('input[name^="info_popup_images"]').forEach(function(input) {
-                    var match = input.name.match(/info_popup_images\[(\d+)\]/);
-                    if (match) {
-                        var key = parseInt(match[1]);
-                        // Determine if this is a URL caption or upload caption based on current layout
-                        var label = input.closest('.info-popup-row').querySelector('.form-label');
-                        if (label && label.textContent.indexOf('URL') !== -1) {
-                            urlImageCaptionTracker[key] = input.value;
-                        } else if (label && label.textContent.indexOf('Upload') !== -1) {
-                            // Upload captions use their own index (key minus url count)
-                            uploadImageCaptionTracker[key] = input.value;
-                        }
+                // Save current caption values before clearing by reading widget state
+                // Use data-url-slot-index attr set during render so we can stable-map back
+                popupRows.querySelectorAll('[data-url-slot-index]').forEach(function(container) {
+                    var slotIdx = parseInt(container.getAttribute('data-url-slot-index'));
+                    if (!isNaN(slotIdx)) {
+                        urlImageCaptionTracker[slotIdx] = extractWidgetState(container);
+                    }
+                });
+                popupRows.querySelectorAll('[data-upload-slot-index]').forEach(function(container) {
+                    var slotIdx = parseInt(container.getAttribute('data-upload-slot-index'));
+                    if (!isNaN(slotIdx)) {
+                        uploadImageCaptionTracker[slotIdx] = extractWidgetState(container);
                     }
                 });
 
-                // Get all URL inputs
+                window.mediaTimeline = window.mediaTimeline || [];
+                var activeItems = [];
+                var numValidUrls = 0;
+
                 var urlInputs = document.querySelectorAll('#image-url-list input[name="image_urls[]"]');
-                var urlImages = [];
+                var uploadedCount = selectedImageFiles.length;
 
                 urlInputs.forEach(function(input, idx) {
                     var url = input.value.trim();
                     var entry = input.closest('.image-url-entry');
                     var linkBtn = entry ? entry.querySelector('.url-link-btn') : null;
+
+                    var uid = input.getAttribute('data-uid');
+                    if (!uid && url) { // Only timestamp when user actually enters a URL
+                        uid = 'url_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                        input.setAttribute('data-uid', uid);
+                        window.mediaTimeline.push({ type: 'url', uid: uid, timestamp: Date.now() });
+                    }
 
                     if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
                         if (linkBtn) {
@@ -919,8 +967,17 @@
                             linkBtn.classList.remove('opacity-30', 'cursor-not-allowed');
                             linkBtn.onclick = null;
                         }
-                        var displayUrl = convertGoogleDriveUrl(url);
-                        urlImages.push({ url: displayUrl, originalUrl: url });
+                        var timelineEntry = window.mediaTimeline.find(function(t) { return t.uid === uid; });
+                        activeItems.push({
+                            type: 'url',
+                            url: convertGoogleDriveUrl(url),
+                            originalUrl: url,
+                            uid: uid,
+                            domIdx: idx,
+                            backendIdx: uploadedCount + numValidUrls, // N to N+M-1
+                            timestamp: timelineEntry ? timelineEntry.timestamp : Date.now()
+                        });
+                        numValidUrls++;
                     } else {
                         if (linkBtn) {
                             linkBtn.href = '#';
@@ -930,11 +987,29 @@
                     }
                 });
 
-                var uploadedCount = selectedImageFiles.length;
-                var totalImages = urlImages.length + uploadedCount;
+                selectedImageFiles.forEach(function(file, idx) {
+                    var uid = file._uid;
+                    if (!uid) { // default if missing
+                        uid = 'upload_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                        file._uid = uid;
+                        window.mediaTimeline.push({ type: 'upload', uid: uid, timestamp: Date.now() });
+                    }
+                    var timelineEntry = window.mediaTimeline.find(function(t) { return t.uid === uid; });
+                    activeItems.push({
+                        type: 'upload',
+                        file: file,
+                        uid: uid,
+                        domIdx: idx,
+                        backendIdx: idx, // 0 to N-1
+                        timestamp: timelineEntry ? timelineEntry.timestamp : Date.now()
+                    });
+                });
 
-                // Clear preview area
+                var totalImages = activeItems.length;
+
+                // Clear both areas
                 previewArea.innerHTML = '';
+                popupRows.innerHTML = '';
 
                 if (totalImages === 0) {
                     previewArea.style.display = 'none';
@@ -944,10 +1019,9 @@
                     return;
                 }
 
-                // Show preview area if there are URL images
-                previewArea.style.display = urlImages.length > 0 ? 'flex' : 'none';
-
+                previewArea.style.display = 'flex';
                 if (hint) hint.style.display = 'none';
+
                 var typeInput = document.getElementById('slide_type_input');
                 var isHeroType = typeInput && typeInput.value === 'hero';
                 if (isHeroType) {
@@ -955,92 +1029,102 @@
                 } else {
                     if (popupArea) popupArea.style.display = 'block';
                 }
-                popupRows.innerHTML = '';
 
-                // Render uploaded image previews first (uploads come first in DB: array_merge(images, image_urls))
-                var uploadedCount = selectedImageFiles.length;
-                selectedImageFiles.forEach(function(file, idx) {
-                    var reader = new FileReader();
-                    var imgIndex = idx; // uploads at indices 0..N-1
-                    (function(index, fileReader) {
-                        fileReader.onload = function(e) {
-                            var wrap = document.createElement('div');
-                            wrap.className = 'img-preview-wrap';
-                            wrap.innerHTML = '<img src="' + e.target.result + '" alt="" style="height:60px;width:60px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb;">' +
-                                '<button type="button" class="remove-img" onclick="removePreviewImage(' + index + ')">✕</button>';
-                            previewArea.appendChild(wrap);
-                        };
-                    })(idx, reader);
-                    reader.readAsDataURL(file);
+                // Sort purely chronologically by timestamp
+                activeItems.sort(function(a, b) { return a.timestamp - b.timestamp; });
 
-                    // Add caption widget with saved value
-                    var savedCaption = uploadImageCaptionTracker[idx] || '';
-                    var row = document.createElement('div');
-                    row.className = 'info-popup-row';
-                    var label = document.createElement('label');
-                    label.className = 'form-label';
-                    label.style.marginBottom = '4px';
-                    label.textContent = 'Gambar Upload ' + (idx + 1);
-                    row.appendChild(label);
-                    var widgetContainer = document.createElement('div');
-                    var widget = createCaptionWidget(widgetContainer, 'info_popup_images', imgIndex, savedCaption, {
-                        singlePlaceholder: 'Keterangan gambar ' + (idx + 1) + ' (opsional)...',
-                        isArray: true
-                    });
-                    widget.singleInput.addEventListener('input', (function(uploadIdx) {
-                        return function() { uploadImageCaptionTracker[uploadIdx] = this.value; };
-                    })(idx));
-                    row.appendChild(widgetContainer);
-                    popupRows.appendChild(row);
-                });
+                // Render logic in chronological order
+                activeItems.forEach(function(item) {
+                    if (item.type === 'upload') {
+                        // Render upload preview synchronously to preserve order
+                        var wrap = document.createElement('div');
+                        wrap.className = 'img-preview-wrap';
+                        wrap.innerHTML = '<div style="height:60px;width:60px;background:#f3f4f6;border-radius:8px;border:1px solid #e5e7eb;display:flex;align-items:center;justify-content:center;"><span class="text-xs text-gray-400">...</span></div>';
+                        previewArea.appendChild(wrap);
 
-                // Render URL image previews (URLs come after uploads in DB)
-                urlImages.forEach(function(img, idx) {
-                    var wrap = document.createElement('div');
-                    wrap.className = 'img-preview-wrap';
+                        var reader = new FileReader();
+                        (function(idx, backendIdx, fileReader, container) {
+                            fileReader.onload = function(e) {
+                                container.innerHTML = '<img src="' + e.target.result + '" alt="" style="height:60px;width:60px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb;">' +
+                                    '<button type="button" class="remove-img" onclick="removePreviewImage(' + idx + ')">✕</button>';
+                            };
+                        })(item.domIdx, item.backendIdx, reader, wrap);
+                        reader.readAsDataURL(item.file);
 
-                    var imgIndex = uploadedCount + idx; // URLs at indices N..N+M-1
-                    var isGoogleDrive = img.originalUrl.includes('drive.google.com');
+                        // Render upload caption
+                        var savedCaption = uploadImageCaptionTracker[item.domIdx] || '';
+                        var row = document.createElement('div');
+                        row.className = 'info-popup-row';
+                        var label = document.createElement('label');
+                        label.className = 'form-label';
+                        label.style.marginBottom = '4px';
+                        label.textContent = 'Gambar Upload ' + (item.domIdx + 1);
+                        row.appendChild(label);
+                        var widgetContainer = document.createElement('div');
+                        widgetContainer.setAttribute('data-upload-slot-index', item.domIdx);
+                        // Force Backend Index for precise matching
+                        createCaptionWidget(widgetContainer, 'info_popup_images', item.backendIdx, savedCaption, {
+                            singlePlaceholder: 'Keterangan gambar ' + (item.domIdx + 1) + ' (opsional)...',
+                            isArray: true
+                        });
+                        row.appendChild(widgetContainer);
+                        popupRows.appendChild(row);
 
-                    if (isGoogleDrive) {
-                        wrap.innerHTML = '<div class="flex flex-col items-center justify-center" style="height:60px;width:60px;background:#f3f4f6;border-radius:8px;border:1px solid #e5e7eb;">' +
-                            '<svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>' +
-                            '<a href="' + img.originalUrl + '" target="_blank" class="text-xs text-blue-500 hover:text-blue-700 mt-1">' + __t.view + '</a></div>' +
-                            '<button type="button" class="remove-img" onclick="removeUrlImage(' + idx + ')">✕</button>';
-                    } else {
-                        wrap.innerHTML = '<img src="' + img.url + '" alt="" style="height:60px;width:60px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb;" onerror="this.style.display=\'none\'; this.nextElementSibling.style.display=\'flex\';">' +
-                            '<div class="flex flex-col items-center justify-center" style="height:60px;width:60px;background:#f3f4f6;border-radius:8px;border:1px solid #e5e7eb;display:none;">' +
-                            '<svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>' +
-                            '<a href="' + img.originalUrl + '" target="_blank" class="text-xs text-blue-500 hover:text-blue-700 mt-1">' + __t.view + '</a></div>' +
-                            '<button type="button" class="remove-img" onclick="removeUrlImage(' + idx + ')">✕</button>';
+                    } else if (item.type === 'url') {
+                        // Render URL preview
+                        var wrap = document.createElement('div');
+                        wrap.className = 'img-preview-wrap';
+                        var isGoogleDrive = item.originalUrl.includes('drive.google.com');
+
+                        if (isGoogleDrive) {
+                            wrap.innerHTML = '<div class="flex flex-col items-center justify-center" style="height:60px;width:60px;background:#f3f4f6;border-radius:8px;border:1px solid #e5e7eb;">' +
+                                '<svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>' +
+                                '<a href="' + item.originalUrl + '" target="_blank" class="text-xs text-blue-500 hover:text-blue-700 mt-1">' + __t.view + '</a></div>' +
+                                '<button type="button" class="remove-img" onclick="removeUrlImage(' + item.domIdx + ')">✕</button>';
+                        } else {
+                            wrap.innerHTML = '<img src="' + item.url + '" alt="" style="height:60px;width:60px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb;" onerror="this.style.display=\'none\'; this.nextElementSibling.style.display=\'flex\';">' +
+                                '<div class="flex flex-col items-center justify-center" style="height:60px;width:60px;background:#f3f4f6;border-radius:8px;border:1px solid #e5e7eb;display:none;">' +
+                                '<svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>' +
+                                '<a href="' + item.originalUrl + '" target="_blank" class="text-xs text-blue-500 hover:text-blue-700 mt-1">' + __t.view + '</a></div>' +
+                                '<button type="button" class="remove-img" onclick="removeUrlImage(' + item.domIdx + ')">✕</button>';
+                        }
+                        previewArea.appendChild(wrap);
+
+                        // Render URL caption
+                        var savedCaption = urlImageCaptionTracker[item.domIdx] || '';
+                        var row = document.createElement('div');
+                        row.className = 'info-popup-row';
+                        var label = document.createElement('label');
+                        label.className = 'form-label';
+                        label.style.marginBottom = '4px';
+                        label.textContent = 'Gambar URL ' + (item.domIdx + 1);
+                        row.appendChild(label);
+                        var widgetContainer = document.createElement('div');
+                        widgetContainer.setAttribute('data-url-slot-index', item.domIdx);
+                        // Force Backend Index for precise matching
+                        createCaptionWidget(widgetContainer, 'info_popup_images', item.backendIdx, savedCaption, {
+                            singlePlaceholder: 'Keterangan gambar ' + (item.domIdx + 1) + ' (opsional)...',
+                            isArray: true
+                        });
+                        row.appendChild(widgetContainer);
+                        popupRows.appendChild(row);
                     }
-                    previewArea.appendChild(wrap);
-
-                    // Add caption widget with saved value
-                    var savedCaption = urlImageCaptionTracker[idx] || '';
-                    var row = document.createElement('div');
-                    row.className = 'info-popup-row';
-                    var label = document.createElement('label');
-                    label.className = 'form-label';
-                    label.style.marginBottom = '4px';
-                    label.textContent = 'Gambar URL ' + (idx + 1);
-                    row.appendChild(label);
-                    var widgetContainer = document.createElement('div');
-                    var widget = createCaptionWidget(widgetContainer, 'info_popup_images', imgIndex, savedCaption, {
-                        singlePlaceholder: 'Keterangan gambar ' + (idx + 1) + ' (opsional)...',
-                        isArray: true
-                    });
-                    widget.singleInput.addEventListener('input', (function(captionIdx) {
-                        return function() { urlImageCaptionTracker[captionIdx] = this.value; };
-                    })(idx));
-                    row.appendChild(widgetContainer);
-                    popupRows.appendChild(row);
                 });
 
-                // Show uploaded image previews too
-                if (uploadedCount > 0) {
-                    previewArea.style.display = 'flex';
-                }
+                updateUnifiedImageOrderInput(activeItems);
+            }
+
+            function updateUnifiedImageOrderInput(activeItems) {
+                var input = document.getElementById('unifiedImageOrderInput');
+                if (!input) return;
+                var serializable = activeItems.map(function(item) {
+                    if (item.type === 'url') {
+                        return { type: 'url', urlIndex: item.domIdx, urlValue: item.originalUrl, order: item.timestamp };
+                    } else if (item.type === 'upload') {
+                        return { type: 'newUpload', newUploadIndex: item.domIdx, order: item.timestamp };
+                    }
+                });
+                input.value = JSON.stringify(serializable);
             }
 
             window.removeUrlImage = function(idx) {
@@ -1102,46 +1186,6 @@
                     reader.readAsDataURL(file);
                 }
             };
-
-            var selectedImageFiles = [];
-
-            window.previewImages = function(input) {
-                var files = Array.from(input.files);
-                if (files.length === 0) return;
-
-                // Hero: hanya terima 1 file
-                var typeInput = document.getElementById('slide_type_input');
-                if (typeInput && typeInput.value === 'hero') {
-                    if (typeof isHeroSingleImageMode === 'function' && isHeroSingleImageMode()) {
-                        var warning = document.getElementById('heroImageLimitWarning');
-                        if (warning) {
-                            warning.textContent = 'Hanya boleh upload 1 gambar untuk Hero. Hapus gambar yang ada terlebih dahulu.';
-                            warning.style.display = 'block';
-                        }
-                        input.value = '';
-                        return;
-                    }
-                    if (files.length > 1) {
-                        files = [files[0]];
-                        var warning = document.getElementById('heroImageLimitWarning');
-                        if (warning) {
-                            warning.textContent = 'Hanya 1 gambar yang akan disimpan untuk Hero.';
-                            warning.style.display = 'block';
-                        }
-                    }
-                }
-
-                files.forEach(function(file) {
-                    selectedImageFiles.push(file);
-                });
-
-                renderImagePreviews();
-            };
-
-            function renderImagePreviews() {
-                updateUrlImagePreviews();
-            }
-
             window.removePreviewImage = function(idx) {
                 // Remove caption and shift remaining upload captions down
                 delete uploadImageCaptionTracker[idx];
@@ -1157,9 +1201,8 @@
                 uploadImageCaptionTracker = newTracker;
 
                 selectedImageFiles.splice(idx, 1);
-                renderImagePreviews();
+                updateUrlImagePreviews();
             };
-
             // Carousel Video Variables and Functions
             var keptCarouselCaptions = {};
             var selectedCarouselVideoFiles = [];
@@ -1275,6 +1318,21 @@
                 updateCarouselVideoPreviews();
             };
 
+            var selectedImageFiles = [];
+
+            window.previewImages = function(input) {
+                var files = Array.from(input.files);
+
+                if (files.length === 0) return;
+
+                files.forEach(function(file) {
+                    selectedImageFiles.push(file);
+                });
+
+                updateUrlImagePreviews();
+                updateUrlImagePreviews();
+            };
+
             window.previewCarouselVideos = function(input) {
                 var files = Array.from(input.files);
 
@@ -1303,6 +1361,17 @@
                 var popupRows = document.getElementById('carouselVideoInfoPopupRows');
                 var hint = document.getElementById('noCarouselVideosHint');
 
+                // Save current caption values before clearing
+                popupRows.querySelectorAll('select[name^="info_popup_mode_carousel_videos"]').forEach(function(select) {
+                    var match = select.name.match(/info_popup_mode_carousel_videos\[([^\]]+)\]/);
+                    if (match) {
+                        var key = match[1];
+                        var widgetContainer = select.parentElement.parentElement;
+                        var state = extractWidgetState(widgetContainer);
+                        keptCarouselCaptions[key] = state;
+                    }
+                });
+
                 // Sync URL entries from DOM to unifiedVideoOrder
                 var urlEntries = document.querySelectorAll('.carousel-video-url-entry');
 
@@ -1320,6 +1389,9 @@
 
                         if (existingEntry) {
                             existingEntry.urlValue = urlValue;
+                        } else {
+                            // Register the initial/implicit entry
+                            unifiedVideoOrder.push({ type: 'url', urlIndex: urlIndex, urlValue: urlValue, order: Date.now() });
                         }
                     }
                 });
@@ -1399,7 +1471,8 @@
                         rowLabel.textContent = 'Video ' + (displayIndex + 1);
                         row.appendChild(rowLabel);
                         var widgetContainer = document.createElement('div');
-                        createCaptionWidget(widgetContainer, 'info_popup_carousel_videos', captionKey, null, {
+                        var savedCaption = keptCarouselCaptions[captionKey] || null;
+                        createCaptionWidget(widgetContainer, 'info_popup_carousel_videos', captionKey, savedCaption, {
                             singlePlaceholder: 'Keterangan video ' + (displayIndex + 1) + ' (opsional)...',
                             isArray: true
                         });
@@ -1417,16 +1490,19 @@
 
                         var videoFile = video.file || selectedCarouselVideoFiles[video.newUploadIndex];
                         if (videoFile) {
+                            // Ensure synchronous appendage to preserve chronological ordering
+                            var newWrap = document.createElement('div');
+                            newWrap.className = 'img-preview-wrap';
+                            newWrap.innerHTML = '<div style="height:60px;width:80px;background:#f3f4f6;border-radius:8px;border:1px solid #e5e7eb;display:flex;align-items:center;justify-content:center;"><span class="text-xs text-gray-400">...</span></div>';
+                            previewArea.appendChild(newWrap);
+
                             var reader = new FileReader();
-                            (function(displayIdx, file, videoIdx) {
+                            (function(displayIdx, file, videoIdx, container) {
                                 reader.onload = function(e) {
-                                    var newWrap = document.createElement('div');
-                                    newWrap.className = 'img-preview-wrap';
-                                    newWrap.innerHTML = '<video src="' + e.target.result + '" style="height:60px;width:80px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb;"></video>' +
+                                    container.innerHTML = '<video src="' + e.target.result + '" style="height:60px;width:80px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb;"></video>' +
                                         '<button type="button" class="remove-img" onclick="removePreviewVideo(' + videoIdx + ')">✕</button>';
-                                    previewArea.appendChild(newWrap);
                                 };
-                            })(displayIndex, videoFile, video.newUploadIndex);
+                            })(displayIndex, videoFile, video.newUploadIndex, newWrap);
                             reader.readAsDataURL(videoFile);
 
                             var row = document.createElement('div');
@@ -1438,7 +1514,8 @@
                             rowLabel.textContent = 'Video ' + (displayIndex + 1);
                             row.appendChild(rowLabel);
                             var widgetContainer = document.createElement('div');
-                            createCaptionWidget(widgetContainer, 'info_popup_carousel_videos', captionKey, null, {
+                            var savedCaption = keptCarouselCaptions[captionKey] || null;
+                            createCaptionWidget(widgetContainer, 'info_popup_carousel_videos', captionKey, savedCaption, {
                                 singlePlaceholder: 'Keterangan video ' + (displayIndex + 1) + ' (opsional)...',
                                 isArray: true
                             });

@@ -221,7 +221,7 @@ class VirtualBookPageController extends Controller
             Storage::disk('public')->delete($virtualBookPage->thumbnail);
         }
 
-        $virtualBookPage->delete();
+        $this->deleteAndShiftOrder($virtualBookPage, ['book_id' => $virtualBookPage->book_id]);
 
         return redirect()->route('cms.features.virtual_books.pages.index', [$feature, $book])
             ->with('success', 'Halaman buku berhasil dihapus');

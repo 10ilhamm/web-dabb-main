@@ -224,6 +224,28 @@
                                 <div class="flex items-center gap-3 mt-1 text-xs text-gray-400">
                                     @php
                                         $totalImages = (isset($slide->images) ? count($slide->images) : 0) + (isset($slide->image_urls) ? count($slide->image_urls) : 0);
+
+                                        // Count all video sources
+                                        $totalVideos = 0;
+                                        // Carousel video URLs
+                                        if (isset($slide->carousel_video_urls) && is_array($slide->carousel_video_urls)) {
+                                            foreach ($slide->carousel_video_urls as $vUrl) {
+                                                if (!empty($vUrl)) $totalVideos++;
+                                            }
+                                        }
+                                        // Carousel uploaded video files
+                                        if (isset($slide->carousel_videos) && is_array($slide->carousel_videos)) {
+                                            $totalVideos += count($slide->carousel_videos);
+                                        }
+                                        // Single video URL
+                                        if (!empty($slide->video_url)) {
+                                            $totalVideos++;
+                                        }
+                                        // Single video file upload
+                                        if (!empty($slide->video_file)) {
+                                            $totalVideos++;
+                                        }
+
                                         $totalInfoPopup = 0;
                                         if (isset($slide->info_popup) && is_array($slide->info_popup)) {
                                             // Explicitly handle carousel structure:
@@ -242,7 +264,7 @@
                                             // Fallback: generic top-level iteration for other slide types
                                             // (e.g. video slides where "0", "1" are direct string captions)
                                             foreach ($slide->info_popup as $key => $entry) {
-                                                if (in_array($key, ['carousel_video_order', 'carousel_videos'], true)) {
+                                                if (in_array($key, ['carousel_video_order', 'carousel_videos', 'unified_image_order'], true)) {
                                                     continue;
                                                 }
                                                 if (is_string($entry)) {
@@ -259,10 +281,10 @@
                                         }
                                     @endphp
                                     @if ($totalImages > 0)
-                                        <span>📷 {{ __('cms.virtual_slideshow.images_count', ['count' => $totalImages]) }}</span>
+                                        <span>📷 {{ $totalImages }} {{ $totalImages === 1 ? 'gambar' : 'gambar' }}</span>
                                     @endif
-                                    @if ($slide->video_url)
-                                        <span>🎬 {{ __('cms.virtual_slideshow.has_video') }}</span>
+                                    @if ($totalVideos > 0)
+                                        <span>🎬 {{ $totalVideos }} video</span>
                                     @endif
                                     @if ($totalInfoPopup > 0)
                                         <span>💬 {{ __('cms.virtual_slideshow.info_popup_count', ['count' => $totalInfoPopup]) }}</span>

@@ -296,7 +296,7 @@ class BookController extends Controller
         }
         $book->pages()->delete();
 
-        $book->delete();
+        $this->deleteAndShiftOrder($book, ['feature_id' => $book->feature_id]);
 
         return redirect()->route('cms.features.virtual_books.index', $feature)
             ->with('success', 'Buku berhasil dihapus');

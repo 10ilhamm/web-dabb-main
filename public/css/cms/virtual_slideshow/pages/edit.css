@@ -185,6 +185,37 @@
             cursor: pointer;
         }
 
+        .existing-url-img-wrap {
+            position: relative;
+            display: inline-block;
+            margin: 4px;
+        }
+
+        .existing-url-img-wrap img {
+            height: 80px;
+            width: 80px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .existing-url-img-wrap .remove-existing {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
         .img-preview-wrap {
             position: relative;
             display: inline-block;
