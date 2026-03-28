@@ -1347,6 +1347,7 @@
 
             // Caption tracker for new uploaded images to persist values across re-renders
             var newUploadImageCaptionTracker = {};
+            var urlImageCaptionTracker = {};
 
             function extractWidgetState(widgetContainer) {
                 if (!widgetContainer) return '';
@@ -1402,7 +1403,7 @@
                         var backendIdx = parseInt(container.getAttribute('data-backend-idx'));
                         var state = extractWidgetState(container);
                         var stateStr = typeof state === 'object' ? JSON.stringify(state) : state;
-                        urlImageCaptionTracker[backendIdx] = state;
+                        urlImageCaptionTracker[slotIdx] = state;
                         // Find the URL input whose data-index matches slotIdx
                         var allUrlInputs = document.querySelectorAll('#image-url-list input[name^="new_image_urls"]');
                         for (var i = 0; i < allUrlInputs.length; i++) {
@@ -1537,7 +1538,8 @@
                         })(item.domIdx, reader, wrap);
                         reader.readAsDataURL(item.file);
 
-                        // Render upload caption
+                        // Render upload caption — reuse existing widget if already in DOM to preserve user input
+                        var existingUploadContainer = uploadCaptionRows.querySelector('[data-upload-slot-index="' + item.domIdx + '"]');
                         var savedCaption = newUploadImageCaptionTracker[item.domIdx] || '';
                         var row = document.createElement('div');
                         row.className = 'info-popup-row';
@@ -1546,14 +1548,35 @@
                         labelEl.style.marginBottom = '4px';
                         labelEl.textContent = __t.popup_existing_images + ' ' + displayPosition;
                         row.appendChild(labelEl);
-                        var widgetContainer = document.createElement('div');
-                        widgetContainer.setAttribute('data-upload-slot-index', item.domIdx);
-                        createCaptionWidget(widgetContainer, 'info_popup_new_images', item.backendIdx, savedCaption, {
-                            singlePlaceholder: __t.popup_existing_images + ' ' + displayPosition + '...',
-                            isArray: true
-                        });
-                        row.appendChild(widgetContainer);
-                        uploadCaptionRows.appendChild(row);
+
+                        if (existingUploadContainer && existingUploadContainer.querySelector('.caption-widget-mode')) {
+                            // Widget already exists — only recreate if caption state differs
+                            var currentState = extractWidgetState(existingUploadContainer);
+                            var currentStr = typeof currentState === 'object' ? JSON.stringify(currentState) : currentState;
+                            var newStr = typeof savedCaption === 'object' ? JSON.stringify(savedCaption) : (savedCaption || '');
+                            if (currentStr === newStr) {
+                                row.appendChild(existingUploadContainer);
+                                uploadCaptionRows.appendChild(row);
+                            } else {
+                                var widgetContainer = document.createElement('div');
+                                widgetContainer.setAttribute('data-upload-slot-index', item.domIdx);
+                                createCaptionWidget(widgetContainer, 'info_popup_new_images', item.backendIdx, savedCaption, {
+                                    singlePlaceholder: __t.popup_existing_images + ' ' + displayPosition + '...',
+                                    isArray: true
+                                });
+                                row.appendChild(widgetContainer);
+                                uploadCaptionRows.appendChild(row);
+                            }
+                        } else {
+                            var widgetContainer = document.createElement('div');
+                            widgetContainer.setAttribute('data-upload-slot-index', item.domIdx);
+                            createCaptionWidget(widgetContainer, 'info_popup_new_images', item.backendIdx, savedCaption, {
+                                singlePlaceholder: __t.popup_existing_images + ' ' + displayPosition + '...',
+                                isArray: true
+                            });
+                            row.appendChild(widgetContainer);
+                            uploadCaptionRows.appendChild(row);
+                        }
 
                     } else if (item.type === 'url') {
                         // Render URL preview
@@ -1568,12 +1591,15 @@
                             '<button type="button" class="remove-img" onclick="removeUrlImage(' + item.domIdx + ')">✕</button>';
                         uploadPreviewArea.appendChild(wrap);
 
-                        // Render URL caption
-                        var captionValue = item.caption || '';
+                        // Render URL caption — reuse existing widget if already in DOM to preserve user input
+                        var existingContainer = uploadCaptionRows.querySelector('[data-url-slot-index="' + item.domIdx + '"]');
+                        var savedCaption = urlImageCaptionTracker[item.domIdx] || '';
+                        var captionValue = item.caption || savedCaption || '';
                         var captionData = captionValue;
                         if (typeof captionValue === 'string' && captionValue.charAt(0) === '{') {
                             try { captionData = JSON.parse(captionValue); } catch(e) {}
                         }
+
                         var row = document.createElement('div');
                         row.className = 'info-popup-row';
                         var labelEl = document.createElement('label');
@@ -1581,15 +1607,40 @@
                         labelEl.style.marginBottom = '4px';
                         labelEl.textContent = __t.popup_url_images + ' ' + displayPosition;
                         row.appendChild(labelEl);
-                        var widgetContainer = document.createElement('div');
-                        widgetContainer.setAttribute('data-url-slot-index', item.domIdx);
-                        widgetContainer.setAttribute('data-backend-idx', item.backendIdx);
-                        createCaptionWidget(widgetContainer, 'info_popup_images', item.backendIdx, captionData, {
-                            singlePlaceholder: __t.popup_url_images + ' ' + displayPosition + '...',
-                            isArray: true
-                        });
-                        row.appendChild(widgetContainer);
-                        uploadCaptionRows.appendChild(row);
+
+                        if (existingContainer && existingContainer.querySelector('.caption-widget-mode')) {
+                            // Widget already exists — only recreate if caption state differs
+                            var currentState = extractWidgetState(existingContainer);
+                            var currentStr = typeof currentState === 'object' ? JSON.stringify(currentState) : currentState;
+                            var newStr = typeof captionData === 'object' ? JSON.stringify(captionData) : (captionData || '');
+                            if (currentStr === newStr) {
+                                // State unchanged — preserve existing DOM (preserves user input)
+                                row.appendChild(existingContainer);
+                                uploadCaptionRows.appendChild(row);
+                            } else {
+                                // State changed — recreate with new data
+                                var widgetContainer = document.createElement('div');
+                                widgetContainer.setAttribute('data-url-slot-index', item.domIdx);
+                                widgetContainer.setAttribute('data-backend-idx', item.backendIdx);
+                                createCaptionWidget(widgetContainer, 'info_popup_images', item.backendIdx, captionData, {
+                                    singlePlaceholder: __t.popup_url_images + ' ' + displayPosition + '...',
+                                    isArray: true
+                                });
+                                row.appendChild(widgetContainer);
+                                uploadCaptionRows.appendChild(row);
+                            }
+                        } else {
+                            // No existing widget — create new one
+                            var widgetContainer = document.createElement('div');
+                            widgetContainer.setAttribute('data-url-slot-index', item.domIdx);
+                            widgetContainer.setAttribute('data-backend-idx', item.backendIdx);
+                            createCaptionWidget(widgetContainer, 'info_popup_images', item.backendIdx, captionData, {
+                                singlePlaceholder: __t.popup_url_images + ' ' + displayPosition + '...',
+                                isArray: true
+                            });
+                            row.appendChild(widgetContainer);
+                            uploadCaptionRows.appendChild(row);
+                        }
                     }
                 });
 
@@ -1647,11 +1698,8 @@
                 });
                 if (!targetEntry) return;
 
-                // Delete the tracker entry (keyed by backendIdx) before removing
-                var existingUploadedCount = getRemainingExistingCount();
-                var uploadedCount = selectedNewImageFiles.length;
-                var removedBackendIdx = existingUploadedCount + uploadedCount + domIdx;
-                delete urlImageCaptionTracker[removedBackendIdx];
+                // Delete the tracker entry (keyed by domIdx) before removing
+                delete urlImageCaptionTracker[domIdx];
 
                 if (entries.length > 1) {
                     targetEntry.remove();
@@ -2421,34 +2469,6 @@
                     isArray: true
                 });
             });
-
-            // Hapus gambar URL tersimpan dari preview atas + kosongkan input di image-url-list
-            window.removeExistingUrl = function(idx) {
-                // Sembunyikan thumbnail di bagian preview atas
-                var wrap = document.getElementById('existing-url-wrap-' + idx);
-                if (wrap) {
-                    wrap.style.opacity = '0.3';
-                    wrap.style.pointerEvents = 'none';
-                    var btn = wrap.querySelector('button');
-                    if (btn) btn.style.display = 'none';
-                }
-                // Sembunyikan caption row
-                var captionRow = document.getElementById('existing-url-popup-row-' + idx);
-                if (captionRow) captionRow.style.display = 'none';
-
-                // Kosongkan input image_urls[idx] di image-url-list agar tidak ikut tersimpan
-                var urlInput = document.querySelector('#image-url-list input[name="existing_image_urls[' + idx + ']"]');
-                if (urlInput) {
-                    var entry = urlInput.closest('.image-url-entry');
-                    var entries = document.querySelectorAll('#image-url-list .image-url-entry');
-                    if (entries.length > 1) {
-                        if (entry) entry.remove();
-                    } else {
-                        urlInput.value = '';
-                    }
-                    updateUrlImagePreviews();
-                }
-            };
 
             // Initialize video caption widget (Upload)
             var videoCaptionEl = document.getElementById('videoCaptionWidget');
