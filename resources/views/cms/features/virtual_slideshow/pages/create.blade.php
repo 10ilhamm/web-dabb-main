@@ -868,20 +868,42 @@
                 if (popupRows) {
                     popupRows.querySelectorAll('[data-url-slot-index]').forEach(function(container) {
                         var slotIdx = parseInt(container.getAttribute('data-url-slot-index'));
-                        if (!isNaN(slotIdx)) {
-                            urlImageCaptionTracker[slotIdx] = extractWidgetState(container);
+                        var backendIdx = parseInt(container.getAttribute('data-backend-idx'));
+                        if (!isNaN(slotIdx) && !isNaN(backendIdx)) {
+                            urlImageCaptionTracker[backendIdx] = extractWidgetState(container);
                         }
                     });
                 }
 
+                var uploadedCount = selectedImageFiles.length;
+                var removedBackendIdx = uploadedCount + entryIdx; // backendIdx for this URL
+
                 if (entries.length > 1) {
                     entry.remove();
-                    // Shift url caption tracker indices down
-                    delete urlImageCaptionTracker[entryIdx];
+                    // Reindex data-index on remaining entries
+                    var remaining = document.querySelectorAll('.image-url-entry');
+                    remaining.forEach(function(ent, i) {
+                        ent.setAttribute('data-index', i);
+                        var inp = ent.querySelector('input[name="image_urls[]"]');
+                        if (inp) inp.setAttribute('data-index', i);
+                    });
+                    // Reindex data-url-slot-index on remaining caption containers
+                    if (popupRows) {
+                        popupRows.querySelectorAll('[data-url-slot-index]').forEach(function(container) {
+                            var currentSlot = parseInt(container.getAttribute('data-url-slot-index'));
+                            if (currentSlot > entryIdx) {
+                                container.setAttribute('data-url-slot-index', currentSlot - 1);
+                            } else if (currentSlot === entryIdx) {
+                                container.setAttribute('data-url-slot-index', '-1');
+                            }
+                        });
+                    }
+                    // Shift url caption tracker: only keys >= removedBackendIdx shift by -1
+                    delete urlImageCaptionTracker[removedBackendIdx];
                     var newTracker = {};
                     Object.keys(urlImageCaptionTracker).forEach(function(key) {
                         var k = parseInt(key);
-                        if (k > entryIdx) {
+                        if (k > removedBackendIdx) {
                             newTracker[k - 1] = urlImageCaptionTracker[k];
                         } else {
                             newTracker[k] = urlImageCaptionTracker[k];
@@ -892,7 +914,7 @@
                     // Last entry — clear the value instead of removing
                     var input = entry.querySelector('input[name="image_urls[]"]');
                     if (input) input.value = '';
-                    delete urlImageCaptionTracker[0];
+                    delete urlImageCaptionTracker[removedBackendIdx];
                 }
                 updateUrlImagePreviews();
             };
@@ -937,8 +959,9 @@
                 });
                 popupRows.querySelectorAll('[data-upload-slot-index]').forEach(function(container) {
                     var slotIdx = parseInt(container.getAttribute('data-upload-slot-index'));
-                    if (!isNaN(slotIdx)) {
-                        uploadImageCaptionTracker[slotIdx] = extractWidgetState(container);
+                    var backendIdx = parseInt(container.getAttribute('data-upload-backend-idx'));
+                    if (!isNaN(slotIdx) && !isNaN(backendIdx)) {
+                        uploadImageCaptionTracker[backendIdx] = extractWidgetState(container);
                     }
                 });
 
@@ -1000,6 +1023,7 @@
                         file: file,
                         uid: uid,
                         domIdx: idx,
+                        newUploadIndex: idx, // original position in unified order (used for form field name)
                         backendIdx: idx, // 0 to N-1
                         timestamp: timelineEntry ? timelineEntry.timestamp : Date.now()
                     });
@@ -1062,8 +1086,10 @@
                         row.appendChild(label);
                         var widgetContainer = document.createElement('div');
                         widgetContainer.setAttribute('data-upload-slot-index', item.domIdx);
-                        // Force Backend Index for precise matching
-                        createCaptionWidget(widgetContainer, 'info_popup_new_images', item.domIdx, savedCaption, {
+                        widgetContainer.setAttribute('data-upload-backend-idx', item.newUploadIndex);
+                        // Use newUploadIndex (original position in unified order) for form field name
+                        // so backend's captionToStorage['newUploads_X'] lookup finds the right slot
+                        createCaptionWidget(widgetContainer, 'info_popup_new_images', item.newUploadIndex, savedCaption, {
                             singlePlaceholder: 'Keterangan gambar ' + (item.domIdx + 1) + ' (opsional)...',
                             isArray: true
                         });
@@ -1111,20 +1137,48 @@
                 if (!input) return;
                 var serializable = activeItems.map(function(item) {
                     if (item.type === 'url') {
-                        return { type: 'url', urlIndex: item.domIdx, urlValue: item.originalUrl, order: item.timestamp };
+                        // Use data-index (current DOM position) instead of domIdx (original position)
+                        // because removeImageUrlEntry reindexes data-index after removal
+                        var urlInputs = document.querySelectorAll('#image-url-list input[name="image_urls[]"]');
+                        var urlIndex = -1;
+                        for (var i = 0; i < urlInputs.length; i++) {
+                            if (urlInputs[i].value.trim() && urlInputs[i].getAttribute('data-uid') === item.uid) {
+                                urlIndex = parseInt(urlInputs[i].getAttribute('data-index'));
+                                break;
+                            }
+                        }
+                        return { type: 'url', urlIndex: urlIndex >= 0 ? urlIndex : item.domIdx, urlValue: item.originalUrl, order: item.timestamp };
                     } else if (item.type === 'upload') {
-                        return { type: 'newUpload', newUploadIndex: item.domIdx, order: item.timestamp };
+                        // Use current position in selectedImageFiles, not stored domIdx
+                        // because removePreviewImage reindexes selectedImageFiles after splice
+                        var currentIdx = -1;
+                        for (var j = 0; j < selectedImageFiles.length; j++) {
+                            if (selectedImageFiles[j]._uid === item.uid) {
+                                currentIdx = j;
+                                break;
+                            }
+                        }
+                        return { type: 'newUpload', newUploadIndex: currentIdx >= 0 ? currentIdx : item.domIdx, order: item.timestamp };
                     }
                 });
                 input.value = JSON.stringify(serializable);
             }
 
             window.removeUrlImage = function(idx) {
+                var uploadedCount = selectedImageFiles.length;
                 var inputs = document.querySelectorAll('#image-url-list input[name="image_urls[]"]');
-                if (inputs[idx]) {
-                    inputs[idx].value = '';
+                // Find input by data-index (not array position, since reindexing changes positions)
+                var targetInput = null;
+                for (var i = 0; i < inputs.length; i++) {
+                    if (parseInt(inputs[i].getAttribute('data-index')) === idx) {
+                        targetInput = inputs[i];
+                        break;
+                    }
                 }
-                delete urlImageCaptionTracker[idx];
+                if (targetInput) {
+                    targetInput.value = '';
+                }
+                delete urlImageCaptionTracker[uploadedCount + idx];
                 updateUrlImagePreviews();
             };
 

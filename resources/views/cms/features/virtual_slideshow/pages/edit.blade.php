@@ -180,32 +180,37 @@
                         // Build ordered list of existing items based on unified_image_order
                         $orderedExistingItems = [];
                         if ($unifiedImageOrder && is_array($unifiedImageOrder) && ($hasExistingUploads || $hasExistingUrls)) {
+                            $orderPos = 0;
                             foreach ($unifiedImageOrder as $orderItem) {
                                 $itemType = $orderItem['type'] ?? null;
                                 if ($itemType === 'existing' || $itemType === 'upload') {
                                     $idx = $orderItem['existingIndex'] ?? ($orderItem['uploadIndex'] ?? null);
                                     if ($idx !== null && isset($slide->images[$idx])) {
-                                        $orderedExistingItems[] = ['type' => 'upload', 'idx' => (int)$idx, 'path' => $slide->images[$idx]];
+                                        $orderedExistingItems[] = ['type' => 'upload', 'idx' => (int)$idx, 'path' => $slide->images[$idx], 'orderPos' => $orderPos];
                                     }
                                 } elseif ($itemType === 'existingUrl' || $itemType === 'url') {
                                     $idx = $orderItem['existingUrlIndex'] ?? ($orderItem['urlIndex'] ?? null);
                                     if ($idx !== null && isset($slide->image_urls[$idx])) {
-                                        $orderedExistingItems[] = ['type' => 'url', 'idx' => (int)$idx, 'url' => $slide->image_urls[$idx]];
+                                        $orderedExistingItems[] = ['type' => 'url', 'idx' => (int)$idx, 'url' => $slide->image_urls[$idx], 'orderPos' => $orderPos];
                                     }
                                 }
+                                $orderPos++;
                             }
                         }
 
                         // Fallback: if no unified order or incomplete, use default order (uploads then URLs)
                         if (empty($orderedExistingItems)) {
+                            $orderPos = 0;
                             if ($hasExistingUploads) {
                                 foreach ($slide->images as $idx => $imgPath) {
-                                    $orderedExistingItems[] = ['type' => 'upload', 'idx' => (int)$idx, 'path' => $imgPath];
+                                    $orderedExistingItems[] = ['type' => 'upload', 'idx' => (int)$idx, 'path' => $imgPath, 'orderPos' => $orderPos];
+                                    $orderPos++;
                                 }
                             }
                             if ($hasExistingUrls) {
                                 foreach ($slide->image_urls as $idx => $imgUrl) {
-                                    $orderedExistingItems[] = ['type' => 'url', 'idx' => (int)$idx, 'url' => $imgUrl];
+                                    $orderedExistingItems[] = ['type' => 'url', 'idx' => (int)$idx, 'url' => $imgUrl, 'orderPos' => $orderPos];
+                                    $orderPos++;
                                 }
                             }
                         }
@@ -260,7 +265,7 @@
                                             @php $idx = $item['idx']; @endphp
                                             <div class="info-popup-row" id="existing-popup-row-{{ $idx }}">
                                                 <label class="form-label" style="margin-bottom:4px;">{{ __('cms.virtual_slideshow.image_number', ['number' => $captionDisplayNum]) }}</label>
-                                                <div class="existing-caption-widget" data-caption-index="{{ $idx }}" data-caption-data="{{ json_encode($slide->info_popup[$idx] ?? ($slide->info_popup[(string)$idx] ?? '')) }}"></div>
+                                                <div class="existing-caption-widget" data-caption-index="{{ $idx }}" data-caption-data="{{ json_encode($slide->info_popup[$item['orderPos']] ?? ($slide->info_popup[(string)$item['orderPos']] ?? '')) }}"></div>
                                             </div>
                                         @elseif ($item['type'] === 'url')
                                             @php $idx = $item['idx']; @endphp
@@ -268,7 +273,7 @@
                                                 <label class="form-label" style="margin-bottom:4px;">Info Popup Caption (gambar URL) {{ $captionDisplayNum }}</label>
                                                 <div class="existing-url-caption-widget"
                                                     data-url-caption-index="{{ $idx }}"
-                                                    data-url-caption-data="{{ json_encode($slide->info_popup[$existingUploadCount + $idx] ?? ($slide->info_popup[(string)($existingUploadCount + $idx)] ?? '')) }}"></div>
+                                                    data-url-caption-data="{{ json_encode($slide->info_popup[$item['orderPos']] ?? ($slide->info_popup[(string)$item['orderPos']] ?? '')) }}"></div>
                                             </div>
                                         @endif
                                         @php $captionDisplayNum++; @endphp
@@ -1218,12 +1223,48 @@
                 if (!entry) return;
 
                 var entries = document.querySelectorAll('#image-url-list .image-url-entry');
+                // Determine the domIdx of the entry being removed
+                var inpOfRemoved = entry.querySelector('input[name^="new_image_urls"]');
+                var removedDomIdx = inpOfRemoved ? parseInt(inpOfRemoved.getAttribute('data-index')) : -1;
+
                 if (entries.length > 1) {
                     entry.remove();
+                    // Reindex data-index on remaining entries
+                    var remaining = document.querySelectorAll('#image-url-list .image-url-entry');
+                    remaining.forEach(function(ent, i) {
+                        var inp = ent.querySelector('input[name^="new_image_urls"]');
+                        if (inp) inp.setAttribute('data-index', i);
+                    });
+                    // Reindex data-url-slot-index on remaining caption containers
+                    var uploadCaptionRows = document.getElementById('infoPopupUploadRows');
+                    if (uploadCaptionRows) {
+                        uploadCaptionRows.querySelectorAll('[data-url-slot-index]').forEach(function(container) {
+                            var currentSlot = parseInt(container.getAttribute('data-url-slot-index'));
+                            if (currentSlot > removedDomIdx) {
+                                container.setAttribute('data-url-slot-index', currentSlot - 1);
+                            } else if (currentSlot === removedDomIdx) {
+                                container.setAttribute('data-url-slot-index', '-1');
+                            }
+                        });
+                    }
+                    // Delete the removed URL's entry from urlImageCaptionTracker (keyed by backendIdx)
+                    if (removedDomIdx >= 0) {
+                        var existingUploadedCount = getRemainingExistingCount();
+                        var uploadedCount = selectedNewImageFiles.length;
+                        var removedBackendIdx = existingUploadedCount + uploadedCount + removedDomIdx;
+                        delete urlImageCaptionTracker[removedBackendIdx];
+                    }
                 } else {
                     var input = entry.querySelector('input[name^="new_image_urls"]');
                     if (input) {
                         input.value = '';
+                    }
+                    // Delete tracker entry for last URL
+                    if (removedDomIdx >= 0) {
+                        var existingUploadedCount = getRemainingExistingCount();
+                        var uploadedCount = selectedNewImageFiles.length;
+                        var removedBackendIdx = existingUploadedCount + uploadedCount + removedDomIdx;
+                        delete urlImageCaptionTracker[removedBackendIdx];
                     }
                 }
                 updateUrlImagePreviews();
@@ -1343,7 +1384,7 @@
             }
 
             // Unified preview function for URL images and uploads
-            function updateUrlImagePreviews() {
+            window.updateUrlImagePreviews = function() {
                 var uploadPreviewArea = document.getElementById('newImagePreviewArea');
                 var urlPreviewArea = document.getElementById('newUrlPreviewArea');
                 var uploadCaptionArea = document.getElementById('infoPopupUploadImageArea');
@@ -1358,11 +1399,17 @@
                 uploadCaptionRows.querySelectorAll('[data-url-slot-index]').forEach(function(container) {
                     var slotIdx = parseInt(container.getAttribute('data-url-slot-index'));
                     if (!isNaN(slotIdx)) {
+                        var backendIdx = parseInt(container.getAttribute('data-backend-idx'));
                         var state = extractWidgetState(container);
                         var stateStr = typeof state === 'object' ? JSON.stringify(state) : state;
-                        var urlInputs = document.querySelectorAll('#image-url-list input[name^="new_image_urls"]');
-                        if (urlInputs[slotIdx]) {
-                            urlInputs[slotIdx].setAttribute('data-caption', stateStr);
+                        urlImageCaptionTracker[backendIdx] = state;
+                        // Find the URL input whose data-index matches slotIdx
+                        var allUrlInputs = document.querySelectorAll('#image-url-list input[name^="new_image_urls"]');
+                        for (var i = 0; i < allUrlInputs.length; i++) {
+                            if (parseInt(allUrlInputs[i].getAttribute('data-index')) === slotIdx) {
+                                allUrlInputs[i].setAttribute('data-caption', stateStr);
+                                break;
+                            }
                         }
                     }
                 });
@@ -1536,6 +1583,7 @@
                         row.appendChild(labelEl);
                         var widgetContainer = document.createElement('div');
                         widgetContainer.setAttribute('data-url-slot-index', item.domIdx);
+                        widgetContainer.setAttribute('data-backend-idx', item.backendIdx);
                         createCaptionWidget(widgetContainer, 'info_popup_images', item.backendIdx, captionData, {
                             singlePlaceholder: __t.popup_url_images + ' ' + displayPosition + '...',
                             isArray: true
@@ -1588,15 +1636,45 @@
                 input.value = JSON.stringify(serializable);
             }
 
-            window.removeUrlImage = function(idx) {
+            window.removeUrlImage = function(domIdx) {
                 var entries = document.querySelectorAll('#image-url-list .image-url-entry');
+                var targetEntry = null;
+                entries.forEach(function(ent) {
+                    var inp = ent.querySelector('input[name^="new_image_urls"]');
+                    if (inp && parseInt(inp.getAttribute('data-index')) === domIdx) {
+                        targetEntry = ent;
+                    }
+                });
+                if (!targetEntry) return;
+
+                // Delete the tracker entry (keyed by backendIdx) before removing
+                var existingUploadedCount = getRemainingExistingCount();
+                var uploadedCount = selectedNewImageFiles.length;
+                var removedBackendIdx = existingUploadedCount + uploadedCount + domIdx;
+                delete urlImageCaptionTracker[removedBackendIdx];
+
                 if (entries.length > 1) {
-                    // Remove the entire entry
-                    if (entries[idx]) {
-                        entries[idx].remove();
+                    targetEntry.remove();
+                    // Reindex data-index on remaining entries
+                    var remaining = document.querySelectorAll('#image-url-list .image-url-entry');
+                    remaining.forEach(function(ent, i) {
+                        var inp = ent.querySelector('input[name^="new_image_urls"]');
+                        if (inp) inp.setAttribute('data-index', i);
+                    });
+                    // Also reindex data-url-slot-index on caption containers so save stays correct
+                    var uploadCaptionRows = document.getElementById('infoPopupUploadRows');
+                    if (uploadCaptionRows) {
+                        uploadCaptionRows.querySelectorAll('[data-url-slot-index]').forEach(function(container) {
+                            var currentSlot = parseInt(container.getAttribute('data-url-slot-index'));
+                            if (currentSlot > domIdx) {
+                                container.setAttribute('data-url-slot-index', currentSlot - 1);
+                            } else if (currentSlot === domIdx) {
+                                // This container belonged to the removed URL — clear it
+                                container.setAttribute('data-url-slot-index', '-1');
+                            }
+                        });
                     }
                 } else {
-                    // Just clear the URL input if it's the only entry
                     var inputs = document.querySelectorAll('#image-url-list input[name^="new_image_urls"]');
                     if (inputs[0]) {
                         inputs[0].value = '';
