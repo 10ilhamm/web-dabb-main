@@ -238,7 +238,7 @@ class VirtualSlideshowController extends Controller
                         'uploadIndex' => $uploadSeq
                     ];
                     $uploadSeq++;
-                } elseif ($type === 'url') {
+                } elseif ($type === 'url' || $type === 'existingUrl') {
                     $normalizedImageOrder[] = [
                         'type' => 'url',
                         'urlIndex' => $urlSeq
@@ -331,10 +331,23 @@ class VirtualSlideshowController extends Controller
             $videoFilePath = $request->file('video_file')->store('features/slideshow/videos', 'public');
         }
 
-        // Get video URL (single video only)
+        // Get video URL (single video only) - enforce max 1 video
         $primaryVideoUrl = null;
-        if ($useVideo && !empty($validated['video_url'])) {
-            $primaryVideoUrl = trim($validated['video_url']);
+        if ($useVideo) {
+            $useVideoMethod = $request->input('video_method') === 'url';
+            if ($useVideoMethod) {
+                if (!empty($validated['video_url'])) {
+                    $primaryVideoUrl = trim($validated['video_url']);
+                }
+                // URL method: clear video file
+                if ($videoFilePath && !$useCarouselVideo) {
+                    Storage::disk('public')->delete($videoFilePath);
+                    $videoFilePath = null;
+                }
+            } else {
+                // Upload method: ensure URL is null
+                $primaryVideoUrl = null;
+            }
         }
 
         // Build info_popup array
@@ -606,7 +619,7 @@ class VirtualSlideshowController extends Controller
             'info_popup_existing_urls' => 'nullable|array',
             'info_popup_existing_urls.*' => 'nullable|string',
             'existing_image_urls' => 'nullable|array',
-            'existing_image_urls.*' => 'string',
+            'existing_image_urls.*' => 'nullable|string',
             'deleted_existing_image_urls' => 'nullable|array',
             'deleted_existing_image_urls.*' => 'string',
             'info_popup_mode_existing_urls' => 'nullable|array',
@@ -655,11 +668,12 @@ class VirtualSlideshowController extends Controller
         $useCarouselImages = $usesImagesForCarousel;
 
         // Get existing images from form (only enabled inputs will be submitted)
+        // Preserve original indices so unified_image_order existingIndex references remain valid
         $existingImages = [];
         if (($useImages || $useCarouselImages) && !empty($validated['existing_images'])) {
             foreach ($validated['existing_images'] as $idx => $path) {
                 if (!empty($path)) {
-                    $existingImages[] = $path;
+                    $existingImages[$idx] = $path;
                 }
             }
         }
@@ -696,7 +710,7 @@ class VirtualSlideshowController extends Controller
             $deletedUrls = $validated['deleted_existing_image_urls'] ?? [];
             if (!empty($validated['existing_image_urls'])) {
                 foreach ($validated['existing_image_urls'] as $idx => $url) {
-                    if (!in_array((string)$idx, $deletedUrls)) {
+                    if (!empty($url) && !in_array((string)$idx, $deletedUrls)) {
                         $existingImageUrls[$idx] = $url;
                     }
                 }
@@ -777,7 +791,7 @@ class VirtualSlideshowController extends Controller
                         'uploadIndex' => $uploadSeq
                     ];
                     $uploadSeq++;
-                } elseif ($type === 'url') {
+                } elseif ($type === 'url' || $type === 'existingUrl') {
                     $normalizedImageOrder[] = [
                         'type' => 'url',
                         'urlIndex' => $urlSeq
@@ -947,6 +961,7 @@ class VirtualSlideshowController extends Controller
         }
 
         // Determine primary video URL based on selected method
+        // For video type: only one method (URL or Upload) is allowed, not both
         $primaryVideoUrl = null;
         if ($useVideo) {
             $useVideoMethod = $request->input('video_method') === 'url';
@@ -961,8 +976,15 @@ class VirtualSlideshowController extends Controller
                 if ($clearExistingUrl) {
                     $primaryVideoUrl = null;
                 }
+                // URL method selected: clear any video file (enforce max 1 video)
+                if ($videoFilePath && !$useCarouselVideo) {
+                    Storage::disk('public')->delete($videoFilePath);
+                    $videoFilePath = null;
+                }
+            } else {
+                // Upload method selected: clear any video URL (enforce max 1 video)
+                $primaryVideoUrl = null;
             }
-            // If using upload method, primaryVideoUrl stays null and video_file is used
         } else {
             // Non-video type: clear any existing video_url from database
             $primaryVideoUrl = null;
@@ -1000,6 +1022,10 @@ class VirtualSlideshowController extends Controller
                         $jsBackendIdx = $jsExistingCount + $jsNewUploadCount + $urlStorageIdx;
                         $captionToStorage['images_' . $jsBackendIdx] = $finalUnifiedIdx;
                         $urlStorageIdx++;
+                        $finalUnifiedIdx++;
+                    } elseif ($type === 'existingUrl') {
+                        $idx = $item['existingUrlIndex'] ?? 0;
+                        $captionToStorage['existingUrl_' . $idx] = $finalUnifiedIdx;
                         $finalUnifiedIdx++;
                     }
                 }
@@ -1046,8 +1072,10 @@ class VirtualSlideshowController extends Controller
                 // Count remaining existing image uploads (those not deleted)
                 $remainingUploadCount = count($existingImages);
                 foreach ($validated['info_popup_existing_urls'] as $urlIdx => $caption) {
-                    // Storage index = remaining uploads + url idx
-                    $storageIdx = $remainingUploadCount + $urlIdx;
+                    // Use unified order mapping if available, fallback to sequential position
+                    $storageIdx = !empty($unifiedImageOrder)
+                        ? ($captionToStorage['existingUrl_' . $urlIdx] ?? ($remainingUploadCount + $urlIdx))
+                        : ($remainingUploadCount + $urlIdx);
                     $mode = $existingUrlModes[$urlIdx] ?? 'single';
                     $qaItems = $existingUrlQaData[$urlIdx] ?? [];
                     $value = $this->buildCaptionValue($mode, $caption, $qaItems);

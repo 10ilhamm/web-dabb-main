@@ -175,27 +175,59 @@
                         $hasExistingUploads = $slide->images && count($slide->images) > 0;
                         $hasExistingUrls    = $slide->image_urls && count($slide->image_urls) > 0;
                         $existingUploadCount = $hasExistingUploads ? count($slide->images) : 0;
+                        $unifiedImageOrder  = $slide->info_popup['unified_image_order'] ?? null;
+
+                        // Build ordered list of existing items based on unified_image_order
+                        $orderedExistingItems = [];
+                        if ($unifiedImageOrder && is_array($unifiedImageOrder) && ($hasExistingUploads || $hasExistingUrls)) {
+                            foreach ($unifiedImageOrder as $orderItem) {
+                                $itemType = $orderItem['type'] ?? null;
+                                if ($itemType === 'existing' || $itemType === 'upload') {
+                                    $idx = $orderItem['existingIndex'] ?? ($orderItem['uploadIndex'] ?? null);
+                                    if ($idx !== null && isset($slide->images[$idx])) {
+                                        $orderedExistingItems[] = ['type' => 'upload', 'idx' => (int)$idx, 'path' => $slide->images[$idx]];
+                                    }
+                                } elseif ($itemType === 'existingUrl' || $itemType === 'url') {
+                                    $idx = $orderItem['existingUrlIndex'] ?? ($orderItem['urlIndex'] ?? null);
+                                    if ($idx !== null && isset($slide->image_urls[$idx])) {
+                                        $orderedExistingItems[] = ['type' => 'url', 'idx' => (int)$idx, 'url' => $slide->image_urls[$idx]];
+                                    }
+                                }
+                            }
+                        }
+
+                        // Fallback: if no unified order or incomplete, use default order (uploads then URLs)
+                        if (empty($orderedExistingItems)) {
+                            if ($hasExistingUploads) {
+                                foreach ($slide->images as $idx => $imgPath) {
+                                    $orderedExistingItems[] = ['type' => 'upload', 'idx' => (int)$idx, 'path' => $imgPath];
+                                }
+                            }
+                            if ($hasExistingUrls) {
+                                foreach ($slide->image_urls as $idx => $imgUrl) {
+                                    $orderedExistingItems[] = ['type' => 'url', 'idx' => (int)$idx, 'url' => $imgUrl];
+                                }
+                            }
+                        }
                     @endphp
 
                     @if ($hasExistingUploads || $hasExistingUrls)
                         <div class="mb-4">
                             <label class="form-label">{{ __('cms.virtual_slideshow.existing_images') }}</label>
 
-                            {{-- Preview bersama: gambar upload + gambar URL yang sudah tersimpan --}}
+                            {{-- Preview bersama: gambar upload + gambar URL yang sudah tersimpan (mengikuti unified_image_order) --}}
                             <div id="existingImagesArea" class="flex flex-wrap gap-2 mb-3">
-                                @if ($hasExistingUploads)
-                                    @foreach ($slide->images as $idx => $imgPath)
+                                @foreach ($orderedExistingItems as $orderPos => $item)
+                                    @if ($item['type'] === 'upload')
+                                        @php $idx = $item['idx']; $imgPath = $item['path']; @endphp
                                         <div class="existing-img-wrap" id="existing-wrap-{{ $idx }}" data-original-index="{{ $idx }}">
                                             <img src="{{ asset('storage/' . $imgPath) }}" alt="">
                                             <input type="hidden" name="existing_images[{{ $idx }}]" value="{{ $imgPath }}" id="existing-input-{{ $idx }}">
                                             <input type="hidden" name="deleted_images[]" id="deleted-input-{{ $idx }}" value="">
                                             <button type="button" class="remove-existing" onclick="removeExisting({{ $idx }})">✕</button>
                                         </div>
-                                    @endforeach
-                                @endif
-
-                                @if ($hasExistingUrls)
-                                    @foreach ($slide->image_urls as $idx => $imgUrl)
+                                    @elseif ($item['type'] === 'url')
+                                        @php $idx = $item['idx']; $imgUrl = $item['url']; @endphp
                                         <div class="existing-url-img-wrap" id="existing-url-wrap-{{ $idx }}" data-url-original-index="{{ $idx }}">
                                             @php $isGDrive = str_contains($imgUrl, 'drive.google.com'); @endphp
                                             @if ($isGDrive)
@@ -210,35 +242,35 @@
                                                     <a href="{{ $imgUrl }}" target="_blank" class="text-xs text-blue-500 hover:text-blue-700 mt-1">{{ __('cms.virtual_slideshow.view') }}</a>
                                                 </div>
                                             @endif
-                                            {{-- Tombol hapus URL tersimpan: menyembunyikan preview & menonaktifkan input di image-url-list --}}
                                             <button type="button" class="remove-existing" onclick="removeExistingUrl({{ $idx }})">✕</button>
                                         </div>
-                                    @endforeach
-                                @endif
+                                    @endif
+                                @endforeach
                             </div>
 
-                            {{-- Caption: gambar upload + gambar URL yang sudah tersimpan --}}
+                            {{-- Caption: gambar upload + gambar URL yang sudah tersimpan (mengikuti unified_image_order) --}}
                             <div id="existingInfoPopupRowsWrapper" class="{{ ($slide->slide_type ?? $slide->type) === 'hero' ? 'hidden' : '' }}">
                                 <div id="existingInfoPopupRows" class="space-y-2">
                                     <label class="form-label">{{ __('cms.virtual_slideshow.popup_existing_images') }}</label>
-                                    @if ($hasExistingUploads)
-                                        @foreach ($slide->images as $idx => $imgPath)
+                                    @php $captionDisplayNum = 1; @endphp
+                                    @foreach ($orderedExistingItems as $item)
+                                        @if ($item['type'] === 'upload')
+                                            @php $idx = $item['idx']; @endphp
                                             <div class="info-popup-row" id="existing-popup-row-{{ $idx }}">
-                                                <label class="form-label" style="margin-bottom:4px;">{{ __('cms.virtual_slideshow.image_number', ['number' => $idx + 1]) }}</label>
+                                                <label class="form-label" style="margin-bottom:4px;">{{ __('cms.virtual_slideshow.image_number', ['number' => $captionDisplayNum]) }}</label>
                                                 <div class="existing-caption-widget" data-caption-index="{{ $idx }}" data-caption-data="{{ json_encode($slide->info_popup[$idx] ?? ($slide->info_popup[(string)$idx] ?? '')) }}"></div>
                                             </div>
-                                        @endforeach
-                                    @endif
-                                    @if ($hasExistingUrls)
-                                        @foreach ($slide->image_urls as $idx => $imgUrl)
+                                        @elseif ($item['type'] === 'url')
+                                            @php $idx = $item['idx']; @endphp
                                             <div class="info-popup-row" id="existing-url-popup-row-{{ $idx }}">
-                                                <label class="form-label" style="margin-bottom:4px;">Info Popup Caption (gambar URL) {{ $idx + 1 }}</label>
+                                                <label class="form-label" style="margin-bottom:4px;">Info Popup Caption (gambar URL) {{ $captionDisplayNum }}</label>
                                                 <div class="existing-url-caption-widget"
                                                     data-url-caption-index="{{ $idx }}"
                                                     data-url-caption-data="{{ json_encode($slide->info_popup[$existingUploadCount + $idx] ?? ($slide->info_popup[(string)($existingUploadCount + $idx)] ?? '')) }}"></div>
                                             </div>
-                                        @endforeach
-                                    @endif
+                                        @endif
+                                        @php $captionDisplayNum++; @endphp
+                                    @endforeach
                                 </div>
                             </div>
                         </div>
@@ -280,7 +312,7 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
                                         </svg>
                                     </a>
-                                    <input type="text" name="image_urls[{{ $idx }}]" class="form-input flex-1"
+                                    <input type="text" name="existing_image_urls[{{ $idx }}]" class="form-input flex-1"
                                         placeholder="{{ __('cms.virtual_slideshow.image_url_placeholder') }}"
                                         value="{{ $imgUrl }}" data-index="{{ $idx }}" oninput="updateUrlLink(this)">
                                     <button type="button" onclick="removeImageUrlEntry(this)" class="px-2 py-2 text-red-500 hover:bg-red-50 rounded-lg flex-shrink-0" title="{{ __('cms.virtual_slideshow.delete') }}">
@@ -1093,11 +1125,21 @@
                     uploadSection.style.display = 'none';
                     urlSection.classList.remove('hidden');
                     urlSection.style.display = '';
+                    // Clear upload data when switching to URL method
+                    var videoInput = document.getElementById('videoInput');
+                    if (videoInput) videoInput.value = '';
+                    var videoFilePreview = document.getElementById('videoFilePreview');
+                    if (videoFilePreview) videoFilePreview.classList.add('hidden');
                 } else {
                     uploadSection.classList.remove('hidden');
                     uploadSection.style.display = '';
                     urlSection.classList.add('hidden');
                     urlSection.style.display = 'none';
+                    // Clear URL data when switching to upload method
+                    var videoUrlInput = document.querySelector('input[name="video_url"]');
+                    if (videoUrlInput) videoUrlInput.value = '';
+                    var urlPreviewPlaceholder = urlSection.querySelector('.url-preview-placeholder');
+                    if (urlPreviewPlaceholder) urlPreviewPlaceholder.innerHTML = '<span class="text-xs text-gray-400">' + __t.preview + '</span>';
                     // Show existing video info when switching to upload method
                     if (existingVideoInfo) {
                         existingVideoInfo.removeAttribute('hidden');
@@ -1516,24 +1558,29 @@
                 if (!input) return;
 
                 var serializable = [];
-                // Push all existing upload images
-                var existingWraps = document.querySelectorAll('.existing-img-wrap');
-                existingWraps.forEach(function(wrap) {
-                     var inp = wrap.querySelector('input[name^="existing_images["]:not([disabled])');
-                     if (inp) {
-                         var idx = parseInt(wrap.getAttribute('data-original-index'));
-                         serializable.push({ type: 'existing', existingIndex: idx, order: 0 });
-                     }
-                });
-                // Push all existing URL images (saved in DB)
-                var existingUrlWraps = document.querySelectorAll('.existing-url-img-wrap');
-                existingUrlWraps.forEach(function(wrap) {
-                     var inp = wrap.querySelector('input[name^="existing_image_urls["]');
-                     if (inp && !inp.disabled) {
-                         var idx = parseInt(wrap.getAttribute('data-url-original-index'));
-                         serializable.push({ type: 'existingUrl', existingUrlIndex: idx, order: 1 });
-                     }
-                });
+                var orderCounter = 0;
+
+                // Iterate through existingImagesArea children in DOM order to preserve unified_image_order
+                var existingArea = document.getElementById('existingImagesArea');
+                if (existingArea) {
+                    var children = existingArea.children;
+                    for (var i = 0; i < children.length; i++) {
+                        var wrap = children[i];
+                        if (wrap.classList.contains('existing-img-wrap')) {
+                            var inp = wrap.querySelector('input[name^="existing_images["]:not([disabled])');
+                            if (inp) {
+                                var idx = parseInt(wrap.getAttribute('data-original-index'));
+                                serializable.push({ type: 'existing', existingIndex: idx, order: orderCounter++ });
+                            }
+                        } else if (wrap.classList.contains('existing-url-img-wrap')) {
+                            // Check if not deleted (opacity indicates deleted)
+                            if (wrap.style.opacity !== '0.3' && wrap.style.opacity !== '0.5') {
+                                var idx = parseInt(wrap.getAttribute('data-url-original-index'));
+                                serializable.push({ type: 'existingUrl', existingUrlIndex: idx, order: orderCounter++ });
+                            }
+                        }
+                    }
+                }
 
                 // Then append the active items (new uploads and URLs)
                 activeItems.forEach(function(item) {
@@ -2225,6 +2272,20 @@
             }
 
             var editor1 = null;
+            var initialDescriptionHtml = document.getElementById('div_editor1').innerHTML;
+
+            function setRTEContent(editor, html) {
+                if (!html || !html.trim()) return;
+                try {
+                    if (typeof editor.setHTMLCode === 'function') {
+                        editor.setHTMLCode(html);
+                    } else if (typeof editor.setHTML === 'function') {
+                        editor.setHTML(html);
+                    }
+                } catch (e) {
+                    console.warn('RTE setHTML error:', e);
+                }
+            }
 
             function initRTE() {
                 if (typeof RichTextEditor === 'undefined') {
@@ -2236,6 +2297,22 @@
                         content_css: "https://richtexteditor.com/richtexteditor/rte_theme_default.css",
                         contentCssUrl: "https://richtexteditor.com/richtexteditor/rte_content.css"
                     });
+                    // Restore saved description content with multiple attempts
+                    // The RTE iframe may not be ready immediately after construction
+                    setRTEContent(editor1, initialDescriptionHtml);
+                    setTimeout(function() { setRTEContent(editor1, initialDescriptionHtml); }, 300);
+                    setTimeout(function() { setRTEContent(editor1, initialDescriptionHtml); }, 800);
+                    setTimeout(function() {
+                        // Final check: if editor still empty but we have content, try once more
+                        try {
+                            var currentContent = '';
+                            if (typeof editor1.getHTMLCode === 'function') currentContent = editor1.getHTMLCode();
+                            else if (typeof editor1.getHTML === 'function') currentContent = editor1.getHTML();
+                            if ((!currentContent || currentContent.trim() === '' || currentContent.trim() === '<p><br></p>' || currentContent.trim() === '<br>') && initialDescriptionHtml && initialDescriptionHtml.trim() !== '') {
+                                setRTEContent(editor1, initialDescriptionHtml);
+                            }
+                        } catch (e) {}
+                    }, 1500);
                 } catch (e) {
                     console.error('RTE init error:', e);
                 }
@@ -2289,7 +2366,7 @@
                 if (captionRow) captionRow.style.display = 'none';
 
                 // Kosongkan input image_urls[idx] di image-url-list agar tidak ikut tersimpan
-                var urlInput = document.querySelector('#image-url-list input[name="image_urls[' + idx + ']"]');
+                var urlInput = document.querySelector('#image-url-list input[name="existing_image_urls[' + idx + ']"]');
                 if (urlInput) {
                     var entry = urlInput.closest('.image-url-entry');
                     var entries = document.querySelectorAll('#image-url-list .image-url-entry');
@@ -2327,19 +2404,38 @@
             }
 
             document.getElementById('slideForm').addEventListener('submit', function(e) {
+                var descField = document.getElementById('hiddenDescription');
                 if (editor1) {
                     try {
-                        document.getElementById('hiddenDescription').value = editor1.getHTMLCode();
+                        descField.value = editor1.getHTMLCode();
                     } catch (err) {
                         try {
-                            document.getElementById('hiddenDescription').value = editor1.getHTML();
+                            descField.value = editor1.getHTML();
                         } catch (e2) {
                             console.error('RTE getHTML error:', e2);
                         }
                     }
                 }
+                // Fallback: if hiddenDescription is still empty but we had saved content, preserve it
+                if (!descField.value && initialDescriptionHtml && initialDescriptionHtml.trim() !== '') {
+                    descField.value = initialDescriptionHtml;
+                }
 
                 var form = document.getElementById('slideForm');
+
+                // For video type: ensure only one video method's data is sent (URL or Upload, not both)
+                var videoMethodRadio = document.querySelector('input[name="video_method"]:checked');
+                if (videoMethodRadio) {
+                    if (videoMethodRadio.value === 'url') {
+                        // Clear upload file input so it doesn't send a file alongside the URL
+                        var videoInput = document.getElementById('videoInput');
+                        if (videoInput) videoInput.value = '';
+                    } else {
+                        // Clear URL input so it doesn't send a URL alongside the upload
+                        var videoUrlInput = document.querySelector('input[name="video_url"]');
+                        if (videoUrlInput) videoUrlInput.value = '';
+                    }
+                }
 
                 // Set files on the existing image input
                 var imageInput = document.getElementById('imageInput');
