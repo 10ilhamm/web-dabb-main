@@ -50,7 +50,8 @@
                 <h1 class="text-2xl font-bold text-gray-800">{{ __('cms.virtual_slideshow.edit_slide_title') }}</h1>
                 <p class="text-sm text-gray-500 mt-0.5">{{ $feature->name }}</p>
                 @if (isset($page))
-                    <p class="text-sm text-blue-600 mt-0.5">{{ __('cms.virtual_slideshow.page_label', ['title' => $page->title]) }}</p>
+                    <p class="text-sm text-blue-600 mt-0.5">
+                        {{ __('cms.virtual_slideshow.page_label', ['title' => $page->title]) }}</p>
                 @endif
             </div>
         </div>
@@ -85,8 +86,11 @@
                 <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
                     @foreach (['text', 'hero', 'carousel', 'video', 'text_carousel'] as $type)
                         <div class="slide-type-card {{ $slide->slide_type === $type ? 'active' : '' }}"
-                            data-type="{{ $type }}" onclick="{{ $type === 'hero' ? 'trySelectHero()' : "selectType('$type')" }}">
-                            <div class="icon">{{ ['text' => '📝', 'hero' => '🌟', 'carousel' => '🖼️', 'video' => '🎬', 'text_carousel' => '📋'][$type] }}</div>
+                            data-type="{{ $type }}"
+                            onclick="{{ $type === 'hero' ? 'trySelectHero()' : "selectType('$type')" }}">
+                            <div class="icon">
+                                {{ ['text' => '📝', 'hero' => '🌟', 'carousel' => '🖼️', 'video' => '🎬', 'text_carousel' => '📋'][$type] }}
+                            </div>
                             <div class="label">{{ __('cms.virtual_slideshow.type_' . $type) }}</div>
                             <div class="desc">{{ __('cms.virtual_slideshow.type_' . $type . '_desc') }}</div>
                         </div>
@@ -99,17 +103,21 @@
                 <h2 class="text-base font-semibold text-gray-800">{{ __('cms.virtual_slideshow.step2_content') }}</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label class="form-label">{{ __('cms.virtual_slideshow.slide_title_label') }} <span class="text-gray-400 text-xs">({{ __('cms.virtual_slideshow.optional') }})</span></label>
+                        <label class="form-label">{{ __('cms.virtual_slideshow.slide_title_label') }} <span
+                                class="text-gray-400 text-xs">({{ __('cms.virtual_slideshow.optional') }})</span></label>
                         <input type="text" name="title" class="form-input" value="{{ old('title', $slide->title) }}">
                     </div>
                     <div>
-                        <label class="form-label">{{ __('cms.virtual_slideshow.slide_subtitle_label') }} <span class="text-gray-400 text-xs">({{ __('cms.virtual_slideshow.optional') }})</span></label>
+                        <label class="form-label">{{ __('cms.virtual_slideshow.slide_subtitle_label') }} <span
+                                class="text-gray-400 text-xs">({{ __('cms.virtual_slideshow.optional') }})</span></label>
                         <input type="text" name="subtitle" class="form-input"
                             value="{{ old('subtitle', $slide->subtitle) }}">
                     </div>
                 </div>
                 <div>
-                    <label class="form-label">{{ __('cms.virtual_slideshow.slide_desc_label') }} <span class="text-gray-400 text-xs">({{ __('cms.virtual_slideshow.optional') }} - {{ __('cms.virtual_slideshow.desc_toolbar_hint') }})</span></label>
+                    <label class="form-label">{{ __('cms.virtual_slideshow.slide_desc_label') }} <span
+                            class="text-gray-400 text-xs">({{ __('cms.virtual_slideshow.optional') }} -
+                            {{ __('cms.virtual_slideshow.desc_toolbar_hint') }})</span></label>
                     <div id="div_editor1" style="min-width:100%;">{!! old('description', $slide->description) !!}</div>
                     <input type="hidden" name="description" id="hiddenDescription">
                 </div>
@@ -157,11 +165,13 @@
                 {{-- Toggle untuk text_carousel: Gambar atau Video --}}
                 <div id="carouselMediaToggle" class="flex gap-4 mb-3 hidden">
                     <label class="flex items-center gap-2 cursor-pointer">
-                        <input type="radio" name="carousel_media_type" value="images" checked onchange="toggleCarouselMediaType('images')">
+                        <input type="radio" name="carousel_media_type" value="images" checked
+                            onchange="toggleCarouselMediaType('images')">
                         <span class="text-sm text-gray-700">{{ __('cms.virtual_slideshow.media_type_images') }}</span>
                     </label>
                     <label class="flex items-center gap-2 cursor-pointer">
-                        <input type="radio" name="carousel_media_type" value="videos" onchange="toggleCarouselMediaType('videos')">
+                        <input type="radio" name="carousel_media_type" value="videos"
+                            onchange="toggleCarouselMediaType('videos')">
                         <span class="text-sm text-gray-700">{{ __('cms.virtual_slideshow.media_type_videos') }}</span>
                     </label>
                 </div>
@@ -173,25 +183,39 @@
                     {{-- === DATA TERSIMPAN: Gambar Upload + Gambar URL disatukan di atas === --}}
                     @php
                         $hasExistingUploads = $slide->images && count($slide->images) > 0;
-                        $hasExistingUrls    = $slide->image_urls && count($slide->image_urls) > 0;
+                        $hasExistingUrls = $slide->image_urls && count($slide->image_urls) > 0;
                         $existingUploadCount = $hasExistingUploads ? count($slide->images) : 0;
-                        $unifiedImageOrder  = $slide->info_popup['unified_image_order'] ?? null;
+                        $unifiedImageOrder = $slide->info_popup['unified_image_order'] ?? null;
 
                         // Build ordered list of existing items based on unified_image_order
                         $orderedExistingItems = [];
-                        if ($unifiedImageOrder && is_array($unifiedImageOrder) && ($hasExistingUploads || $hasExistingUrls)) {
+                        if (
+                            $unifiedImageOrder &&
+                            is_array($unifiedImageOrder) &&
+                            ($hasExistingUploads || $hasExistingUrls)
+                        ) {
                             $orderPos = 0;
                             foreach ($unifiedImageOrder as $orderItem) {
                                 $itemType = $orderItem['type'] ?? null;
                                 if ($itemType === 'existing' || $itemType === 'upload') {
                                     $idx = $orderItem['existingIndex'] ?? ($orderItem['uploadIndex'] ?? null);
                                     if ($idx !== null && isset($slide->images[$idx])) {
-                                        $orderedExistingItems[] = ['type' => 'upload', 'idx' => (int)$idx, 'path' => $slide->images[$idx], 'orderPos' => $orderPos];
+                                        $orderedExistingItems[] = [
+                                            'type' => 'upload',
+                                            'idx' => (int) $idx,
+                                            'path' => $slide->images[$idx],
+                                            'orderPos' => $orderPos,
+                                        ];
                                     }
                                 } elseif ($itemType === 'existingUrl' || $itemType === 'url') {
                                     $idx = $orderItem['existingUrlIndex'] ?? ($orderItem['urlIndex'] ?? null);
                                     if ($idx !== null && isset($slide->image_urls[$idx])) {
-                                        $orderedExistingItems[] = ['type' => 'url', 'idx' => (int)$idx, 'url' => $slide->image_urls[$idx], 'orderPos' => $orderPos];
+                                        $orderedExistingItems[] = [
+                                            'type' => 'url',
+                                            'idx' => (int) $idx,
+                                            'url' => $slide->image_urls[$idx],
+                                            'orderPos' => $orderPos,
+                                        ];
                                     }
                                 }
                                 $orderPos++;
@@ -203,13 +227,23 @@
                             $orderPos = 0;
                             if ($hasExistingUploads) {
                                 foreach ($slide->images as $idx => $imgPath) {
-                                    $orderedExistingItems[] = ['type' => 'upload', 'idx' => (int)$idx, 'path' => $imgPath, 'orderPos' => $orderPos];
+                                    $orderedExistingItems[] = [
+                                        'type' => 'upload',
+                                        'idx' => (int) $idx,
+                                        'path' => $imgPath,
+                                        'orderPos' => $orderPos,
+                                    ];
                                     $orderPos++;
                                 }
                             }
                             if ($hasExistingUrls) {
                                 foreach ($slide->image_urls as $idx => $imgUrl) {
-                                    $orderedExistingItems[] = ['type' => 'url', 'idx' => (int)$idx, 'url' => $imgUrl, 'orderPos' => $orderPos];
+                                    $orderedExistingItems[] = [
+                                        'type' => 'url',
+                                        'idx' => (int) $idx,
+                                        'url' => $imgUrl,
+                                        'orderPos' => $orderPos,
+                                    ];
                                     $orderPos++;
                                 }
                             }
@@ -224,56 +258,92 @@
                             <div id="existingImagesArea" class="flex flex-wrap gap-2 mb-3">
                                 @foreach ($orderedExistingItems as $orderPos => $item)
                                     @if ($item['type'] === 'upload')
-                                        @php $idx = $item['idx']; $imgPath = $item['path']; @endphp
-                                        <div class="existing-img-wrap" id="existing-wrap-{{ $idx }}" data-original-index="{{ $idx }}">
+                                        @php
+                                            $idx = $item['idx'];
+                                            $imgPath = $item['path'];
+                                        @endphp
+                                        <div class="existing-img-wrap" id="existing-wrap-{{ $idx }}"
+                                            data-original-index="{{ $idx }}">
                                             <img src="{{ asset('storage/' . $imgPath) }}" alt="">
-                                            <input type="hidden" name="existing_images[{{ $idx }}]" value="{{ $imgPath }}" id="existing-input-{{ $idx }}">
-                                            <input type="hidden" name="deleted_images[]" id="deleted-input-{{ $idx }}" value="">
-                                            <button type="button" class="remove-existing" onclick="removeExisting({{ $idx }})">✕</button>
+                                            <input type="hidden" name="existing_images[{{ $idx }}]"
+                                                value="{{ $imgPath }}" id="existing-input-{{ $idx }}">
+                                            <input type="hidden" name="deleted_images[]"
+                                                id="deleted-input-{{ $idx }}" value="">
+                                            <button type="button" class="remove-existing"
+                                                onclick="removeExisting({{ $idx }})">✕</button>
                                         </div>
                                     @elseif ($item['type'] === 'url')
-                                        @php $idx = $item['idx']; $imgUrl = $item['url']; @endphp
-                                        <div class="existing-url-img-wrap" id="existing-url-wrap-{{ $idx }}" data-url-original-index="{{ $idx }}">
+                                        @php
+                                            $idx = $item['idx'];
+                                            $imgUrl = $item['url'];
+                                        @endphp
+                                        <div class="existing-url-img-wrap" id="existing-url-wrap-{{ $idx }}"
+                                            data-url-original-index="{{ $idx }}">
                                             @php
                                                 $displayUrl = $imgUrl;
                                                 if (preg_match('/\/file\/d\/([a-zA-Z0-9_-]+)/', $imgUrl, $m)) {
                                                     $displayUrl = 'https://lh3.googleusercontent.com/d/' . $m[1];
                                                 } elseif (preg_match('/[?&]id=([a-zA-Z0-9_-]+)/', $imgUrl, $m)) {
                                                     $displayUrl = 'https://lh3.googleusercontent.com/d/' . $m[1];
-                                                } elseif (preg_match('/commons\.wikimedia\.org\/wiki\/File:(.+)/', $imgUrl, $m)) {
-                                                    $displayUrl = 'https://commons.wikimedia.org/wiki/Special:FilePath/' . $m[1];
+                                                } elseif (
+                                                    preg_match(
+                                                        '/commons\.wikimedia\.org\/wiki\/File:(.+)/',
+                                                        $imgUrl,
+                                                        $m,
+                                                    )
+                                                ) {
+                                                    $displayUrl =
+                                                        'https://commons.wikimedia.org/wiki/Special:FilePath/' . $m[1];
                                                 }
                                             @endphp
-                                            <img src="{{ $displayUrl }}" alt="" style="height:60px;width:60px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb;" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
-                                            <div class="flex flex-col items-center justify-center" style="height:60px;width:60px;background:#f3f4f6;border-radius:8px;border:1px solid #e5e7eb;display:none;">
-                                                <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                                                <a href="{{ $imgUrl }}" target="_blank" class="text-xs text-blue-500 hover:text-blue-700 mt-1">{{ __('cms.virtual_slideshow.view') }}</a>
+                                            <img src="{{ $displayUrl }}" alt=""
+                                                style="height:60px;width:60px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb;"
+                                                onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                                            <div class="flex flex-col items-center justify-center"
+                                                style="height:60px;width:60px;background:#f3f4f6;border-radius:8px;border:1px solid #e5e7eb;display:none;">
+                                                <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor"
+                                                    viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                </svg>
+                                                <a href="{{ $imgUrl }}" target="_blank"
+                                                    class="text-xs text-blue-500 hover:text-blue-700 mt-1">{{ __('cms.virtual_slideshow.view') }}</a>
                                             </div>
-                                            <button type="button" class="remove-existing" onclick="removeExistingUrl({{ $idx }})">✕</button>
+                                            <button type="button" class="remove-existing"
+                                                onclick="removeExistingUrl({{ $idx }})">✕</button>
                                         </div>
                                     @endif
                                 @endforeach
                             </div>
 
                             {{-- Caption: gambar upload + gambar URL yang sudah tersimpan (mengikuti unified_image_order) --}}
-                            <div id="existingInfoPopupRowsWrapper" class="{{ ($slide->slide_type ?? $slide->type) === 'hero' ? 'hidden' : '' }}">
+                            <div id="existingInfoPopupRowsWrapper"
+                                class="{{ ($slide->slide_type ?? $slide->type) === 'hero' ? 'hidden' : '' }}">
                                 <div id="existingInfoPopupRows" class="space-y-2">
-                                    <label class="form-label">{{ __('cms.virtual_slideshow.popup_existing_images') }}</label>
+                                    <label
+                                        class="form-label">{{ __('cms.virtual_slideshow.popup_existing_images') }}</label>
                                     @php $captionDisplayNum = 1; @endphp
                                     @foreach ($orderedExistingItems as $item)
                                         @if ($item['type'] === 'upload')
                                             @php $idx = $item['idx']; @endphp
                                             <div class="info-popup-row" id="existing-popup-row-{{ $idx }}">
-                                                <label class="form-label" style="margin-bottom:4px;">{{ __('cms.virtual_slideshow.image_number', ['number' => $captionDisplayNum]) }}</label>
-                                                <div class="existing-caption-widget" data-caption-index="{{ $idx }}" data-caption-data="{{ json_encode($slide->info_popup[$item['orderPos']] ?? ($slide->info_popup[(string)$item['orderPos']] ?? '')) }}"></div>
+                                                <label class="form-label"
+                                                    style="margin-bottom:4px;">{{ __('cms.virtual_slideshow.image_number', ['number' => $captionDisplayNum]) }}</label>
+                                                <div class="existing-caption-widget"
+                                                    data-caption-index="{{ $idx }}"
+                                                    data-caption-data="{{ json_encode($slide->info_popup[$item['orderPos']] ?? ($slide->info_popup[(string) $item['orderPos']] ?? '')) }}">
+                                                </div>
                                             </div>
                                         @elseif ($item['type'] === 'url')
                                             @php $idx = $item['idx']; @endphp
                                             <div class="info-popup-row" id="existing-url-popup-row-{{ $idx }}">
-                                                <label class="form-label" style="margin-bottom:4px;">Info Popup Caption (gambar URL) {{ $captionDisplayNum }}</label>
+                                                <label class="form-label" style="margin-bottom:4px;">Info Popup Caption
+                                                    (gambar URL)
+                                                    {{ $captionDisplayNum }}</label>
                                                 <div class="existing-url-caption-widget"
                                                     data-url-caption-index="{{ $idx }}"
-                                                    data-url-caption-data="{{ json_encode($slide->info_popup[$item['orderPos']] ?? ($slide->info_popup[(string)$item['orderPos']] ?? '')) }}"></div>
+                                                    data-url-caption-data="{{ json_encode($slide->info_popup[$item['orderPos']] ?? ($slide->info_popup[(string) $item['orderPos']] ?? '')) }}">
+                                                </div>
                                             </div>
                                         @endif
                                         @php $captionDisplayNum++; @endphp
@@ -286,11 +356,13 @@
                     {{-- Radio untuk MENAMBAH gambar baru --}}
                     <div class="flex gap-4 mb-3">
                         <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="radio" name="image_method" value="upload" checked onchange="toggleImageMethod('upload')">
+                            <input type="radio" name="image_method" value="upload" checked
+                                onchange="toggleImageMethod('upload')">
                             <span class="text-sm text-gray-700">{{ __('cms.virtual_slideshow.method_upload') }}</span>
                         </label>
                         <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="radio" name="image_method" value="url" onchange="toggleImageMethod('url')">
+                            <input type="radio" name="image_method" value="url"
+                                onchange="toggleImageMethod('url')">
                             <span class="text-sm text-gray-700">{{ __('cms.virtual_slideshow.method_url') }}</span>
                         </label>
                     </div>
@@ -302,54 +374,74 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                             </svg>
-                            <span class="text-sm text-gray-500" id="uploadHintText">{{ __('cms.virtual_slideshow.add_new_images') }}</span>
-                            <input type="file" name="images[]" accept="image/*" multiple class="hidden" id="imageInput"
-                                onchange="previewNewImages(this)">
+                            <span class="text-sm text-gray-500"
+                                id="uploadHintText">{{ __('cms.virtual_slideshow.add_new_images') }}</span>
+                            <input type="file" name="images[]" accept="image/*" multiple class="hidden"
+                                id="imageInput" onchange="previewNewImages(this)">
                         </label>
                     </div>
 
                     {{-- Bagian URL: existing URL tetap di sini (agar JS berjalan), ditambah slot untuk URL baru --}}
                     <div id="image-url-section" class="hidden">
                         <div id="image-url-list" class="space-y-2 mb-3">
-                            @if($slide->image_urls && count($slide->image_urls) > 0)
-                                @foreach($slide->image_urls as $idx => $imgUrl)
-                                <div class="image-url-entry flex gap-2 items-start" data-index="{{ $idx }}" data-is-existing="1">
-                                    <a href="{{ $imgUrl }}" target="_blank" class="url-link-btn px-2 py-2 text-blue-600 hover:bg-blue-50 rounded-lg flex-shrink-0" title="{{ __('cms.virtual_slideshow.open_link') }}">
+                            @if ($slide->image_urls && count($slide->image_urls) > 0)
+                                @foreach ($slide->image_urls as $idx => $imgUrl)
+                                    <div class="image-url-entry flex gap-2 items-start" data-index="{{ $idx }}"
+                                        data-is-existing="1">
+                                        <a href="{{ $imgUrl }}" target="_blank"
+                                            class="url-link-btn px-2 py-2 text-blue-600 hover:bg-blue-50 rounded-lg flex-shrink-0"
+                                            title="{{ __('cms.virtual_slideshow.open_link') }}">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                            </svg>
+                                        </a>
+                                        <input type="text" name="existing_image_urls[{{ $idx }}]"
+                                            class="form-input flex-1"
+                                            placeholder="{{ __('cms.virtual_slideshow.image_url_placeholder') }}"
+                                            value="{{ $imgUrl }}" data-index="{{ $idx }}"
+                                            oninput="updateUrlLink(this)">
+                                        <button type="button" onclick="removeImageUrlEntry(this)"
+                                            class="px-2 py-2 text-red-500 hover:bg-red-50 rounded-lg flex-shrink-0"
+                                            title="{{ __('cms.virtual_slideshow.delete') }}">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                @endforeach
+                            @else
+                                <div class="image-url-entry flex gap-2 items-start" data-index="0">
+                                    <a href="#" target="_blank"
+                                        class="url-link-btn px-2 py-2 text-blue-600 hover:bg-blue-50 rounded-lg flex-shrink-0 opacity-30 cursor-not-allowed"
+                                        title="{{ __('cms.virtual_slideshow.open_link') }}" onclick="return false;">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                                         </svg>
                                     </a>
-                                    <input type="text" name="existing_image_urls[{{ $idx }}]" class="form-input flex-1"
+                                    <input type="text" name="new_image_urls[0]" class="form-input flex-1"
                                         placeholder="{{ __('cms.virtual_slideshow.image_url_placeholder') }}"
-                                        value="{{ $imgUrl }}" data-index="{{ $idx }}" oninput="updateUrlLink(this)">
-                                    <button type="button" onclick="removeImageUrlEntry(this)" class="px-2 py-2 text-red-500 hover:bg-red-50 rounded-lg flex-shrink-0" title="{{ __('cms.virtual_slideshow.delete') }}">
+                                        data-index="0" oninput="updateUrlLink(this)">
+                                    <button type="button" onclick="removeImageUrlEntry(this)"
+                                        class="px-2 py-2 text-red-500 hover:bg-red-50 rounded-lg flex-shrink-0"
+                                        title="{{ __('cms.virtual_slideshow.delete') }}">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M6 18L18 6M6 6l12 12" />
                                         </svg>
                                     </button>
                                 </div>
-                                @endforeach
-                            @else
-                            <div class="image-url-entry flex gap-2 items-start" data-index="0">
-                                <a href="#" target="_blank" class="url-link-btn px-2 py-2 text-blue-600 hover:bg-blue-50 rounded-lg flex-shrink-0 opacity-30 cursor-not-allowed" title="{{ __('cms.virtual_slideshow.open_link') }}" onclick="return false;">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
-                                    </svg>
-                                </a>
-                                <input type="text" name="new_image_urls[0]" class="form-input flex-1"
-                                    placeholder="{{ __('cms.virtual_slideshow.image_url_placeholder') }}" data-index="0" oninput="updateUrlLink(this)">
-                                <button type="button" onclick="removeImageUrlEntry(this)" class="px-2 py-2 text-red-500 hover:bg-red-50 rounded-lg flex-shrink-0" title="{{ __('cms.virtual_slideshow.delete') }}">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                                    </svg>
-                                </button>
-                            </div>
                             @endif
                         </div>
                         <button type="button" onclick="addImageUrlEntry()" id="addImageUrlBtn"
                             class="flex items-center gap-2 px-4 py-2 text-sm text-blue-600 border border-blue-300 rounded-lg hover:bg-blue-50 transition-colors">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 4v16m8-8H4" />
                             </svg>
                             {{ __('cms.virtual_slideshow.add_image_url') }}
                         </button>
@@ -367,10 +459,11 @@
                         <div id="infoPopupUrlRows" class="space-y-2"></div>
                     </div>
 
-                    <div id="heroImageLimitWarning" class="hidden mt-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-700">
+                    <div id="heroImageLimitWarning"
+                        class="hidden mt-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-700">
                         {{ __('cms.virtual_slideshow.hero_limit_warning') }}
                     </div>
-                {{-- ./end imageSections --}}
+                    {{-- ./end imageSections --}}
                 </div>
 
                 {{-- Preview area for new uploaded images (outside imageSections) --}}
@@ -378,67 +471,76 @@
 
 
                 <script>
-                // Initialize on page load
-                (function initImageMethod() {
-                    var uploadRadio = document.querySelector('input[name="image_method"][value="upload"]');
-                    var urlRadio = document.querySelector('input[name="image_method"][value="url"]');
-                    var uploadSection = document.getElementById('image-upload-section');
-                    var urlSection = document.getElementById('image-url-section');
-                    var uploadCaption = document.getElementById('infoPopupUploadImageArea');
-                    var urlCaption = document.getElementById('infoPopupUrlImageArea');
-                    var uploadPreviewArea = document.getElementById('newImagePreviewArea');
-                    var urlPreviewArea = document.getElementById('newUrlPreviewArea');
-                    var typeInput = document.getElementById('slide_type_input');
-                    var isHeroType = typeInput && typeInput.value === 'hero';
+                    // Initialize on page load
+                    (function initImageMethod() {
+                        var uploadRadio = document.querySelector('input[name="image_method"][value="upload"]');
+                        var urlRadio = document.querySelector('input[name="image_method"][value="url"]');
+                        var uploadSection = document.getElementById('image-upload-section');
+                        var urlSection = document.getElementById('image-url-section');
+                        var uploadCaption = document.getElementById('infoPopupUploadImageArea');
+                        var urlCaption = document.getElementById('infoPopupUrlImageArea');
+                        var uploadPreviewArea = document.getElementById('newImagePreviewArea');
+                        var urlPreviewArea = document.getElementById('newUrlPreviewArea');
+                        var typeInput = document.getElementById('slide_type_input');
+                        var isHeroType = typeInput && typeInput.value === 'hero';
 
-                    if (urlRadio && urlRadio.checked) {
-                        // URL method selected
-                        uploadSection.classList.add('hidden');
-                        uploadSection.style.display = 'none';
-                        urlSection.classList.remove('hidden');
-                        urlSection.style.display = '';
-                        updateUrlImagePreviews();
-                    } else {
-                        // Upload method selected (default)
-                        uploadSection.classList.remove('hidden');
-                        uploadSection.style.display = '';
-                        urlSection.classList.add('hidden');
-                        urlSection.style.display = 'none';
-                        updateUrlImagePreviews();
-                    }
+                        if (urlRadio && urlRadio.checked) {
+                            // URL method selected
+                            uploadSection.classList.add('hidden');
+                            uploadSection.style.display = 'none';
+                            urlSection.classList.remove('hidden');
+                            urlSection.style.display = '';
+                            updateUrlImagePreviews();
+                        } else {
+                            // Upload method selected (default)
+                            uploadSection.classList.remove('hidden');
+                            uploadSection.style.display = '';
+                            urlSection.classList.add('hidden');
+                            urlSection.style.display = 'none';
+                            updateUrlImagePreviews();
+                        }
 
-                    // Initialize hero caption/limit state based on current type
-                    var typeInput = document.getElementById('slide_type_input');
-                    if (typeInput && typeof window.selectType === 'function') {
-                        window.selectType(typeInput.value);
-                    }
-                })();
-
+                        // Initialize hero caption/limit state based on current type
+                        var typeInput = document.getElementById('slide_type_input');
+                        if (typeInput && typeof window.selectType === 'function') {
+                            window.selectType(typeInput.value);
+                        }
+                    })();
                 </script>
 
                 {{-- Video Sections (for text_carousel) --}}
                 <div id="videoSections" class="hidden">
                     <div class="flex gap-4 mb-3">
                         <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="radio" name="carousel_video_method" value="url" checked onchange="toggleCarouselVideoMethod('url')">
+                            <input type="radio" name="carousel_video_method" value="url" checked
+                                onchange="toggleCarouselVideoMethod('url')">
                             <span class="text-sm text-gray-700">{{ __('cms.virtual_slideshow.method_url') }}</span>
                         </label>
                         <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="radio" name="carousel_video_method" value="upload" onchange="toggleCarouselVideoMethod('upload')">
+                            <input type="radio" name="carousel_video_method" value="upload"
+                                onchange="toggleCarouselVideoMethod('upload')">
                             <span class="text-sm text-gray-700">{{ __('cms.virtual_slideshow.method_upload') }}</span>
                         </label>
                     </div>
 
                     <div id="carousel-video-url-section">
                         <div id="carousel-video-url-list" class="space-y-2 mb-3">
-                            @if(!empty($slide->carousel_video_urls))
-                                @foreach($slide->carousel_video_urls as $index => $videoUrl)
-                                    <div class="carousel-video-url-entry flex gap-2 items-start" data-index="{{ $index }}">
+                            @if (!empty($slide->carousel_video_urls))
+                                @foreach ($slide->carousel_video_urls as $index => $videoUrl)
+                                    <div class="carousel-video-url-entry flex gap-2 items-start"
+                                        data-index="{{ $index }}">
                                         <input type="text" name="carousel_video_urls[]" class="form-input flex-1"
-                                            placeholder="{{ __('cms.virtual_slideshow.carousel_video_url_placeholder') }}" data-index="{{ $index }}" data-caption="{{ is_array($slide->info_popup['carousel_videos']['url_' . $index] ?? '') ? json_encode($slide->info_popup['carousel_videos']['url_' . $index]) : ($slide->info_popup['carousel_videos']['url_' . $index] ?? '') }}" value="{{ $videoUrl }}" oninput="updateCarouselUrlCaption(this)">
-                                        <button type="button" onclick="removeCarouselVideoUrlEntry(this)" class="px-2 py-2 text-red-500 hover:bg-red-50 rounded-lg flex-shrink-0" title="{{ __('cms.virtual_slideshow.delete') }}">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                            placeholder="{{ __('cms.virtual_slideshow.carousel_video_url_placeholder') }}"
+                                            data-index="{{ $index }}"
+                                            data-caption="{{ is_array($slide->info_popup['carousel_videos']['url_' . $index] ?? '') ? json_encode($slide->info_popup['carousel_videos']['url_' . $index]) : $slide->info_popup['carousel_videos']['url_' . $index] ?? '' }}"
+                                            value="{{ $videoUrl }}" oninput="updateCarouselUrlCaption(this)">
+                                        <button type="button" onclick="removeCarouselVideoUrlEntry(this)"
+                                            class="px-2 py-2 text-red-500 hover:bg-red-50 rounded-lg flex-shrink-0"
+                                            title="{{ __('cms.virtual_slideshow.delete') }}">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M6 18L18 6M6 6l12 12" />
                                             </svg>
                                         </button>
                                     </div>
@@ -446,10 +548,14 @@
                             @else
                                 <div class="carousel-video-url-entry flex gap-2 items-start" data-index="0">
                                     <input type="text" name="carousel_video_urls[]" class="form-input flex-1"
-                                        placeholder="{{ __('cms.virtual_slideshow.carousel_video_url_placeholder') }}" data-index="0" data-caption="" oninput="updateCarouselUrlCaption(this)">
-                                    <button type="button" onclick="removeCarouselVideoUrlEntry(this)" class="px-2 py-2 text-red-500 hover:bg-red-50 rounded-lg flex-shrink-0" title="{{ __('cms.virtual_slideshow.delete') }}">
+                                        placeholder="{{ __('cms.virtual_slideshow.carousel_video_url_placeholder') }}"
+                                        data-index="0" data-caption="" oninput="updateCarouselUrlCaption(this)">
+                                    <button type="button" onclick="removeCarouselVideoUrlEntry(this)"
+                                        class="px-2 py-2 text-red-500 hover:bg-red-50 rounded-lg flex-shrink-0"
+                                        title="{{ __('cms.virtual_slideshow.delete') }}">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M6 18L18 6M6 6l12 12" />
                                         </svg>
                                     </button>
                                 </div>
@@ -458,7 +564,8 @@
                         <button type="button" onclick="addCarouselVideoUrlEntry()"
                             class="flex items-center gap-2 px-4 py-2 text-sm text-blue-600 border border-blue-300 rounded-lg hover:bg-blue-50 transition-colors">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 4v16m8-8H4" />
                             </svg>
                             {{ __('cms.virtual_slideshow.add_video_url') }}
                         </button>
@@ -471,11 +578,12 @@
                             class="flex items-center gap-3 px-4 py-3 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors">
                             <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                             </svg>
-                            <span class="text-sm text-gray-500">{{ __('cms.virtual_slideshow.carousel_video_upload_hint') }}</span>
-                            <input type="file" name="carousel_videos[]" multiple accept="video/*" class="hidden" id="carouselVideoInput"
-                                onchange="previewCarouselVideos(this)">
+                            <span
+                                class="text-sm text-gray-500">{{ __('cms.virtual_slideshow.carousel_video_upload_hint') }}</span>
+                            <input type="file" name="carousel_videos[]" multiple accept="video/*" class="hidden"
+                                id="carouselVideoInput" onchange="previewCarouselVideos(this)">
                         </label>
                         <div id="carouselVideoPreviewArea" class="flex flex-wrap gap-3 mt-3"></div>
                     </div>
@@ -484,7 +592,8 @@
                         <label class="form-label mt-2">{{ __('cms.virtual_slideshow.popup_caption_videos') }} <span
                                 class="text-gray-400 text-xs">({{ __('cms.virtual_slideshow.popup_caption_hint') }})</span></label>
                         <div id="carouselVideoInfoPopupRows" class="space-y-2">
-                            <p class="text-xs text-gray-400 italic" id="noCarouselVideosHint">{{ __('cms.virtual_slideshow.add_videos_first') }}</p>
+                            <p class="text-xs text-gray-400 italic" id="noCarouselVideosHint">
+                                {{ __('cms.virtual_slideshow.add_videos_first') }}</p>
                         </div>
                     </div>
                 </div>
@@ -496,11 +605,13 @@
 
                 <div class="flex gap-4 mb-3">
                     <label class="flex items-center gap-2 cursor-pointer">
-                        <input type="radio" name="video_method" value="url" {{ (!$slide->video_file) ? 'checked' : '' }} onchange="toggleVideoMethod('url')">
+                        <input type="radio" name="video_method" value="url"
+                            {{ !$slide->video_file ? 'checked' : '' }} onchange="toggleVideoMethod('url')">
                         <span class="text-sm text-gray-700">{{ __('cms.virtual_slideshow.method_url') }}</span>
                     </label>
                     <label class="flex items-center gap-2 cursor-pointer">
-                        <input type="radio" name="video_method" value="upload" {{ ($slide->video_file) ? 'checked' : '' }} onchange="toggleVideoMethod('upload')">
+                        <input type="radio" name="video_method" value="upload"
+                            {{ $slide->video_file ? 'checked' : '' }} onchange="toggleVideoMethod('upload')">
                         <span class="text-sm text-gray-700">{{ __('cms.virtual_slideshow.method_upload') }}</span>
                     </label>
                 </div>
@@ -508,14 +619,16 @@
                 <input type="hidden" name="delete_existing_video" id="deleteExistingVideo" value="0">
                 <input type="hidden" name="clear_existing_url" id="clearExistingUrl" value="0">
 
-                <div id="video-url-section" class="{{ ($slide->video_file) ? 'hidden' : '' }}">
+                <div id="video-url-section" class="{{ $slide->video_file ? 'hidden' : '' }}">
                     @if ($slide->video_url)
                         <div class="mb-3">
                             <label class="form-label">{{ __('cms.virtual_slideshow.existing_video_url') }}</label>
                             <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
                                 <span class="text-sm text-gray-600 flex-1 truncate">{{ $slide->video_url }}</span>
-                                <a href="{{ $slide->video_url }}" target="_blank" class="text-blue-600 hover:underline text-sm">{{ __('cms.virtual_slideshow.view') }}</a>
-                                <button type="button" onclick="openDeleteUrlModal()" class="px-3 py-1 text-sm text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors">
+                                <a href="{{ $slide->video_url }}" target="_blank"
+                                    class="text-blue-600 hover:underline text-sm">{{ __('cms.virtual_slideshow.view') }}</a>
+                                <button type="button" onclick="openDeleteUrlModal()"
+                                    class="px-3 py-1 text-sm text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors">
                                     {{ __('cms.virtual_slideshow.delete') }}
                                 </button>
                             </div>
@@ -524,19 +637,22 @@
 
                     <div class="flex gap-2 items-start">
                         <input type="text" name="video_url" class="form-input flex-1"
-                            placeholder="{{ __('cms.virtual_slideshow.single_video_url_placeholder') }}" value="{{ old('video_url', $slide->video_url) }}" oninput="previewVideoUrl(this)">
-                        <div class="url-preview-placeholder w-24 h-16 rounded-lg border border-gray-200 bg-gray-50 flex items-center justify-center overflow-hidden flex-shrink-0">
+                            placeholder="{{ __('cms.virtual_slideshow.single_video_url_placeholder') }}"
+                            value="{{ old('video_url', $slide->video_url) }}" oninput="previewVideoUrl(this)">
+                        <div
+                            class="url-preview-placeholder w-24 h-16 rounded-lg border border-gray-200 bg-gray-50 flex items-center justify-center overflow-hidden flex-shrink-0">
                             <span class="text-xs text-gray-400">{{ __('cms.virtual_slideshow.preview') }}</span>
                         </div>
                     </div>
 
                     <div class="mt-4">
                         <label class="form-label">{{ __('cms.virtual_slideshow.popup_video_url') }}</label>
-                        <div id="videoCaptionWidgetUrl" data-caption-data="{{ json_encode($slide->info_popup['video_url'] ?? '') }}"></div>
+                        <div id="videoCaptionWidgetUrl"
+                            data-caption-data="{{ json_encode($slide->info_popup['video_url'] ?? '') }}"></div>
                     </div>
                 </div>
 
-                <div id="video-upload-section" class="{{ (!$slide->video_file) ? 'hidden' : '' }}">
+                <div id="video-upload-section" class="{{ !$slide->video_file ? 'hidden' : '' }}">
                     @if ($slide->video_file)
                         <div id="existingVideoInfo" class="mb-3">
                             <label class="form-label">{{ __('cms.virtual_slideshow.existing_video_upload') }}</label>
@@ -548,8 +664,10 @@
                                 <div class="flex items-center justify-between">
                                     <p class="text-sm text-gray-600 truncate">{{ basename($slide->video_file) }}</p>
                                     <div class="flex items-center gap-2">
-                                        <a href="{{ asset('storage/' . $slide->video_file) }}" target="_blank" class="text-blue-600 hover:underline text-sm">{{ __('cms.virtual_slideshow.open') }}</a>
-                                        <button type="button" onclick="openDeleteVideoModal()" class="px-3 py-1 text-sm text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors">
+                                        <a href="{{ asset('storage/' . $slide->video_file) }}" target="_blank"
+                                            class="text-blue-600 hover:underline text-sm">{{ __('cms.virtual_slideshow.open') }}</a>
+                                        <button type="button" onclick="openDeleteVideoModal()"
+                                            class="px-3 py-1 text-sm text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors">
                                             {{ __('cms.virtual_slideshow.delete') }}
                                         </button>
                                     </div>
@@ -561,7 +679,7 @@
                         class="flex items-center gap-3 px-4 py-3 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors">
                         <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                         </svg>
                         <span class="text-sm text-gray-500">{{ __('cms.virtual_slideshow.video_upload_hint') }}</span>
                         <input type="file" name="video_file" accept="video/*" class="hidden" id="videoInput"
@@ -574,7 +692,8 @@
 
                     <div class="mt-4">
                         <label class="form-label">{{ __('cms.virtual_slideshow.popup_video_upload') }}</label>
-                        <div id="videoCaptionWidget" data-caption-data="{{ json_encode($slide->info_popup['video'] ?? '') }}"></div>
+                        <div id="videoCaptionWidget"
+                            data-caption-data="{{ json_encode($slide->info_popup['video'] ?? '') }}"></div>
                     </div>
                 </div>
             </div>
@@ -606,7 +725,8 @@
                             </svg>
                         </div>
                         <div>
-                            <h3 class="text-base font-semibold text-gray-800">{{ __('cms.virtual_slideshow.delete_video_upload_title') }}</h3>
+                            <h3 class="text-base font-semibold text-gray-800">
+                                {{ __('cms.virtual_slideshow.delete_video_upload_title') }}</h3>
                             <p class="text-sm text-gray-500 mt-1">
                                 {{ __('cms.virtual_slideshow.delete_video_upload_confirm') }}
                             </p>
@@ -626,8 +746,7 @@
             </div>
 
             {{-- Clear URL Modal --}}
-            <div id="deleteUrlModal" class="fixed inset-0 items-center justify-center p-4 hidden"
-                style="z-index: 9999;">
+            <div id="deleteUrlModal" class="fixed inset-0 items-center justify-center p-4 hidden" style="z-index: 9999;">
                 <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeDeleteUrlModal()"
                     style="position: fixed; top: 0; right: 0; bottom: 0; left: 0;"></div>
                 <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm z-[9999] p-6">
@@ -640,7 +759,8 @@
                             </svg>
                         </div>
                         <div>
-                            <h3 class="text-base font-semibold text-gray-800">{{ __('cms.virtual_slideshow.delete_video_url_title') }}</h3>
+                            <h3 class="text-base font-semibold text-gray-800">
+                                {{ __('cms.virtual_slideshow.delete_video_url_title') }}</h3>
                             <p class="text-sm text-gray-500 mt-1">
                                 {{ __('cms.virtual_slideshow.delete_video_url_confirm') }}
                             </p>
@@ -664,10 +784,12 @@
                     document.getElementById('deleteVideoModal').classList.remove('hidden');
                     document.getElementById('deleteVideoModal').classList.add('flex');
                 }
+
                 function closeDeleteVideoModal() {
                     document.getElementById('deleteVideoModal').classList.add('hidden');
                     document.getElementById('deleteVideoModal').classList.remove('flex');
                 }
+
                 function submitDeleteVideoModal() {
                     closeDeleteVideoModal();
                     document.getElementById('deleteExistingVideo').value = '1';
@@ -681,16 +803,18 @@
                     document.getElementById('deleteUrlModal').classList.remove('hidden');
                     document.getElementById('deleteUrlModal').classList.add('flex');
                 }
+
                 function closeDeleteUrlModal() {
                     document.getElementById('deleteUrlModal').classList.add('hidden');
                     document.getElementById('deleteUrlModal').classList.remove('flex');
                 }
+
                 function submitDeleteUrlModal() {
                     closeDeleteUrlModal();
                     document.getElementById('clearExistingUrl').value = '1';
                     var urlSection = document.getElementById('video-url-section');
                     var urlDiv = urlSection.querySelector('.mb-3');
-                    if(urlDiv) urlDiv.remove();
+                    if (urlDiv) urlDiv.remove();
                     var vidInput = document.getElementById('infoPopupVideoInput');
                     if (vidInput) vidInput.value = '';
                 }
@@ -753,8 +877,10 @@
             modeDiv.className = 'caption-widget-mode';
             var modeSelect = document.createElement('select');
             modeSelect.name = modeName;
-            modeSelect.innerHTML = '<option value="single"' + (existingMode === 'single' ? ' selected' : '') + '>' + __t.caption_single + '</option>' +
-                                   '<option value="multi"' + (existingMode === 'multi' ? ' selected' : '') + '>' + __t.caption_multi_qa + '</option>';
+            modeSelect.innerHTML = '<option value="single"' + (existingMode === 'single' ? ' selected' : '') + '>' + __t
+                .caption_single + '</option>' +
+                '<option value="multi"' + (existingMode === 'multi' ? ' selected' : '') + '>' + __t.caption_multi_qa +
+                '</option>';
             modeDiv.appendChild(modeSelect);
             containerEl.appendChild(modeDiv);
 
@@ -778,19 +904,26 @@
             qaList.className = 'caption-qa-list';
             multiDiv.appendChild(qaList);
 
-            var qaCounter = { value: 0 };
+            var qaCounter = {
+                value: 0
+            };
 
             function addQaPair(q, a) {
                 var idx = qaCounter.value++;
                 var pair = document.createElement('div');
                 pair.className = 'caption-qa-pair';
-                var qaBaseName = isArray ? qaNamePrefix + '[' + captionIndex + '][' + idx + ']' : qaNamePrefix + '[' + idx + ']';
+                var qaBaseName = isArray ? qaNamePrefix + '[' + captionIndex + '][' + idx + ']' : qaNamePrefix + '[' + idx +
+                    ']';
                 pair.innerHTML =
                     '<button type="button" class="caption-qa-remove" onclick="this.parentElement.remove()">✕</button>' +
-                    '<label style="font-size:0.75rem;color:#6b7280;margin-bottom:2px;display:block;">' + __t.question + '</label>' +
-                    '<input type="text" name="' + qaBaseName + '[question]" placeholder="' + __t.question + '..." value="' + (q || '').replace(/"/g, '&quot;') + '">' +
-                    '<label style="font-size:0.75rem;color:#6b7280;margin:6px 0 2px;display:block;">' + __t.answer + '</label>' +
-                    '<textarea name="' + qaBaseName + '[answer]" placeholder="' + __t.answer + '...">' + (a || '').replace(/</g, '&lt;') + '</textarea>';
+                    '<label style="font-size:0.75rem;color:#6b7280;margin-bottom:2px;display:block;">' + __t.question +
+                    '</label>' +
+                    '<input type="text" name="' + qaBaseName + '[question]" placeholder="' + __t.question + '..." value="' +
+                    (q || '').replace(/"/g, '&quot;') + '">' +
+                    '<label style="font-size:0.75rem;color:#6b7280;margin:6px 0 2px;display:block;">' + __t.answer +
+                    '</label>' +
+                    '<textarea name="' + qaBaseName + '[answer]" placeholder="' + __t.answer + '...">' + (a || '').replace(
+                        /</g, '&lt;') + '</textarea>';
                 qaList.appendChild(pair);
             }
 
@@ -806,7 +939,9 @@
             addBtn.type = 'button';
             addBtn.className = 'caption-qa-add';
             addBtn.innerHTML = __t.add_qa;
-            addBtn.addEventListener('click', function() { addQaPair('', ''); });
+            addBtn.addEventListener('click', function() {
+                addQaPair('', '');
+            });
             multiDiv.appendChild(addBtn);
 
             containerEl.appendChild(multiDiv);
@@ -822,7 +957,11 @@
                 }
             });
 
-            return { addQaPair: addQaPair, modeSelect: modeSelect, singleInput: singleInput };
+            return {
+                addQaPair: addQaPair,
+                modeSelect: modeSelect,
+                singleInput: singleInput
+            };
         }
 
         (function() {
@@ -883,7 +1022,12 @@
 
             window.trySelectHero = function() {
                 var currentType = document.getElementById('slide_type_input').value;
-                var hasHeroSlide = @isset($hasHeroSlide) {{ $hasHeroSlide ? 'true' : 'false' }} @else false @endisset;
+                var hasHeroSlide =
+                    @isset($hasHeroSlide)
+                        {{ $hasHeroSlide ? 'true' : 'false' }}
+                    @else
+                        false
+                    @endisset ;
                 if (hasHeroSlide && currentType !== 'hero') {
                     Swal.fire({
                         icon: 'error',
@@ -921,13 +1065,16 @@
 
                 if (type === 'text_carousel') {
                     // Show toggle and check for existing video URLs to decide default
-                    var hasExistingVideoUrls = document.querySelectorAll('#carousel-video-url-list input[name="carousel_video_urls[]"]').length > 0 &&
-                        Array.from(document.querySelectorAll('#carousel-video-url-list input[name="carousel_video_urls[]"]')).some(function(input) {
+                    var hasExistingVideoUrls = document.querySelectorAll(
+                            '#carousel-video-url-list input[name="carousel_video_urls[]"]').length > 0 &&
+                        Array.from(document.querySelectorAll(
+                            '#carousel-video-url-list input[name="carousel_video_urls[]"]')).some(function(input) {
                             return input.value && input.value.trim() !== '';
                         });
 
                     // Also check for existing uploaded videos
-                    var hasExistingUploadedVideos = (typeof existingCarouselVideos !== 'undefined' && existingCarouselVideos.length > 0);
+                    var hasExistingUploadedVideos = (typeof existingCarouselVideos !== 'undefined' &&
+                        existingCarouselVideos.length > 0);
 
                     if (carouselToggle) carouselToggle.classList.remove('hidden');
 
@@ -935,13 +1082,15 @@
                         // Use videos mode if there are existing video URLs or uploads
                         imageSections.classList.add('hidden');
                         videoSections.classList.remove('hidden');
-                        var vidRadio = carouselToggle ? carouselToggle.querySelector('input[value="videos"]') : null;
+                        var vidRadio = carouselToggle ? carouselToggle.querySelector('input[value="videos"]') :
+                            null;
                         if (vidRadio) vidRadio.checked = true;
                         toggleCarouselMediaType('videos');
 
                         // If there are uploaded videos but no URLs, default to upload method
                         if (hasExistingUploadedVideos && !hasExistingVideoUrls) {
-                            var uploadRadio = document.querySelector('input[name="carousel_video_method"][value="upload"]');
+                            var uploadRadio = document.querySelector(
+                                'input[name="carousel_video_method"][value="upload"]');
                             if (uploadRadio) {
                                 uploadRadio.checked = true;
                                 toggleCarouselVideoMethod('upload');
@@ -951,7 +1100,8 @@
                         // Default to images
                         if (imageSections) imageSections.classList.remove('hidden');
                         if (videoSections) videoSections.classList.add('hidden');
-                        var imgRadio = carouselToggle ? carouselToggle.querySelector('input[value="images"]') : null;
+                        var imgRadio = carouselToggle ? carouselToggle.querySelector('input[value="images"]') :
+                            null;
                         if (imgRadio) imgRadio.checked = true;
                         toggleCarouselMediaType('images');
                     }
@@ -966,12 +1116,17 @@
                 var isHero = (type === 'hero');
                 if (isHero) {
                     var existingCount = 0;
-                    var existingInputs = document.querySelectorAll('#existingImagesArea input[name^="existing_images["]:not([disabled])');
-                    existingInputs.forEach(function(inp) { existingCount++; });
+                    var existingInputs = document.querySelectorAll(
+                        '#existingImagesArea input[name^="existing_images["]:not([disabled])');
+                    existingInputs.forEach(function(inp) {
+                        existingCount++;
+                    });
                     var hasExistingImage = existingCount > 0;
 
                     var addUrlBtn = document.getElementById('addImageUrlBtn');
-                    if (addUrlBtn) { addUrlBtn.style.display = 'none'; }
+                    if (addUrlBtn) {
+                        addUrlBtn.style.display = 'none';
+                    }
 
                     var heroLimitWarning = document.getElementById('heroImageLimitWarning');
                     if (heroLimitWarning) {
@@ -980,15 +1135,23 @@
 
                     // Hide existing image caption widget for hero type
                     var existingCaptionWrapper = document.getElementById('existingInfoPopupRowsWrapper');
-                    if (existingCaptionWrapper) { existingCaptionWrapper.classList.add('hidden'); existingCaptionWrapper.style.display = 'none'; }
+                    if (existingCaptionWrapper) {
+                        existingCaptionWrapper.classList.add('hidden');
+                        existingCaptionWrapper.style.display = 'none';
+                    }
                 } else {
                     // non-hero: restore "Tambah URL Gambar" button
                     var addUrlBtn = document.getElementById('addImageUrlBtn');
-                    if (addUrlBtn) { addUrlBtn.style.display = 'inline-flex'; }
+                    if (addUrlBtn) {
+                        addUrlBtn.style.display = 'inline-flex';
+                    }
 
                     // Show existing image caption widget for non-hero types
                     var existingCaptionWrapper = document.getElementById('existingInfoPopupRowsWrapper');
-                    if (existingCaptionWrapper) { existingCaptionWrapper.classList.remove('hidden'); existingCaptionWrapper.style.display = ''; }
+                    if (existingCaptionWrapper) {
+                        existingCaptionWrapper.classList.remove('hidden');
+                        existingCaptionWrapper.style.display = '';
+                    }
                 }
 
                 // Clear video data when switching to non-video type
@@ -1009,15 +1172,27 @@
                     // Restore visibility of video sections and toggle based on current method
                     var videoUrlSection = document.getElementById('video-url-section');
                     var videoUploadSection = document.getElementById('video-upload-section');
-                    if (videoUrlSection) { videoUrlSection.classList.remove('hidden'); videoUrlSection.style.display = ''; }
-                    if (videoUploadSection) { videoUploadSection.classList.remove('hidden'); videoUploadSection.style.display = ''; }
+                    if (videoUrlSection) {
+                        videoUrlSection.classList.remove('hidden');
+                        videoUrlSection.style.display = '';
+                    }
+                    if (videoUploadSection) {
+                        videoUploadSection.classList.remove('hidden');
+                        videoUploadSection.style.display = '';
+                    }
                     // Sync visibility with checked radio
                     var videoMethodRadio = document.querySelector('input[name="video_method"]:checked');
                     if (videoMethodRadio) {
                         if (videoMethodRadio.value === 'url') {
-                            if (videoUploadSection) { videoUploadSection.classList.add('hidden'); videoUploadSection.style.display = 'none'; }
+                            if (videoUploadSection) {
+                                videoUploadSection.classList.add('hidden');
+                                videoUploadSection.style.display = 'none';
+                            }
                         } else {
-                            if (videoUrlSection) { videoUrlSection.classList.add('hidden'); videoUrlSection.style.display = 'none'; }
+                            if (videoUrlSection) {
+                                videoUrlSection.classList.add('hidden');
+                                videoUrlSection.style.display = 'none';
+                            }
                         }
                     }
                 }
@@ -1055,8 +1230,10 @@
                 if (method === 'url') {
                     // HERO: jika sudah ada gambar upload, tolak switch ke URL
                     if (isHeroType) {
-                        var hasNewUpload = typeof selectedNewImageFiles !== 'undefined' && selectedNewImageFiles.length > 0;
-                        var existingInputs = document.querySelectorAll('#existingImagesArea input[name^="existing_images["]:not([disabled])');
+                        var hasNewUpload = typeof selectedNewImageFiles !== 'undefined' && selectedNewImageFiles
+                            .length > 0;
+                        var existingInputs = document.querySelectorAll(
+                            '#existingImagesArea input[name^="existing_images["]:not([disabled])');
                         var hasExistingUpload = existingInputs.length > 0;
 
                         if (hasNewUpload || hasExistingUpload) {
@@ -1081,7 +1258,10 @@
                     urlSection.classList.remove('hidden');
                     urlSection.style.display = '';
                     var existingCaptionWrapper = document.getElementById('existingInfoPopupRowsWrapper');
-                    if (existingCaptionWrapper) { existingCaptionWrapper.classList.add('hidden'); existingCaptionWrapper.style.display = 'none'; }
+                    if (existingCaptionWrapper) {
+                        existingCaptionWrapper.classList.add('hidden');
+                        existingCaptionWrapper.style.display = 'none';
+                    }
                     updateUrlImagePreviews();
                 } else {
                     // HERO: jika sudah ada URL yang diisi, tolak switch ke Upload
@@ -1116,8 +1296,13 @@
                     urlSection.style.display = 'none';
                     var existingCaptionWrapper = document.getElementById('existingInfoPopupRowsWrapper');
                     if (existingCaptionWrapper) {
-                        if (isHeroType) { existingCaptionWrapper.classList.add('hidden'); existingCaptionWrapper.style.display = 'none'; }
-                        else { existingCaptionWrapper.classList.remove('hidden'); existingCaptionWrapper.style.display = ''; }
+                        if (isHeroType) {
+                            existingCaptionWrapper.classList.add('hidden');
+                            existingCaptionWrapper.style.display = 'none';
+                        } else {
+                            existingCaptionWrapper.classList.remove('hidden');
+                            existingCaptionWrapper.style.display = '';
+                        }
                     }
                     updateUrlImagePreviews();
                 }
@@ -1146,7 +1331,8 @@
                     var videoUrlInput = document.querySelector('input[name="video_url"]');
                     if (videoUrlInput) videoUrlInput.value = '';
                     var urlPreviewPlaceholder = urlSection.querySelector('.url-preview-placeholder');
-                    if (urlPreviewPlaceholder) urlPreviewPlaceholder.innerHTML = '<span class="text-xs text-gray-400">' + __t.preview + '</span>';
+                    if (urlPreviewPlaceholder) urlPreviewPlaceholder.innerHTML =
+                        '<span class="text-xs text-gray-400">' + __t.preview + '</span>';
                     // Show existing video info when switching to upload method
                     if (existingVideoInfo) {
                         existingVideoInfo.removeAttribute('hidden');
@@ -1166,15 +1352,20 @@
 
                 var youtubeId = getYouTubeId(url);
                 if (youtubeId) {
-                    preview.innerHTML = '<img src="https://img.youtube.com/vi/' + youtubeId + '/1.jpg" class="w-full h-full object-cover rounded-lg">';
+                    preview.innerHTML = '<img src="https://img.youtube.com/vi/' + youtubeId +
+                        '/1.jpg" class="w-full h-full object-cover rounded-lg">';
                 } else if (url.endsWith('.mp4') || url.endsWith('.webm') || url.endsWith('.ogg')) {
-                    preview.innerHTML = '<video src="' + url + '" class="w-full h-full object-cover rounded-lg"></video>';
+                    preview.innerHTML = '<video src="' + url +
+                        '" class="w-full h-full object-cover rounded-lg"></video>';
                 } else if (url.includes('drive.google.com')) {
                     var gdThumb = convertGoogleDriveUrl(url);
                     if (gdThumb) {
-                        preview.innerHTML = '<img src="' + gdThumb + '" class="w-full h-full object-cover rounded-lg" onerror="this.parentElement.innerHTML=\'<div class=\\\'flex flex-col items-center justify-center w-full h-full\\\'><svg class=\\\'w-5 h-5 text-blue-500\\\' fill=\\\'none\\\' stroke=\\\'currentColor\\\' viewBox=\\\'0 0 24 24\\\'><path stroke-linecap=\\\'round\\\' stroke-linejoin=\\\'round\\\' stroke-width=\\\'2\\\' d=\\\'M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z\\\'/></svg><span class=\\\'text-xs text-blue-500 mt-1\\\'>' + __t.google_drive + '</span></div>\';">';
+                        preview.innerHTML = '<img src="' + gdThumb +
+                            '" class="w-full h-full object-cover rounded-lg" onerror="this.parentElement.innerHTML=\'<div class=\\\'flex flex-col items-center justify-center w-full h-full\\\'><svg class=\\\'w-5 h-5 text-blue-500\\\' fill=\\\'none\\\' stroke=\\\'currentColor\\\' viewBox=\\\'0 0 24 24\\\'><path stroke-linecap=\\\'round\\\' stroke-linejoin=\\\'round\\\' stroke-width=\\\'2\\\' d=\\\'M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z\\\'/></svg><span class=\\\'text-xs text-blue-500 mt-1\\\'>' +
+                            __t.google_drive + '</span></div>\';">';
                     } else {
-                        preview.innerHTML = '<div class="flex flex-col items-center justify-center w-full h-full">' +
+                        preview.innerHTML =
+                            '<div class="flex flex-col items-center justify-center w-full h-full">' +
                             '<svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
                             '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>' +
                             '<span class="text-xs text-blue-500 mt-1">' + __t.google_drive + '</span></div>';
@@ -1222,49 +1413,53 @@
                 var entry = btn.closest('.image-url-entry');
                 if (!entry) return;
 
-                var entries = document.querySelectorAll('#image-url-list .image-url-entry');
+                // Only count NEW image URL entries (not existing ones)
+                var newEntries = document.querySelectorAll(
+                    '#image-url-list .image-url-entry:not([data-is-existing="1"])');
                 // Determine the domIdx of the entry being removed
                 var inpOfRemoved = entry.querySelector('input[name^="new_image_urls"]');
                 var removedDomIdx = inpOfRemoved ? parseInt(inpOfRemoved.getAttribute('data-index')) : -1;
 
-                if (entries.length > 1) {
+                if (newEntries.length > 1) {
                     entry.remove();
-                    // Reindex data-index on remaining entries
-                    var remaining = document.querySelectorAll('#image-url-list .image-url-entry');
+                    // Reindex data-index on remaining NEW entries only
+                    var remaining = document.querySelectorAll(
+                        '#image-url-list .image-url-entry:not([data-is-existing="1"])');
                     remaining.forEach(function(ent, i) {
                         var inp = ent.querySelector('input[name^="new_image_urls"]');
                         if (inp) inp.setAttribute('data-index', i);
                     });
-                    // Reindex data-url-slot-index on remaining caption containers
+                    // Remove and reindex caption rows for this URL
                     var uploadCaptionRows = document.getElementById('infoPopupUploadRows');
                     if (uploadCaptionRows) {
+                        var removedCaption = uploadCaptionRows.querySelector('[data-url-slot-index="' +
+                            removedDomIdx + '"]');
+                        if (removedCaption) removedCaption.remove();
+                        // Reindex remaining caption rows
                         uploadCaptionRows.querySelectorAll('[data-url-slot-index]').forEach(function(container) {
                             var currentSlot = parseInt(container.getAttribute('data-url-slot-index'));
                             if (currentSlot > removedDomIdx) {
                                 container.setAttribute('data-url-slot-index', currentSlot - 1);
-                            } else if (currentSlot === removedDomIdx) {
-                                container.setAttribute('data-url-slot-index', '-1');
                             }
                         });
                     }
-                    // Delete the removed URL's entry from urlImageCaptionTracker (keyed by backendIdx)
+                    // Delete caption tracker for this URL
                     if (removedDomIdx >= 0) {
-                        var existingUploadedCount = getRemainingExistingCount();
-                        var uploadedCount = selectedNewImageFiles.length;
-                        var removedBackendIdx = existingUploadedCount + uploadedCount + removedDomIdx;
-                        delete urlImageCaptionTracker[removedBackendIdx];
+                        delete urlImageCaptionTracker[removedDomIdx];
                     }
                 } else {
                     var input = entry.querySelector('input[name^="new_image_urls"]');
                     if (input) {
                         input.value = '';
+                        input.setAttribute('data-caption', '');
                     }
-                    // Delete tracker entry for last URL
-                    if (removedDomIdx >= 0) {
-                        var existingUploadedCount = getRemainingExistingCount();
-                        var uploadedCount = selectedNewImageFiles.length;
-                        var removedBackendIdx = existingUploadedCount + uploadedCount + removedDomIdx;
-                        delete urlImageCaptionTracker[removedBackendIdx];
+                    // Remove caption row if only one entry
+                    var uploadCaptionRows = document.getElementById('infoPopupUploadRows');
+                    if (uploadCaptionRows && removedDomIdx >= 0) {
+                        var captionRow = uploadCaptionRows.querySelector('[data-url-slot-index="' + removedDomIdx +
+                            '"]');
+                        if (captionRow) captionRow.remove();
+                        delete urlImageCaptionTracker[removedDomIdx];
                     }
                 }
                 updateUrlImagePreviews();
@@ -1277,13 +1472,15 @@
 
                 // Count existing (saved) images
                 var existingCount = 0;
-                var existingInputs = document.querySelectorAll('#existingImagesArea input[name^="existing_images["]:not([disabled])');
+                var existingInputs = document.querySelectorAll(
+                    '#existingImagesArea input[name^="existing_images["]:not([disabled])');
                 existingInputs.forEach(function(inp) {
                     existingCount++;
                 });
 
                 // Count newly uploaded files
-                var newUploadCount = (typeof selectedNewImageFiles !== 'undefined') ? selectedNewImageFiles.length : 0;
+                var newUploadCount = (typeof selectedNewImageFiles !== 'undefined') ? selectedNewImageFiles.length :
+                    0;
 
                 // Count filled URL entries (new ones)
                 var urlEntries = document.querySelectorAll('#image-url-list .image-url-entry');
@@ -1307,8 +1504,8 @@
                     return;
                 }
                 var list = document.getElementById('image-url-list');
-                var entries = list.querySelectorAll('.image-url-entry');
-                var newIndex = entries.length;
+                var newEntries = list.querySelectorAll('.image-url-entry:not([data-is-existing="1"])');
+                var newIndex = newEntries.length;
 
                 var entry = document.createElement('div');
                 entry.className = 'image-url-entry flex gap-2 items-start';
@@ -1318,8 +1515,10 @@
                     '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
                     '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg></a>' +
                     '<input type="text" name="new_image_urls[' + newIndex + ']" class="form-input flex-1" ' +
-                    'placeholder="' + __t.image_url_placeholder + '" data-index="' + newIndex + '" oninput="updateUrlLink(this)">' +
-                    '<button type="button" onclick="removeImageUrlEntry(this)" class="px-2 py-2 text-red-500 hover:bg-red-50 rounded-lg flex-shrink-0" title="' + __t.delete + '">' +
+                    'placeholder="' + __t.image_url_placeholder + '" data-index="' + newIndex +
+                    '" oninput="updateUrlLink(this)">' +
+                    '<button type="button" onclick="removeImageUrlEntry(this)" class="px-2 py-2 text-red-500 hover:bg-red-50 rounded-lg flex-shrink-0" title="' +
+                    __t.delete + '">' +
                     '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
                     '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>';
                 list.appendChild(entry);
@@ -1340,7 +1539,9 @@
                 } else {
                     linkBtn.href = '#';
                     linkBtn.classList.add('opacity-30', 'cursor-not-allowed');
-                    linkBtn.onclick = function() { return false; };
+                    linkBtn.onclick = function() {
+                        return false;
+                    };
                 }
                 updateUrlImagePreviews();
             };
@@ -1367,8 +1568,14 @@
                             answer: aTextarea ? aTextarea.value : ''
                         });
                     });
-                    if (items.length === 0) items.push({question: '', answer: ''});
-                    return { type: 'multi', items: items };
+                    if (items.length === 0) items.push({
+                        question: '',
+                        answer: ''
+                    });
+                    return {
+                        type: 'multi',
+                        items: items
+                    };
                 }
             }
 
@@ -1393,8 +1600,14 @@
                 var urlCaptionArea = document.getElementById('infoPopupUrlImageArea');
 
                 // Hide the old url areas completely
-                if (urlPreviewArea) { urlPreviewArea.classList.add('hidden'); urlPreviewArea.style.display = 'none'; }
-                if (urlCaptionArea) { urlCaptionArea.classList.add('hidden'); urlCaptionArea.style.display = 'none'; }
+                if (urlPreviewArea) {
+                    urlPreviewArea.classList.add('hidden');
+                    urlPreviewArea.style.display = 'none';
+                }
+                if (urlCaptionArea) {
+                    urlCaptionArea.classList.add('hidden');
+                    urlCaptionArea.style.display = 'none';
+                }
 
                 // Save URL image captions before clearing
                 uploadCaptionRows.querySelectorAll('[data-url-slot-index]').forEach(function(container) {
@@ -1405,7 +1618,8 @@
                         var stateStr = typeof state === 'object' ? JSON.stringify(state) : state;
                         urlImageCaptionTracker[slotIdx] = state;
                         // Find the URL input whose data-index matches slotIdx
-                        var allUrlInputs = document.querySelectorAll('#image-url-list input[name^="new_image_urls"]');
+                        var allUrlInputs = document.querySelectorAll(
+                            '#image-url-list input[name^="new_image_urls"]');
                         for (var i = 0; i < allUrlInputs.length; i++) {
                             if (parseInt(allUrlInputs[i].getAttribute('data-index')) === slotIdx) {
                                 allUrlInputs[i].setAttribute('data-caption', stateStr);
@@ -1442,7 +1656,11 @@
                     if (!uid && url) { // Only timestamp when user actually enters a URL
                         uid = 'url_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
                         input.setAttribute('data-uid', uid);
-                        window.mediaTimeline.push({ type: 'url', uid: uid, timestamp: Date.now() });
+                        window.mediaTimeline.push({
+                            type: 'url',
+                            uid: uid,
+                            timestamp: Date.now()
+                        });
                     }
 
                     if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
@@ -1451,14 +1669,17 @@
                             linkBtn.classList.remove('opacity-30', 'cursor-not-allowed');
                             linkBtn.onclick = null;
                         }
-                        var timelineEntry = window.mediaTimeline.find(function(t) { return t.uid === uid; });
+                        var timelineEntry = window.mediaTimeline.find(function(t) {
+                            return t.uid === uid;
+                        });
                         activeItems.push({
                             type: 'url',
                             url: convertImageUrl(url),
                             originalUrl: url,
                             uid: uid,
                             domIdx: idx, // M index
-                            backendIdx: existingUploadedCount + uploadedCount + numValidUrls, // E + N + M
+                            backendIdx: existingUploadedCount + uploadedCount +
+                                numValidUrls, // E + N + M
                             caption: caption,
                             timestamp: timelineEntry ? timelineEntry.timestamp : Date.now()
                         });
@@ -1467,7 +1688,9 @@
                         if (linkBtn) {
                             linkBtn.href = '#';
                             linkBtn.classList.add('opacity-30', 'cursor-not-allowed');
-                            linkBtn.onclick = function() { return false; };
+                            linkBtn.onclick = function() {
+                                return false;
+                            };
                         }
                     }
                 });
@@ -1477,9 +1700,15 @@
                     if (!uid) { // default if missing
                         uid = 'upload_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
                         file._uid = uid;
-                        window.mediaTimeline.push({ type: 'upload', uid: uid, timestamp: Date.now() });
+                        window.mediaTimeline.push({
+                            type: 'upload',
+                            uid: uid,
+                            timestamp: Date.now()
+                        });
                     }
-                    var timelineEntry = window.mediaTimeline.find(function(t) { return t.uid === uid; });
+                    var timelineEntry = window.mediaTimeline.find(function(t) {
+                        return t.uid === uid;
+                    });
                     activeItems.push({
                         type: 'upload',
                         file: file,
@@ -1515,7 +1744,9 @@
                 }
 
                 // Sort purely chronologically by timestamp (ascending) so visual order matches input order
-                activeItems.sort(function(a, b) { return a.timestamp - b.timestamp; });
+                activeItems.sort(function(a, b) {
+                    return a.timestamp - b.timestamp;
+                });
 
                 var renderIdx = 0;
                 activeItems.forEach(function(item) {
@@ -1526,20 +1757,24 @@
                         // Render upload preview synchronously to preserve order
                         var wrap = document.createElement('div');
                         wrap.className = 'img-preview-wrap';
-                        wrap.innerHTML = '<div style="height:60px;width:60px;background:#f3f4f6;border-radius:8px;border:1px solid #e5e7eb;display:flex;align-items:center;justify-content:center;"><span class="text-xs text-gray-400">...</span></div>';
+                        wrap.innerHTML =
+                            '<div style="height:60px;width:60px;background:#f3f4f6;border-radius:8px;border:1px solid #e5e7eb;display:flex;align-items:center;justify-content:center;"><span class="text-xs text-gray-400">...</span></div>';
                         uploadPreviewArea.appendChild(wrap);
 
                         var reader = new FileReader();
                         (function(idx, fileReader, container) {
                             fileReader.onload = function(e) {
-                                container.innerHTML = '<img src="' + e.target.result + '" alt="" style="height:60px;width:60px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb;">' +
-                                    '<button type="button" class="remove-img" onclick="removePreviewImage(' + idx + ')">✕</button>';
+                                container.innerHTML = '<img src="' + e.target.result +
+                                    '" alt="" style="height:60px;width:60px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb;">' +
+                                    '<button type="button" class="remove-img" onclick="removePreviewImage(' +
+                                    idx + ')">✕</button>';
                             };
                         })(item.domIdx, reader, wrap);
                         reader.readAsDataURL(item.file);
 
                         // Render upload caption — reuse existing widget if already in DOM to preserve user input
-                        var existingUploadContainer = uploadCaptionRows.querySelector('[data-upload-slot-index="' + item.domIdx + '"]');
+                        var existingUploadContainer = uploadCaptionRows.querySelector(
+                            '[data-upload-slot-index="' + item.domIdx + '"]');
                         var savedCaption = newUploadImageCaptionTracker[item.domIdx] || '';
                         var row = document.createElement('div');
                         row.className = 'info-popup-row';
@@ -1549,31 +1784,38 @@
                         labelEl.textContent = __t.popup_existing_images + ' ' + displayPosition;
                         row.appendChild(labelEl);
 
-                        if (existingUploadContainer && existingUploadContainer.querySelector('.caption-widget-mode')) {
+                        if (existingUploadContainer && existingUploadContainer.querySelector(
+                                '.caption-widget-mode')) {
                             // Widget already exists — only recreate if caption state differs
                             var currentState = extractWidgetState(existingUploadContainer);
-                            var currentStr = typeof currentState === 'object' ? JSON.stringify(currentState) : currentState;
-                            var newStr = typeof savedCaption === 'object' ? JSON.stringify(savedCaption) : (savedCaption || '');
+                            var currentStr = typeof currentState === 'object' ? JSON.stringify(
+                                currentState) : currentState;
+                            var newStr = typeof savedCaption === 'object' ? JSON.stringify(savedCaption) : (
+                                savedCaption || '');
                             if (currentStr === newStr) {
                                 row.appendChild(existingUploadContainer);
                                 uploadCaptionRows.appendChild(row);
                             } else {
                                 var widgetContainer = document.createElement('div');
                                 widgetContainer.setAttribute('data-upload-slot-index', item.domIdx);
-                                createCaptionWidget(widgetContainer, 'info_popup_new_images', item.backendIdx, savedCaption, {
-                                    singlePlaceholder: __t.popup_existing_images + ' ' + displayPosition + '...',
-                                    isArray: true
-                                });
+                                createCaptionWidget(widgetContainer, 'info_popup_new_images', item
+                                    .backendIdx, savedCaption, {
+                                        singlePlaceholder: __t.popup_existing_images + ' ' +
+                                            displayPosition + '...',
+                                        isArray: true
+                                    });
                                 row.appendChild(widgetContainer);
                                 uploadCaptionRows.appendChild(row);
                             }
                         } else {
                             var widgetContainer = document.createElement('div');
                             widgetContainer.setAttribute('data-upload-slot-index', item.domIdx);
-                            createCaptionWidget(widgetContainer, 'info_popup_new_images', item.backendIdx, savedCaption, {
-                                singlePlaceholder: __t.popup_existing_images + ' ' + displayPosition + '...',
-                                isArray: true
-                            });
+                            createCaptionWidget(widgetContainer, 'info_popup_new_images', item.backendIdx,
+                                savedCaption, {
+                                    singlePlaceholder: __t.popup_existing_images + ' ' +
+                                        displayPosition + '...',
+                                    isArray: true
+                                });
                             row.appendChild(widgetContainer);
                             uploadCaptionRows.appendChild(row);
                         }
@@ -1584,20 +1826,27 @@
                         wrap.className = 'img-preview-wrap';
                         var isGoogleDrive = item.originalUrl.includes('drive.google.com');
 
-                        wrap.innerHTML = '<img src="' + item.url + '" alt="" style="height:60px;width:60px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb;" onerror="this.style.display=\'none\'; this.nextElementSibling.style.display=\'flex\';">' +
+                        wrap.innerHTML = '<img src="' + item.url +
+                            '" alt="" style="height:60px;width:60px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb;" onerror="this.style.display=\'none\'; this.nextElementSibling.style.display=\'flex\';">' +
                             '<div class="flex flex-col items-center justify-center" style="height:60px;width:60px;background:#f3f4f6;border-radius:8px;border:1px solid #e5e7eb;display:none;">' +
                             '<svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>' +
-                            '<a href="' + item.originalUrl + '" target="_blank" class="text-xs text-blue-500 hover:text-blue-700 mt-1">' + __t.view + '</a></div>' +
-                            '<button type="button" class="remove-img" onclick="removeUrlImage(' + item.domIdx + ')">✕</button>';
+                            '<a href="' + item.originalUrl +
+                            '" target="_blank" class="text-xs text-blue-500 hover:text-blue-700 mt-1">' +
+                            __t.view + '</a></div>' +
+                            '<button type="button" class="remove-img" onclick="removeUrlImage(' + item
+                            .domIdx + ')">✕</button>';
                         uploadPreviewArea.appendChild(wrap);
 
                         // Render URL caption — reuse existing widget if already in DOM to preserve user input
-                        var existingContainer = uploadCaptionRows.querySelector('[data-url-slot-index="' + item.domIdx + '"]');
+                        var existingContainer = uploadCaptionRows.querySelector('[data-url-slot-index="' +
+                            item.domIdx + '"]');
                         var savedCaption = urlImageCaptionTracker[item.domIdx] || '';
                         var captionValue = item.caption || savedCaption || '';
                         var captionData = captionValue;
                         if (typeof captionValue === 'string' && captionValue.charAt(0) === '{') {
-                            try { captionData = JSON.parse(captionValue); } catch(e) {}
+                            try {
+                                captionData = JSON.parse(captionValue);
+                            } catch (e) {}
                         }
 
                         var row = document.createElement('div');
@@ -1611,8 +1860,10 @@
                         if (existingContainer && existingContainer.querySelector('.caption-widget-mode')) {
                             // Widget already exists — only recreate if caption state differs
                             var currentState = extractWidgetState(existingContainer);
-                            var currentStr = typeof currentState === 'object' ? JSON.stringify(currentState) : currentState;
-                            var newStr = typeof captionData === 'object' ? JSON.stringify(captionData) : (captionData || '');
+                            var currentStr = typeof currentState === 'object' ? JSON.stringify(
+                                currentState) : currentState;
+                            var newStr = typeof captionData === 'object' ? JSON.stringify(captionData) : (
+                                captionData || '');
                             if (currentStr === newStr) {
                                 // State unchanged — preserve existing DOM (preserves user input)
                                 row.appendChild(existingContainer);
@@ -1622,10 +1873,12 @@
                                 var widgetContainer = document.createElement('div');
                                 widgetContainer.setAttribute('data-url-slot-index', item.domIdx);
                                 widgetContainer.setAttribute('data-backend-idx', item.backendIdx);
-                                createCaptionWidget(widgetContainer, 'info_popup_images', item.backendIdx, captionData, {
-                                    singlePlaceholder: __t.popup_url_images + ' ' + displayPosition + '...',
-                                    isArray: true
-                                });
+                                createCaptionWidget(widgetContainer, 'info_popup_images', item.backendIdx,
+                                    captionData, {
+                                        singlePlaceholder: __t.popup_url_images + ' ' +
+                                            displayPosition + '...',
+                                        isArray: true
+                                    });
                                 row.appendChild(widgetContainer);
                                 uploadCaptionRows.appendChild(row);
                             }
@@ -1634,10 +1887,12 @@
                             var widgetContainer = document.createElement('div');
                             widgetContainer.setAttribute('data-url-slot-index', item.domIdx);
                             widgetContainer.setAttribute('data-backend-idx', item.backendIdx);
-                            createCaptionWidget(widgetContainer, 'info_popup_images', item.backendIdx, captionData, {
-                                singlePlaceholder: __t.popup_url_images + ' ' + displayPosition + '...',
-                                isArray: true
-                            });
+                            createCaptionWidget(widgetContainer, 'info_popup_images', item.backendIdx,
+                                captionData, {
+                                    singlePlaceholder: __t.popup_url_images + ' ' + displayPosition +
+                                        '...',
+                                    isArray: true
+                                });
                             row.appendChild(widgetContainer);
                             uploadCaptionRows.appendChild(row);
                         }
@@ -1664,13 +1919,21 @@
                             var inp = wrap.querySelector('input[name^="existing_images["]:not([disabled])');
                             if (inp) {
                                 var idx = parseInt(wrap.getAttribute('data-original-index'));
-                                serializable.push({ type: 'existing', existingIndex: idx, order: orderCounter++ });
+                                serializable.push({
+                                    type: 'existing',
+                                    existingIndex: idx,
+                                    order: orderCounter++
+                                });
                             }
                         } else if (wrap.classList.contains('existing-url-img-wrap')) {
                             // Check if not deleted (opacity indicates deleted)
                             if (wrap.style.opacity !== '0.3' && wrap.style.opacity !== '0.5') {
                                 var idx = parseInt(wrap.getAttribute('data-url-original-index'));
-                                serializable.push({ type: 'existingUrl', existingUrlIndex: idx, order: orderCounter++ });
+                                serializable.push({
+                                    type: 'existingUrl',
+                                    existingUrlIndex: idx,
+                                    order: orderCounter++
+                                });
                             }
                         }
                     }
@@ -1679,18 +1942,29 @@
                 // Then append the active items (new uploads and URLs)
                 activeItems.forEach(function(item) {
                     if (item.type === 'url') {
-                        serializable.push({ type: 'url', urlIndex: item.domIdx, urlValue: item.originalUrl, order: item.timestamp });
+                        serializable.push({
+                            type: 'url',
+                            urlIndex: item.domIdx,
+                            urlValue: item.originalUrl,
+                            order: item.timestamp
+                        });
                     } else if (item.type === 'upload') {
-                        serializable.push({ type: 'newUpload', newUploadIndex: item.domIdx, order: item.timestamp });
+                        serializable.push({
+                            type: 'newUpload',
+                            newUploadIndex: item.domIdx,
+                            order: item.timestamp
+                        });
                     }
                 });
                 input.value = JSON.stringify(serializable);
             }
 
             window.removeUrlImage = function(domIdx) {
-                var entries = document.querySelectorAll('#image-url-list .image-url-entry');
+                // Only look at NEW image URL entries
+                var newEntries = document.querySelectorAll(
+                    '#image-url-list .image-url-entry:not([data-is-existing="1"])');
                 var targetEntry = null;
-                entries.forEach(function(ent) {
+                newEntries.forEach(function(ent) {
                     var inp = ent.querySelector('input[name^="new_image_urls"]');
                     if (inp && parseInt(inp.getAttribute('data-index')) === domIdx) {
                         targetEntry = ent;
@@ -1701,24 +1975,25 @@
                 // Delete the tracker entry (keyed by domIdx) before removing
                 delete urlImageCaptionTracker[domIdx];
 
-                if (entries.length > 1) {
+                if (newEntries.length > 1) {
                     targetEntry.remove();
-                    // Reindex data-index on remaining entries
-                    var remaining = document.querySelectorAll('#image-url-list .image-url-entry');
+                    // Reindex data-index on remaining NEW entries
+                    var remaining = document.querySelectorAll(
+                        '#image-url-list .image-url-entry:not([data-is-existing="1"])');
                     remaining.forEach(function(ent, i) {
                         var inp = ent.querySelector('input[name^="new_image_urls"]');
                         if (inp) inp.setAttribute('data-index', i);
                     });
-                    // Also reindex data-url-slot-index on caption containers so save stays correct
+                    // Remove caption row and reindex remaining
                     var uploadCaptionRows = document.getElementById('infoPopupUploadRows');
                     if (uploadCaptionRows) {
+                        var removedCaption = uploadCaptionRows.querySelector('[data-url-slot-index="' + domIdx +
+                            '"]');
+                        if (removedCaption) removedCaption.remove();
                         uploadCaptionRows.querySelectorAll('[data-url-slot-index]').forEach(function(container) {
                             var currentSlot = parseInt(container.getAttribute('data-url-slot-index'));
                             if (currentSlot > domIdx) {
                                 container.setAttribute('data-url-slot-index', currentSlot - 1);
-                            } else if (currentSlot === domIdx) {
-                                // This container belonged to the removed URL — clear it
-                                container.setAttribute('data-url-slot-index', '-1');
                             }
                         });
                     }
@@ -1726,6 +2001,13 @@
                     var inputs = document.querySelectorAll('#image-url-list input[name^="new_image_urls"]');
                     if (inputs[0]) {
                         inputs[0].value = '';
+                        inputs[0].setAttribute('data-caption', '');
+                    }
+                    // Also clear caption when single URL is cleared
+                    var uploadCaptionRows = document.getElementById('infoPopupUploadRows');
+                    if (uploadCaptionRows) {
+                        var captionRow = uploadCaptionRows.querySelector('[data-url-slot-index="' + domIdx + '"]');
+                        if (captionRow) captionRow.remove();
                     }
                 }
                 updateUrlImagePreviews();
@@ -1766,10 +2048,14 @@
                 });
 
                 renderNewImagePreviews();
+
+                // Reset file input so same file can be uploaded again
+                input.value = '';
             };
 
             function getRemainingExistingCount() {
-                var existingInputs = document.querySelectorAll('#existingImagesArea input[name^="existing_images["]:not([disabled])');
+                var existingInputs = document.querySelectorAll(
+                    '#existingImagesArea input[name^="existing_images["]:not([disabled])');
                 return existingInputs.length;
             }
 
@@ -1778,6 +2064,20 @@
             }
 
             window.removePreviewImage = function(idx) {
+                // Remove caption row from DOM explicitly
+                var uploadCaptionRows = document.getElementById('infoPopupUploadRows');
+                if (uploadCaptionRows) {
+                    var removedCaption = uploadCaptionRows.querySelector('[data-upload-slot-index="' + idx + '"]');
+                    if (removedCaption) removedCaption.remove();
+                    // Reindex remaining caption rows
+                    uploadCaptionRows.querySelectorAll('[data-upload-slot-index]').forEach(function(container) {
+                        var currentSlot = parseInt(container.getAttribute('data-upload-slot-index'));
+                        if (currentSlot > idx) {
+                            container.setAttribute('data-upload-slot-index', currentSlot - 1);
+                        }
+                    });
+                }
+
                 // Remove caption and shift remaining indices down
                 delete newUploadImageCaptionTracker[idx];
                 var newTracker = {};
@@ -1812,11 +2112,15 @@
                 if (popupRow) {
                     popupRow.style.opacity = '0.5';
                     popupRow.style.pointerEvents = 'none';
-                    var inputField = popupRow.querySelector('input');
-                    if (inputField) {
-                        inputField.disabled = true;
-                        inputField.name = 'deleted_info_popup_images[' + idx + ']';
-                    }
+                    // Disable ALL form fields in caption widget (select, input, textarea)
+                    var selects = popupRow.querySelectorAll('select');
+                    selects.forEach(function(sel) {
+                        sel.disabled = true;
+                    });
+                    var inputs = popupRow.querySelectorAll('input, textarea');
+                    inputs.forEach(function(field) {
+                        field.disabled = true;
+                    });
                 }
                 if (deletedInput) {
                     deletedInput.value = '1';
@@ -1830,7 +2134,8 @@
             window.removeExistingUrl = function(idx) {
                 var wrap = document.getElementById('existing-url-wrap-' + idx);
                 var popupRow = document.getElementById('existing-url-popup-row-' + idx);
-                var duplicateEntry = document.querySelector('#image-url-list .image-url-entry[data-is-existing="1"][data-index="' + idx + '"]');
+                var duplicateEntry = document.querySelector(
+                    '#image-url-list .image-url-entry[data-is-existing="1"][data-index="' + idx + '"]');
 
                 if (wrap) {
                     wrap.style.opacity = '0.5';
@@ -1840,11 +2145,15 @@
                 if (popupRow) {
                     popupRow.style.opacity = '0.5';
                     popupRow.style.pointerEvents = 'none';
-                    var inputField = popupRow.querySelector('input, textarea');
-                    if (inputField) {
-                        inputField.disabled = true;
-                        inputField.name = 'deleted_info_popup_images[' + ({{ $slide->images ? count($slide->images) : 0 }} + idx) + ']';
-                    }
+                    // Disable ALL form fields in caption widget (select, input, textarea)
+                    var selects = popupRow.querySelectorAll('select');
+                    selects.forEach(function(sel) {
+                        sel.disabled = true;
+                    });
+                    var inputs = popupRow.querySelectorAll('input, textarea');
+                    inputs.forEach(function(field) {
+                        field.disabled = true;
+                    });
                 }
 
                 if (duplicateEntry) {
@@ -1884,8 +2193,10 @@
                 entry.setAttribute('data-index', newIndex);
                 entry.innerHTML =
                     '<input type="text" name="carousel_video_urls[]" class="form-input flex-1" ' +
-                    'placeholder="' + __t.carousel_video_url_placeholder + '" data-index="' + newIndex + '" data-caption="" oninput="updateCarouselUrlCaption(this)">' +
-                    '<button type="button" onclick="removeCarouselVideoUrlEntry(this)" class="px-2 py-2 text-red-500 hover:bg-red-50 rounded-lg flex-shrink-0" title="' + __t.delete + '">' +
+                    'placeholder="' + __t.carousel_video_url_placeholder + '" data-index="' + newIndex +
+                    '" data-caption="" oninput="updateCarouselUrlCaption(this)">' +
+                    '<button type="button" onclick="removeCarouselVideoUrlEntry(this)" class="px-2 py-2 text-red-500 hover:bg-red-50 rounded-lg flex-shrink-0" title="' +
+                    __t.delete + '">' +
                     '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
                     '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>';
                 list.appendChild(entry);
@@ -1913,13 +2224,15 @@
 
             window.removeCarouselVideoUrlEntry = function(btn) {
                 var entry = btn.closest('.carousel-video-url-entry');
-                var domIndex = entry ? parseInt(entry.querySelector('input[name="carousel_video_urls[]"]').getAttribute('data-index')) : -1;
+                var domIndex = entry ? parseInt(entry.querySelector('input[name="carousel_video_urls[]"]')
+                    .getAttribute('data-index')) : -1;
 
                 var entries = document.querySelectorAll('.carousel-video-url-entry');
                 if (entries.length > 1) {
                     entry.remove();
                 } else {
-                    var inputs = document.querySelectorAll('#carousel-video-url-list input[name="carousel_video_urls[]"]');
+                    var inputs = document.querySelectorAll(
+                        '#carousel-video-url-list input[name="carousel_video_urls[]"]');
                     if (inputs[0]) {
                         inputs[0].value = '';
                         inputs[0].setAttribute('data-caption', '');
@@ -1964,7 +2277,8 @@
                 var hint = document.getElementById('noCarouselVideosHint');
 
                 // Sync allVideoEntries with current DOM state for URLs
-                var urlInputs = document.querySelectorAll('#carousel-video-url-list input[name="carousel_video_urls[]"]');
+                var urlInputs = document.querySelectorAll(
+                    '#carousel-video-url-list input[name="carousel_video_urls[]"]');
                 urlInputs.forEach(function(input, idx) {
                     var url = input.value.trim();
                     // Use urlCaptionTracker for caption so it survives re-renders
@@ -2013,7 +2327,8 @@
                 // Count valid videos
                 var validVideos = allVideoEntries.filter(function(entry) {
                     if (entry.type === 'url') {
-                        return entry.data && (entry.data.startsWith('http://') || entry.data.startsWith('https://'));
+                        return entry.data && (entry.data.startsWith('http://') || entry.data.startsWith(
+                            'https://'));
                     }
                     // Upload is valid if it has data (new upload) or uploadPath (existing upload)
                     return entry.data !== null || entry.uploadPath;
@@ -2038,7 +2353,8 @@
 
                 if (validVideos.length === 0) {
                     if (hint) hint.style.display = '';
-                    popupRows.innerHTML = '<p class="text-xs text-gray-400 italic" id="noCarouselVideosHint">' + __t.add_videos_first + '</p>';
+                    popupRows.innerHTML = '<p class="text-xs text-gray-400 italic" id="noCarouselVideosHint">' + __t
+                        .add_videos_first + '</p>';
                     return;
                 }
 
@@ -2053,7 +2369,8 @@
                 // Render all videos in order (allVideoEntries is already in chronological order)
                 allVideoEntries.forEach(function(video, renderIndex) {
                     // Skip invalid entries
-                    if (video.type === 'url' && (!video.data || (!video.data.startsWith('http://') && !video.data.startsWith('https://')))) {
+                    if (video.type === 'url' && (!video.data || (!video.data.startsWith('http://') && !video
+                            .data.startsWith('https://')))) {
                         return;
                     }
                     if (video.type === 'upload' && !video.data && !video.uploadPath) {
@@ -2084,24 +2401,35 @@
                         var youtubeId = getYouTubeId(video.data);
 
                         if (youtubeId) {
-                            wrap.innerHTML = '<img src="https://img.youtube.com/vi/' + youtubeId + '/1.jpg" style="height:60px;width:80px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb;" class="rounded-lg">' +
-                                '<button type="button" class="remove-img" onclick="removeUrlVideo(' + video.domIndex + ')">✕</button>';
-                        } else if (video.data.endsWith('.mp4') || video.data.endsWith('.webm') || video.data.endsWith('.ogg')) {
-                            wrap.innerHTML = '<video src="' + video.data + '" style="height:60px;width:80px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb;"></video>' +
-                                '<button type="button" class="remove-img" onclick="removeUrlVideo(' + video.domIndex + ')">✕</button>';
+                            wrap.innerHTML = '<img src="https://img.youtube.com/vi/' + youtubeId +
+                                '/1.jpg" style="height:60px;width:80px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb;" class="rounded-lg">' +
+                                '<button type="button" class="remove-img" onclick="removeUrlVideo(' + video
+                                .domIndex + ')">✕</button>';
+                        } else if (video.data.endsWith('.mp4') || video.data.endsWith('.webm') || video.data
+                            .endsWith('.ogg')) {
+                            wrap.innerHTML = '<video src="' + video.data +
+                                '" style="height:60px;width:80px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb;"></video>' +
+                                '<button type="button" class="remove-img" onclick="removeUrlVideo(' + video
+                                .domIndex + ')">✕</button>';
                         } else if (video.data.includes('drive.google.com')) {
                             var gdThumb = convertGoogleDriveUrl(video.data);
                             if (gdThumb) {
-                                wrap.innerHTML = '<img src="' + gdThumb + '" style="height:60px;width:80px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb;" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\';">' +
+                                wrap.innerHTML = '<img src="' + gdThumb +
+                                    '" style="height:60px;width:80px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb;" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\';">' +
                                     '<div class="w-20 h-16 rounded-lg border border-gray-200 bg-gray-100 flex items-center justify-center" style="display:none;"><svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg></div>' +
-                                    '<button type="button" class="remove-img" onclick="removeUrlVideo(' + video.domIndex + ')">✕</button>';
+                                    '<button type="button" class="remove-img" onclick="removeUrlVideo(' + video
+                                    .domIndex + ')">✕</button>';
                             } else {
-                                wrap.innerHTML = '<div class="w-20 h-16 rounded-lg border border-gray-200 bg-gray-100 flex items-center justify-center"><svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg></div>' +
-                                    '<button type="button" class="remove-img" onclick="removeUrlVideo(' + video.domIndex + ')">✕</button>';
+                                wrap.innerHTML =
+                                    '<div class="w-20 h-16 rounded-lg border border-gray-200 bg-gray-100 flex items-center justify-center"><svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg></div>' +
+                                    '<button type="button" class="remove-img" onclick="removeUrlVideo(' + video
+                                    .domIndex + ')">✕</button>';
                             }
                         } else {
-                            wrap.innerHTML = '<div class="w-20 h-16 rounded-lg border border-gray-200 bg-gray-100 flex items-center justify-center"><svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg></div>' +
-                                '<button type="button" class="remove-img" onclick="removeUrlVideo(' + video.domIndex + ')">✕</button>';
+                            wrap.innerHTML =
+                                '<div class="w-20 h-16 rounded-lg border border-gray-200 bg-gray-100 flex items-center justify-center"><svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg></div>' +
+                                '<button type="button" class="remove-img" onclick="removeUrlVideo(' + video
+                                .domIndex + ')">✕</button>';
                         }
 
                         previewArea.appendChild(wrap);
@@ -2118,12 +2446,15 @@
                         // Parse caption data for multi mode support
                         var captionData = video.caption || '';
                         if (typeof captionData === 'string' && captionData.charAt(0) === '{') {
-                            try { captionData = JSON.parse(captionData); } catch(e) {}
+                            try {
+                                captionData = JSON.parse(captionData);
+                            } catch (e) {}
                         }
-                        var widget = createCaptionWidget(widgetContainer, 'info_popup_carousel_videos', captionKey, captionData, {
-                            singlePlaceholder: __t.single_video_caption + ' ' + displayPosition + '...',
-                            isArray: true
-                        });
+                        var widget = createCaptionWidget(widgetContainer, 'info_popup_carousel_videos',
+                            captionKey, captionData, {
+                                singlePlaceholder: __t.single_video_caption + ' ' + displayPosition + '...',
+                                isArray: true
+                            });
                         widget.singleInput.addEventListener('input', function() {
                             video.caption = this.value;
                             if (video.type === 'url') {
@@ -2134,11 +2465,14 @@
                         popupRows.appendChild(row);
                     } else {
                         // Upload video
-                        var videoSrc = video.data ? URL.createObjectURL(video.data) : (video.uploadPath ? '{{ asset("storage/") }}/' + video.uploadPath : '');
+                        var videoSrc = video.data ? URL.createObjectURL(video.data) : (video.uploadPath ?
+                            '{{ asset('storage/') }}/' + video.uploadPath : '');
                         var uploadWrap = document.createElement('div');
                         uploadWrap.className = 'img-preview-wrap';
-                        uploadWrap.innerHTML = '<video src="' + videoSrc + '" style="height:60px;width:80px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb;"></video>' +
-                            '<button type="button" class="remove-img" onclick="removePreviewVideo(' + video.uploadId + ')">✕</button>';
+                        uploadWrap.innerHTML = '<video src="' + videoSrc +
+                            '" style="height:60px;width:80px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb;"></video>' +
+                            '<button type="button" class="remove-img" onclick="removePreviewVideo(' + video
+                            .uploadId + ')">✕</button>';
                         previewArea.appendChild(uploadWrap);
 
                         // Add caption widget
@@ -2152,12 +2486,15 @@
                         var widgetContainer = document.createElement('div');
                         var captionData = video.caption || '';
                         if (typeof captionData === 'string' && captionData.charAt(0) === '{') {
-                            try { captionData = JSON.parse(captionData); } catch(e) {}
+                            try {
+                                captionData = JSON.parse(captionData);
+                            } catch (e) {}
                         }
-                        var widget = createCaptionWidget(widgetContainer, 'info_popup_carousel_videos', captionKey, captionData, {
-                            singlePlaceholder: __t.single_video_caption + ' ' + displayPosition + '...',
-                            isArray: true
-                        });
+                        var widget = createCaptionWidget(widgetContainer, 'info_popup_carousel_videos',
+                            captionKey, captionData, {
+                                singlePlaceholder: __t.single_video_caption + ' ' + displayPosition + '...',
+                                isArray: true
+                            });
                         widget.singleInput.addEventListener('input', function() {
                             video.caption = this.value;
                         });
@@ -2254,14 +2591,15 @@
             setTimeout(function() {
                 // Get captions from info_popup (available in both branches)
                 var captions = {};
-                @if(!empty($slide->info_popup['carousel_videos']))
+                @if (!empty($slide->info_popup['carousel_videos']))
                     captions = {!! json_encode($slide->info_popup['carousel_videos']) !!};
                 @endif
 
                 // If carouselVideoOrder exists, use it to rebuild allVideoEntries in correct order
                 if (typeof carouselVideoOrder !== 'undefined' && carouselVideoOrder.length > 0) {
                     // Get all URL inputs and captions from DOM
-                    var urlInputs = document.querySelectorAll('#carousel-video-url-list input[name="carousel_video_urls[]"]');
+                    var urlInputs = document.querySelectorAll(
+                        '#carousel-video-url-list input[name="carousel_video_urls[]"]');
 
                     // Build entries based on carouselVideoOrder
                     carouselVideoOrder.forEach(function(item, orderIdx) {
@@ -2297,7 +2635,8 @@
                             }
                         } else if (item.type === 'newUpload') {
                             // This shouldn't happen on page load, but handle it anyway
-                            if (typeof existingCarouselVideos !== 'undefined' && existingCarouselVideos.length > 0) {
+                            if (typeof existingCarouselVideos !== 'undefined' && existingCarouselVideos
+                                .length > 0) {
                                 var newUploadIdx = item.newUploadIndex;
                                 if (existingCarouselVideos[newUploadIdx]) {
                                     uploadCounter++;
@@ -2322,7 +2661,8 @@
                     if (typeof existingCarouselVideos !== 'undefined' && existingCarouselVideos.length > 0) {
                         existingCarouselVideos.forEach(function(videoPath, idx) {
                             var exists = allVideoEntries.some(function(entry) {
-                                return entry.type === 'upload' && entry.uploadPath === videoPath;
+                                return entry.type === 'upload' && entry.uploadPath ===
+                                    videoPath;
                             });
                             if (!exists) {
                                 uploadCounter++;
@@ -2350,14 +2690,28 @@
                     var newUploadIdx = 0;
                     allVideoEntries.forEach(function(entry, orderIdx) {
                         if (entry.type === 'url' && entry.data) {
-                            unifiedOrder.push({ type: 'url', urlValue: entry.data, urlIndex: urlIdx, order: orderIdx });
+                            unifiedOrder.push({
+                                type: 'url',
+                                urlValue: entry.data,
+                                urlIndex: urlIdx,
+                                order: orderIdx
+                            });
                             urlIdx++;
                         } else if (entry.type === 'upload') {
                             if (entry.uploadPath) {
-                                unifiedOrder.push({ type: 'upload', uploadPath: entry.uploadPath, uploadIndex: uploadIdx, order: orderIdx });
+                                unifiedOrder.push({
+                                    type: 'upload',
+                                    uploadPath: entry.uploadPath,
+                                    uploadIndex: uploadIdx,
+                                    order: orderIdx
+                                });
                                 uploadIdx++;
                             } else if (entry.data) {
-                                unifiedOrder.push({ type: 'newUpload', newUploadIndex: newUploadIdx, order: orderIdx });
+                                unifiedOrder.push({
+                                    type: 'newUpload',
+                                    newUploadIndex: newUploadIdx,
+                                    order: orderIdx
+                                });
                                 newUploadIdx++;
                             }
                         }
@@ -2421,15 +2775,22 @@
                     // Restore saved description content with multiple attempts
                     // The RTE iframe may not be ready immediately after construction
                     setRTEContent(editor1, initialDescriptionHtml);
-                    setTimeout(function() { setRTEContent(editor1, initialDescriptionHtml); }, 300);
-                    setTimeout(function() { setRTEContent(editor1, initialDescriptionHtml); }, 800);
+                    setTimeout(function() {
+                        setRTEContent(editor1, initialDescriptionHtml);
+                    }, 300);
+                    setTimeout(function() {
+                        setRTEContent(editor1, initialDescriptionHtml);
+                    }, 800);
                     setTimeout(function() {
                         // Final check: if editor still empty but we have content, try once more
                         try {
                             var currentContent = '';
-                            if (typeof editor1.getHTMLCode === 'function') currentContent = editor1.getHTMLCode();
+                            if (typeof editor1.getHTMLCode === 'function') currentContent = editor1
+                                .getHTMLCode();
                             else if (typeof editor1.getHTML === 'function') currentContent = editor1.getHTML();
-                            if ((!currentContent || currentContent.trim() === '' || currentContent.trim() === '<p><br></p>' || currentContent.trim() === '<br>') && initialDescriptionHtml && initialDescriptionHtml.trim() !== '') {
+                            if ((!currentContent || currentContent.trim() === '' || currentContent.trim() ===
+                                    '<p><br></p>' || currentContent.trim() === '<br>') &&
+                                initialDescriptionHtml && initialDescriptionHtml.trim() !== '') {
                                 setRTEContent(editor1, initialDescriptionHtml);
                             }
                         } catch (e) {}
@@ -2450,9 +2811,14 @@
                 var captionIndex = el.getAttribute('data-caption-index');
                 var rawData = el.getAttribute('data-caption-data');
                 var captionData = '';
-                try { captionData = JSON.parse(rawData); } catch(e) { captionData = rawData || ''; }
+                try {
+                    captionData = JSON.parse(rawData);
+                } catch (e) {
+                    captionData = rawData || '';
+                }
                 createCaptionWidget(el, 'info_popup_images', captionIndex, captionData, {
-                    singlePlaceholder: __t.popup_existing_images + ' ' + (parseInt(captionIndex) + 1) + '...',
+                    singlePlaceholder: __t.popup_existing_images + ' ' + (parseInt(captionIndex) + 1) +
+                        '...',
                     isArray: true
                 });
             });
@@ -2462,7 +2828,11 @@
                 var urlIdx = parseInt(el.getAttribute('data-url-caption-index'));
                 var rawData = el.getAttribute('data-url-caption-data');
                 var captionData = '';
-                try { captionData = JSON.parse(rawData); } catch(e) { captionData = rawData || ''; }
+                try {
+                    captionData = JSON.parse(rawData);
+                } catch (e) {
+                    captionData = rawData || '';
+                }
                 // Gunakan info_popup_existing_urls dengan index = urlIdx agar sesuai controller
                 createCaptionWidget(el, 'info_popup_existing_urls', urlIdx, captionData, {
                     singlePlaceholder: 'Info Popup Caption (gambar URL) ' + (urlIdx + 1) + '...',
@@ -2475,7 +2845,11 @@
             if (videoCaptionEl) {
                 var videoRawData = videoCaptionEl.getAttribute('data-caption-data');
                 var videoCaptionData = '';
-                try { videoCaptionData = JSON.parse(videoRawData); } catch(e) { videoCaptionData = videoRawData || ''; }
+                try {
+                    videoCaptionData = JSON.parse(videoRawData);
+                } catch (e) {
+                    videoCaptionData = videoRawData || '';
+                }
                 createCaptionWidget(videoCaptionEl, 'info_popup_video', null, videoCaptionData, {
                     singlePlaceholder: '{{ __('cms.virtual_slideshow.popup_video_upload') }}...',
                     isArray: false
@@ -2487,7 +2861,11 @@
             if (videoCaptionUrlEl) {
                 var videoUrlRawData = videoCaptionUrlEl.getAttribute('data-caption-data');
                 var videoUrlCaptionData = '';
-                try { videoUrlCaptionData = JSON.parse(videoUrlRawData); } catch(e) { videoUrlCaptionData = videoUrlRawData || ''; }
+                try {
+                    videoUrlCaptionData = JSON.parse(videoUrlRawData);
+                } catch (e) {
+                    videoUrlCaptionData = videoUrlRawData || '';
+                }
                 createCaptionWidget(videoCaptionUrlEl, 'info_popup_video_url', null, videoUrlCaptionData, {
                     singlePlaceholder: '{{ __('cms.virtual_slideshow.popup_video_url') }}...',
                     isArray: false
@@ -2591,7 +2969,8 @@
                 // Set hidden fields
                 document.getElementById('unifiedVideoOrder').value = JSON.stringify(unifiedOrder);
                 document.getElementById('existingCarouselVideosInput').value = JSON.stringify(existingVideos);
-                console.log('Set unifiedVideoOrder:', unifiedOrder.length, 'existingCarouselVideos:', existingVideos.length);
+                console.log('Set unifiedVideoOrder:', unifiedOrder.length, 'existingCarouselVideos:',
+                    existingVideos.length);
             });
         })();
     </script>
